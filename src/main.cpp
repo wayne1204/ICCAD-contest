@@ -6,7 +6,9 @@
 #include <iomanip> 
 #include <vector>
 #include <string>
-#include "layout.h"
+// #include "layout.h"
+#include "process.h"
+#include "util.h"
 #include <unordered_set>
 
 using namespace std;
@@ -24,6 +26,7 @@ int main(int argc, char** argv)
     char* buff_beg = buff;
     char* buff_end = buff + filesize;
 
+    ProcessFile* pf;
     string token;
     string design, output, rulefile, process_file;
     unordered_set<int> cnets_set;
@@ -43,6 +46,10 @@ int main(int argc, char** argv)
         }
         else if (token == "process_file"){
             process_file = next_token(buff_beg, buff_end);
+            size_t pos = ConfigFile.find("circuit1.conf");
+            string file = ConfigFile.substr(0, pos) + process_file;
+            cout <<file <<endl;
+            pf->readFile(file.c_str());
             next_token(buff_beg, buff_end);
         }
         else if (token == "critical_nets"){
