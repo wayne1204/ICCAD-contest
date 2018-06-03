@@ -9,11 +9,7 @@
 
 using namespace std;
 
-int Capacitance::getKey()
-{
-    return cap_type * layer_id * (other_layer + 1);
-}
-
+// record the valid area range
 void Capacitance::setRange(const string& str)
 {
     int num;
@@ -27,6 +23,7 @@ void Capacitance::setRange(const string& str)
     }
 }
 
+// record the weights and bias in capacitance formula
 void Capacitance::setParameter(const string &str)
 {
     double w, b;
@@ -46,6 +43,7 @@ void Capacitance::setParameter(const string &str)
 
 }
 
+// get capacitance from corresponding area
 double Capacitance::getCapacitance(double area)
 {
     for(int i = 1; i < weights.size(); ++i)
@@ -58,6 +56,7 @@ double Capacitance::getCapacitance(double area)
     return ret * area / range.back();
 }
 
+// parse file
 void ProcessFile::readFile(const char* fileName)
 {
     string line, header, token;
@@ -74,14 +73,12 @@ void ProcessFile::readFile(const char* fileName)
             size_t pos = line.find(' ', 0);
             header = line.substr(0, pos);
             if (header == "window:"){
-                // token = line.substr(pos +1, 5);
-                // cout << token <<endl;
-                // int size = stoi(token);
-                // setWindow(size);
+                token = line.substr(pos +1, 5);
+                int size = stoi(token);
+                setWindow(size);
             }
             else if(header == "TableName:"){
                 token = line.substr(pos);
-                
                 c = newCapRule(token);
                 getline(ifs, line);
                 getline(ifs, line);
@@ -92,9 +89,12 @@ void ProcessFile::readFile(const char* fileName)
             }
         }
     }
+    cout << "Finish parsing porcess file \"" << fileName << "\"\n";
+    cout << "Total capacitance rules : " << total_Cap_List.size() << endl;
     ifs.close();
 }
 
+// parse the line into different types of capacitance (area, lateral, fringe)
 Capacitance* ProcessFile::newCapRule(const string& token)
 {
     int layer1, layer2, key;
@@ -123,13 +123,14 @@ Capacitance* ProcessFile::newCapRule(const string& token)
     }else{
         cout << "[Error] Unknown type of capacitance " << type << endl;
     }
-    cout << "parsed " << type << " " << layer1 << " " << layer2 << " " <<endl;
+    // cout << "parsed " << type << " " << layer1 << " " << layer2 << " " <<endl;
 
-    // pair<int, Capacitance *> mapping(key, c);
-    // total_Cap_List.insert(mapping);
+    pair<int, Capacitance *> mapping(key, c);
+    total_Cap_List.insert(mapping);
     return c;
 }
 
+// find the corrseponding type of capacitance by using a hashmap
 double ProcessFile::calCapicitance(double area, int type, int layer1, int layer2)
 {
     layer2 = layer2 < 0 ? layer1 +1 : layer2 +1;

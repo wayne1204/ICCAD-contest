@@ -129,3 +129,13 @@ string next_token(char* &_buff, char* &buff_end)
 	}
 	return token;
 }
+
+string getDirName(const string& configFile)
+{
+      size_t pos = 0;
+      while(configFile.find('/', pos) != string::npos){
+            pos = configFile.find('/', pos);
+            ++pos;
+      }
+      return configFile.substr(0, pos);
+}

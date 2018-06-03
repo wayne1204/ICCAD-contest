@@ -13,5 +13,6 @@ extern size_t myStrGetTok(const string& str, string& tok, size_t pos = 0,
 extern bool myStr2Int(const string& str, int& num);
 extern bool isValidVarName(const string& str);
 extern string next_token(char *&_buff, char *&buff_end);
+extern string getDirName(const string&);
 
 #endif // UTIL_H

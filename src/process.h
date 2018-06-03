@@ -22,7 +22,6 @@ public:
         other_layer = n2;
     }
 
-    int getKey();
     void setRange(const string&);
     void setParameter(const string&);
     double getCapacitance(double area);
@@ -42,7 +41,6 @@ class ProcessFile{
 public:
     ProcessFile(){
         window_size = 0;
-        // total_Cap_List = new Capacitance* [400];
     }
     void readFile(const char*);
     void setWindow(int num){
