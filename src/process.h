@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <fstream>
 using namespace std;
 
 enum CapacitanceType
@@ -41,15 +42,19 @@ class ProcessFile{
 public:
     ProcessFile(){
         window_size = 0;
+        layer_num = 0;
     }
     void readFile(const char*);
-    void setWindow(int num){
-        window_size = num;
-    }
-    Capacitance* newCapRule(const string&);
+    void parseTable(ifstream& );
+    void parseCapRules(ifstream &, int);
+    void setWindow(int num){ window_size = num;   }
     double calCapicitance(double, int, int, int = -1);
+
 private:
     int window_size;
+    int layer_num;
+    unordered_map<string, pair<int, int> > area_mapping;
+    unordered_map<string, pair<int, int> > fringe_mapping;
     unordered_map<int, Capacitance*> total_Cap_List;
 };
 

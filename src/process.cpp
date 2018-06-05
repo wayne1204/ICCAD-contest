@@ -3,11 +3,13 @@
 #include <string>
 #include <fstream>
 #include <cassert>
+#include <iomanip>
 #include <typeinfo>
 #include "process.h"
 #include "util.h"
 
 using namespace std;
+
 
 // record the valid area range
 void Capacitance::setRange(const string& str)
@@ -70,71 +72,134 @@ void ProcessFile::readFile(const char* fileName)
     while(getline(ifs, line))
     {
         if(line != "") {
-            size_t pos = line.find(' ', 0);
+            size_t pos = line.find(' ', 0);          
             header = line.substr(0, pos);
             if (header == "window:"){
                 token = line.substr(pos +1, 5);
                 int size = stoi(token);
                 setWindow(size);
             }
-            else if(header == "TableName:"){
-                token = line.substr(pos);
-                c = newCapRule(token);
-                getline(ifs, line);
-                getline(ifs, line);
-                c->setRange(line);
-                getline(ifs, line);
-                c->setParameter(line);
-
+            else if (line == "; table matrix header"){
+                parseTable(ifs);
+            }
+            else if (line == "; area cap tables"){
+                parseCapRules(ifs, AREA);
+            }
+            else if (line == "; lateral cap tables"){
+                parseCapRules(ifs, LATERAL);
+            }
+            else if (line == ";fringe cap tables"){
+                parseCapRules(ifs, FRINGE);
             }
         }
     }
     cout << "Finish parsing porcess file \"" << fileName << "\"\n";
-    cout << "Total capacitance rules : " << total_Cap_List.size() << endl;
+    cout << "    Area    |   Lateral  |    Fringe  |    Total   \n";
+    cout << setw(7) << area_mapping.size() << setw(6) << "|";
+    cout << setw(7) << layer_num << setw(6) << "|";
+    cout << setw(7) << fringe_mapping.size() - layer_num << setw(6) << "|";
+    cout << setw(7) << total_Cap_List.size() << endl;
     ifs.close();
 }
 
-// parse the line into different types of capacitance (area, lateral, fringe)
-Capacitance* ProcessFile::newCapRule(const string& token)
+// parse table mapping rules
+void ProcessFile::parseTable(ifstream& ifs)
 {
-    int layer1, layer2, key;
-    string s1, s2;
-    Capacitance *c;
+    int layer_n;
+    size_t left, right, comma, pos = 0;
+    string line, token;
+    vector<int> index;
 
-    size_t pos = token.find('_');
-    string type = token.substr(1, pos - 1);
-    pos = token.find('_', ++pos);
-    size_t end = token.find('_', ++pos);
-    s1 = token.substr(pos, end - pos);
-    s2 = token.substr(++end);
-    myStr2Int(s1, layer1);
-    myStr2Int(s2, layer2);
-            
-    if(type == "area"){
-        c = new Capacitance(AREA, layer1, layer2);
-        key = layer1 * (layer2 + 1);
-    }else if (type == "lateral"){
-        layer2 = layer1;
-        c = new Capacitance(LATERAL, layer1, layer2); //same layer
-        key = LATERAL * layer1 * (layer2 + 1);
-    }else if (type == "fringe"){
-        c = new Capacitance(FRINGE, layer1, layer2);
-        key = FRINGE * layer1 * (layer2 + 1);
-    }else{
-        cout << "[Error] Unknown type of capacitance " << type << endl;
+    // table matrix index
+    getline(ifs, line);
+    getline(ifs, line);
+    while (pos != string::npos)
+    {
+        pos = myStrGetTok(line, token, pos);
+        myStr2Int(token, layer_n);
+        index.push_back(layer_n);
     }
-    // cout << "parsed " << type << " " << layer1 << " " << layer2 << " " <<endl;
+    layer_num = index.size();
+    
+    while (getline(ifs, line))
+    {
+        int other_layer = 0;
+        if (line == "")
+            break;
+        pos = myStrGetTok(line, token, 0);
+        myStr2Int(token, layer_n);
 
-    pair<int, Capacitance *> mapping(key, c);
-    total_Cap_List.insert(mapping);
-    return c;
+        while (line.find('(', pos) != string::npos)
+        {        
+            left = line.find('(', pos);
+            comma = line.find(',', ++left);
+            string s1 = line.substr(left, comma - left);
+            right = line.find(')', comma);
+            comma += 2;
+            string s2 = line.substr(comma, right - comma);
+            if (s1 != "*")
+            {
+                pair<int, int> p(layer_n, index[other_layer]);
+                area_mapping.emplace(s1, p);
+                // cout << s1 << " " << layer_n << index[other_layer] << endl;
+            }
+            if (s2 != "*")
+            {
+                pair<int, int> p(layer_n, index[other_layer]);
+                fringe_mapping.emplace(s2, p);
+                // cout << s2 << " " << layer_n << index[other_layer] << endl;
+            }
+            pos = right;
+            ++other_layer;
+        }    
+    }
+}
+
+// parse the line into different types of capacitance (area, lateral, fringe)
+void ProcessFile::parseCapRules(ifstream &ifs, int type)
+{
+    int layer_1, layer_2, count = 0;
+    string line, token;
+    Capacitance *c;
+    unordered_map<string, pair <int, int> >map;
+    map = (type == AREA) ? area_mapping : fringe_mapping ;
+    int thresold = map.size();
+    if (type == LATERAL)
+        thresold = layer_num;
+
+    while (getline(ifs, line) && count < thresold)
+    {
+        if(line == "" || line == ";")
+            continue;
+        size_t pos = line.find(' ');
+        token = line.substr(pos+1);
+
+        if (map.find(token) != map.end()) {
+            layer_1 = map[token].first;
+            layer_2 = map[token].second;
+            c = new Capacitance(type, layer_1, layer_2);
+            // cout << "parsed " << type << " " << layer_1<< " " << layer_2 << " " << endl;
+            int key = (type * 100) + (layer_1 * 10) + layer_2 ;
+            if (total_Cap_List.find(key) != total_Cap_List.end())
+                cout <<"[Error] collision happens!!"<<endl;
+            total_Cap_List.emplace(key, c);
+        }
+        else{
+            cout <<"[Error] can't find cap rule "<< token <<endl;
+        }
+        getline(ifs, line);
+        getline(ifs, line);
+        c->setRange(line);
+        getline(ifs, line);
+        c->setParameter(line);
+        ++count;
+    }
 }
 
 // find the corrseponding type of capacitance by using a hashmap
 double ProcessFile::calCapicitance(double area, int type, int layer1, int layer2)
 {
-    layer2 = layer2 < 0 ? layer1 +1 : layer2 +1;
-    int key = type * layer1 * layer2;
+    int key = (type * 100) + (layer_1 * 10) + layer_2;
 
     if (total_Cap_List.find(key) == total_Cap_List.end())
     {

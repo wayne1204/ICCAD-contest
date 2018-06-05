@@ -34,20 +34,19 @@ int main(int argc, char** argv)
     int num;
     while( (token = next_token(buff_beg, buff_end)) != "" ){
         if (token == "design"){
-            design = next_token(buff_beg, buff_end);
+            design = dirName + next_token(buff_beg, buff_end);
             next_token(buff_beg, buff_end);
         }
         else if (token == "output"){
-            output = next_token(buff_beg, buff_end);
+            output = dirName + next_token(buff_beg, buff_end);
             next_token(buff_beg, buff_end);
         }
         else if (token == "rule_file"){
-            rulefile = next_token(buff_beg, buff_end);
+            rulefile = dirName + next_token(buff_beg, buff_end);
             next_token(buff_beg, buff_end);
         }
         else if (token == "process_file"){
-            process_file = next_token(buff_beg, buff_end);
-            process_file = dirName + process_file;
+            process_file = dirName + next_token(buff_beg, buff_end);
             pf->readFile(process_file.c_str());
             next_token(buff_beg, buff_end);
         }
