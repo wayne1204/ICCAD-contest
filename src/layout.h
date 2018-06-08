@@ -85,7 +85,7 @@ inline void Polygon::setType(string type) {
 class Layer
 {
 public:
-    void init_polygon(string &filename, unordered_set<int> &cnet_set);
+    void initRule(size_t, size_t, size_t, double, double);
     Polygon* point_search(Polygon* start,size_t x,size_t y);
     vector<Polygon*> region_query(Polygon* start,size_t x1,size_t y1,size_t x2,size_t y2);
     vector<Polygon*> region_query(Polygon* start,Polygon* T);
@@ -94,8 +94,8 @@ public:
     Polygon* split_X_left(Polygon* &bigGG, size_t x_left,size_t x_right ,Polygon* &  inserted);
     Polygon* split_X_right(Polygon* &bigGG, size_t x_left,size_t x_right ,Polygon* &  inserted);
     void initialize_layer(size_t x_bl, size_t y_bl, size_t x_tr, size_t y_tr);
-    inline size_t get_gap(){return 30;}
-    inline size_t get_width(){return mini_width;}
+    inline size_t get_gap() { return min_space; }
+    inline size_t get_width() { return min_width; }
     inline size_t get_bl_boundary_x(){return _bl_boundary_x;}
     inline size_t get_bl_boundary_y(){return _bl_boundary_y;}
     inline size_t get_tr_boundary_x(){return _tr_boundary_x;}
@@ -114,8 +114,11 @@ private:
     Polygon* dummy_bottom_left;
     Polygon* dummy_top_left;
 
-    size_t mini_gap=30;
-    size_t mini_width=30;
+    size_t min_width;
+    size_t min_space;
+    size_t max_fill_width;
+    double min_density;
+    double max_density;
     vector<Polygon*> _polygonlist;
 
 };

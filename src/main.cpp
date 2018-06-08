@@ -27,9 +27,9 @@ int main(int argc, char** argv)
     char* buff_beg = buff;
     char* buff_end = buff + filesize;
 
-    ProcessFile* pf = new ProcessFile();
+    chipManager *mgr = new chipManager();
     string token;
-    string design, output, rulefile, process_file;
+    string design, output, rule_file, process_file;
     unordered_set<int> cnets_set;
     int num;
     while( (token = next_token(buff_beg, buff_end)) != "" ){
@@ -42,12 +42,11 @@ int main(int argc, char** argv)
             next_token(buff_beg, buff_end);
         }
         else if (token == "rule_file"){
-            rulefile = dirName + next_token(buff_beg, buff_end);
+            rule_file = dirName + next_token(buff_beg, buff_end);
             next_token(buff_beg, buff_end);
         }
         else if (token == "process_file"){
             process_file = dirName + next_token(buff_beg, buff_end);
-            pf->readFile(process_file.c_str());
             next_token(buff_beg, buff_end);
         }
         else if (token == "critical_nets"){
@@ -64,5 +63,7 @@ int main(int argc, char** argv)
 
         }
     }
-    pf->init_polygon(design, cnets_set);
+    mgr->parseProcessFile(process_file);
+    mgr->parseRuleFile(rule_file);
+    mgr->init_polygon(design, cnets_set);
 }
