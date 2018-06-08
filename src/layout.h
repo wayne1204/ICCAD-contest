@@ -28,7 +28,7 @@ public:
         _net_id = tokens[5];
         _layer_id = tokens[6];
     }
-    void set_xy(size_t x1,size_t y1,size_t x2, size_t y2){
+    void set_xy(int x1,int y1,int x2, int y2){
         _b_left_x=x2;
         _b_left_y=y2;
         _t_right_x=x1;
@@ -49,22 +49,22 @@ public:
     void setToglobalref(){ref=global_ref;}
     string getType(){return _type;}
     bool isglobalref(){return ref==global_ref;}
-    inline size_t _bottom_left_x(){return _b_left_x;}
-    inline size_t _bottom_left_y(){return _b_left_y;}
-    inline size_t _top_right_x(){return _t_right_x;}
-    inline size_t _top_right_y(){return _t_right_y;}
-    inline size_t get_layer_id(){return _layer_id;}
+    inline int _bottom_left_x(){return _b_left_x;}
+    inline int _bottom_left_y(){return _b_left_y;}
+    inline int _top_right_x(){return _t_right_x;}
+    inline int _top_right_y(){return _t_right_y;}
+    inline int get_layer_id(){return _layer_id;}
     bool is_solid(){return _is_solid;}
 private:
-    size_t _b_left_x;
-    size_t _b_left_y;
-    size_t _t_right_x;
-    size_t _t_right_y;
+    int _b_left_x;
+    int _b_left_y;
+    int _t_right_x;
+    int _t_right_y;
     static unsigned global_ref;
-    size_t _polygon_id;
+    int _polygon_id;
     unsigned ref;
-    size_t _net_id;
-    size_t _layer_id;
+    int _net_id;
+    int _layer_id;
     Polygon* tr;
     Polygon* rt;
     Polygon* lb;
@@ -86,25 +86,25 @@ class Layer
 {
 public:
     void init_polygon(string &filename, unordered_set<int> &cnet_set);
-    Polygon* point_search(Polygon* start,size_t x,size_t y);
-    vector<Polygon*> region_query(Polygon* start,size_t x1,size_t y1,size_t x2,size_t y2);
+    Polygon* point_search(Polygon* start,int x,int y);
+    vector<Polygon*> region_query(Polygon* start,int x1,int y1,int x2,int y2);
     vector<Polygon*> region_query(Polygon* start,Polygon* T);
     bool insert(Polygon* T);
-    Polygon* split_Y(Polygon* &bigGG,size_t y,bool is_top,Polygon* &inserted);
-    Polygon* split_X_left(Polygon* &bigGG, size_t x_left,size_t x_right ,Polygon* &  inserted);
-    Polygon* split_X_right(Polygon* &bigGG, size_t x_left,size_t x_right ,Polygon* &  inserted);
-    void initialize_layer(size_t x_bl, size_t y_bl, size_t x_tr, size_t y_tr);
-    inline size_t get_gap(){return 30;}
-    inline size_t get_width(){return mini_width;}
-    inline size_t get_bl_boundary_x(){return _bl_boundary_x;}
-    inline size_t get_bl_boundary_y(){return _bl_boundary_y;}
-    inline size_t get_tr_boundary_x(){return _tr_boundary_x;}
-    inline size_t get_tr_boundary_y(){return _tr_boundary_y;}
+    Polygon* split_Y(Polygon* &bigGG,int y,bool is_top,Polygon* &inserted);
+    Polygon* split_X_left(Polygon* &bigGG, int x_left,int x_right ,Polygon* &  inserted);
+    Polygon* split_X_right(Polygon* &bigGG, int x_left,int x_right ,Polygon* &  inserted);
+    void initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr);
+    inline int get_gap(){return 30;}
+    inline int get_width(){return mini_width;}
+    inline int get_bl_boundary_x(){return _bl_boundary_x;}
+    inline int get_bl_boundary_y(){return _bl_boundary_y;}
+    inline int get_tr_boundary_x(){return _tr_boundary_x;}
+    inline int get_tr_boundary_y(){return _tr_boundary_y;}
 private:
-    size_t _bl_boundary_x;
-    size_t _bl_boundary_y;
-    size_t _tr_boundary_x;
-    size_t _tr_boundary_y;
+    int _bl_boundary_x;
+    int _bl_boundary_y;
+    int _tr_boundary_x;
+    int _tr_boundary_y;
     Polygon* dummy_top;
     Polygon* dummy_right;
     Polygon* dummy_left;
@@ -114,8 +114,8 @@ private:
     Polygon* dummy_bottom_left;
     Polygon* dummy_top_left;
 
-    size_t mini_gap=30;
-    size_t mini_width=30;
+    int mini_gap=30;
+    int mini_width=30;
     vector<Polygon*> _polygonlist;
 
 };

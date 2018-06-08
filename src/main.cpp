@@ -18,7 +18,7 @@ int main(int argc, char** argv)
     string dirName = getDirName(ConfigFile);
     
     ifstream ifs(ConfigFile);
-    size_t filesize;
+    int filesize;
     ifs.seekg(0, ios::end);
     filesize = ifs.tellg();
     ifs.seekg(0, ios::beg);

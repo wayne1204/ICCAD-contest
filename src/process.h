@@ -59,10 +59,10 @@ private:
     unordered_map<string, pair<int, int> > fringe_mapping;
     unordered_map<int, Capacitance*> total_Cap_List;
     Layer* _LayerList;
-    size_t _bl_bound_x;
-    size_t _bl_bound_y;
-    size_t _tr_bound_x;
-    size_t _tr_bound_y;
+    int _bl_bound_x;
+    int _bl_bound_y;
+    int _tr_bound_x;
+    int _tr_bound_y;
 };
 
 

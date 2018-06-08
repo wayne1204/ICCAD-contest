@@ -16,7 +16,7 @@ void Capacitance::setRange(const string& str)
 {
     int num;
     string token;
-    size_t pos = 0;
+    int pos = 0;
     while (myStrGetTok(str, token, pos) != string::npos)
     {
         pos = myStrGetTok(str, token, pos);
@@ -29,13 +29,13 @@ void Capacitance::setRange(const string& str)
 void Capacitance::setParameter(const string &str)
 {
     double w, b;
-    size_t left = 0;
+    int left = 0;
     while (str.find('(', left) != string::npos)
     {
         left = str.find('(', left);
-        size_t comma = str.find(',', ++left);
+        int comma = str.find(',', ++left);
         w = stod(str.substr(left, comma - left));
-        size_t right = str.find(')', left);
+        int right = str.find(')', left);
         ++comma;
         b = stod(str.substr(comma, right - comma));
         weights.push_back(w);
@@ -72,7 +72,7 @@ void ProcessFile::readFile(const char* fileName)
     while(getline(ifs, line))
     {
         if(line != "") {
-            size_t pos = line.find(' ', 0);          
+            int pos = line.find(' ', 0);          
             header = line.substr(0, pos);
             if (header == "window:"){
                 token = line.substr(pos +1, 5);
@@ -106,7 +106,7 @@ void ProcessFile::readFile(const char* fileName)
 void ProcessFile::parseTable(ifstream& ifs)
 {
     int layer_n;
-    size_t left, right, comma, pos = 0;
+    int left, right, comma, pos = 0;
     string line, token;
     vector<int> index;
 
@@ -171,7 +171,7 @@ void ProcessFile::parseCapRules(ifstream &ifs, int type)
     {
         if(line == "" || line == ";")
             continue;
-        size_t pos = line.find(' ');
+        int pos = line.find(' ');
         token = line.substr(pos+1);
 
         if (map.find(token) != map.end()) {
@@ -214,7 +214,7 @@ void ProcessFile::init_polygon(string &filename, unordered_set<int> &cnet_set)
 {
     cout<<"init poly..."<<endl;
     ifstream ifs(filename);
-    size_t filesize;
+    int filesize;
     ifs.seekg(0, ios::end);
     filesize = ifs.tellg();
     ifs.seekg(0, ios::beg);
@@ -247,8 +247,11 @@ void ProcessFile::init_polygon(string &filename, unordered_set<int> &cnet_set)
             _tr_bound_x = tokens[2];
             _tr_bound_y = tokens[3];
             tokens.clear();
-            for (size_t i = 0; i < layer_num; ++i){
+            for (int i = 0; i < layer_num; ++i){
                 _LayerList[i].initialize_layer(_bl_bound_x, _bl_bound_y, _tr_bound_x, _tr_bound_y);
+                cout<<"layer num = "<<aa<<endl;
+                aa++;
+
             }
         }
         else {
@@ -267,6 +270,7 @@ void ProcessFile::init_polygon(string &filename, unordered_set<int> &cnet_set)
             if (cnet_set.count(tokens[5])){
                 poly->setToCNet();
             }
+            cout<<"layer id = "<<poly->get_layer_id()<<endl;
             _LayerList[poly->get_layer_id()-1].insert(poly);
             cout<<"parse poly..........................number of poly = "<<aa<<endl;
             aa++;
