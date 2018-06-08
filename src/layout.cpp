@@ -13,6 +13,15 @@
 using namespace std;
 unsigned Polygon::global_ref=0;
 
+void Layer::initRule(int n1, int n2, int n3, double min, double max)
+{
+    min_width = n1;
+    min_space = n2;
+    max_fill_width = n3;
+    min_density = min;
+    max_density = max;
+}
+
 void Layer::initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr){
     cout<<"init layer "<<endl;
     _tr_boundary_x = x_tr;
