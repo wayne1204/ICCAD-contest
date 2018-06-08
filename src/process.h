@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <fstream>
+#include "layout.h"
 using namespace std;
 
 enum CapacitanceType
@@ -49,6 +50,7 @@ public:
     void parseCapRules(ifstream &, int);
     void setWindow(int num){ window_size = num;   }
     double calCapicitance(double, int, int, int = -1);
+    void init_polygon(string &filename, unordered_set<int> &cnet_set);
 
 private:
     int window_size;
@@ -56,6 +58,11 @@ private:
     unordered_map<string, pair<int, int> > area_mapping;
     unordered_map<string, pair<int, int> > fringe_mapping;
     unordered_map<int, Capacitance*> total_Cap_List;
+    Layer* _LayerList;
+    size_t _bl_bound_x;
+    size_t _bl_bound_y;
+    size_t _tr_bound_x;
+    size_t _tr_bound_y;
 };
 
 

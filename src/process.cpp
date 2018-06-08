@@ -199,7 +199,7 @@ void ProcessFile::parseCapRules(ifstream &ifs, int type)
 // find the corrseponding type of capacitance by using a hashmap
 double ProcessFile::calCapicitance(double area, int type, int layer1, int layer2)
 {
-    int key = (type * 100) + (layer_1 * 10) + layer_2;
+    int key = (type * 100) + (layer1 * 10) + layer2;
 
     if (total_Cap_List.find(key) == total_Cap_List.end())
     {
@@ -208,4 +208,68 @@ double ProcessFile::calCapicitance(double area, int type, int layer1, int layer2
     }
     Capacitance* c = total_Cap_List[key];
     return c->getCapacitance(area);
+}
+
+void ProcessFile::init_polygon(string &filename, unordered_set<int> &cnet_set)
+{
+    cout<<"init poly..."<<endl;
+    ifstream ifs(filename);
+    size_t filesize;
+    ifs.seekg(0, ios::end);
+    filesize = ifs.tellg();
+    ifs.seekg(0, ios::beg);
+    char* buff = new char[filesize+1];
+    ifs.read(buff, filesize);
+    char* buff_beg = buff;
+    char* buff_end = buff + filesize;
+    string token="haha";
+    int num;
+
+    _LayerList = new Layer[layer_num];
+    
+
+    bool first_line = true;
+    vector<int> tokens;
+    Polygon* poly;
+    int aa = 1;
+    cout<<"haha"<<endl;
+    while (token != ""){
+
+        if (first_line){
+            while ( (token = next_token(buff_beg, buff_end)) != ""){
+                if (token[0] == '\n') {first_line = false; break;}
+                if (myStr2Int(token, num)){
+                    tokens.push_back(num);
+                }
+            }
+            _bl_bound_x = tokens[0];
+            _bl_bound_y = tokens[1];
+            _tr_bound_x = tokens[2];
+            _tr_bound_y = tokens[3];
+            tokens.clear();
+            for (size_t i = 0; i < layer_num; ++i){
+                _LayerList[i].initialize_layer(_bl_bound_x, _bl_bound_y, _tr_bound_x, _tr_bound_y);
+            }
+        }
+        else {
+            while ( (token = next_token(buff_beg, buff_end)) != ""){
+                if (token[0] == '\n') break;
+                if (myStr2Int(token, num)){
+                    tokens.push_back(num);
+                }
+                else {
+                    poly = new Polygon(token);
+                    poly->set_coordinate(tokens);
+                    poly->setToSolid();
+                    tokens.clear();
+                }
+            }
+            if (cnet_set.count(tokens[5])){
+                poly->setToCNet();
+            }
+            _LayerList[poly->get_layer_id()-1].insert(poly);
+            cout<<"parse poly..........................number of poly = "<<aa<<endl;
+            aa++;
+        }
+    }
 }

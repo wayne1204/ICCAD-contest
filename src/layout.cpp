@@ -12,60 +12,16 @@
 
 using namespace std;
 unsigned Polygon::global_ref=0;
-void Layer::init_polygon(string &filename, unordered_set<int> &cnet_set)
-{
-    ifstream ifs(filename);
-    size_t filesize;
-    ifs.seekg(0, ios::end);
-    filesize = ifs.tellg();
-    ifs.seekg(0, ios::beg);
-    char* buff = new char[filesize+1];
-    ifs.read(buff, filesize);
-    char* buff_beg = buff;
-    char* buff_end = buff + filesize;
-    string token;
-    int num;
 
-    bool first_line = true;
-    vector<int> tokens;
-    Polygon* poly;
-    while (token != ""){
-        if (first_line){
-            while ( (token = next_token(buff_beg, buff_end)) != ""){
-                if (token[0] == '\n') {first_line = false; break;}
-                if (myStr2Int(token, num)){
-                    tokens.push_back(num);
-                }
-            }
-            _bl_boundary_x = tokens[0];
-            _bl_boundary_y = tokens[1];
-            _tr_boundary_x = tokens[2];
-            _tr_boundary_y = tokens[3];
-            tokens.clear();
-        }
-        else {
-            while ( (token = next_token(buff_beg, buff_end)) != ""){
-                if (token[0] == '\n') break;
-                if (myStr2Int(token, num)){
-                    tokens.push_back(num);
-                }
-                else {
-                    poly = new Polygon(token); 
-                }
-            }
-            poly->set_coordinate(tokens);
-            poly->setToSolid();
-            if (cnet_set.count(tokens[5])){
-                poly->setToCNet();
-            }
-            _polygonlist.push_back(poly);
-        }
-    }
-}
-void Layer::initialize_layer(){
+void Layer::initialize_layer(size_t x_bl, size_t y_bl, size_t x_tr, size_t y_tr){
+    cout<<"init layer "<<endl;
+    _tr_boundary_x = x_tr;
+    _tr_boundary_y = y_tr;
+    _bl_boundary_x = x_bl;
+    _bl_boundary_y = y_bl;
     //一開始空的大space
     Polygon *a=new Polygon("space");
-    a->set_xy(_tr_boundary_x,_tr_boundary_y,_bl_boundary_x,_tr_boundary_y);
+    a->set_xy(_tr_boundary_x,_tr_boundary_y,_bl_boundary_x,_bl_boundary_y);
     size_t x1=_tr_boundary_x;
     size_t y1=_tr_boundary_y;
     size_t x2=_bl_boundary_x;
@@ -88,13 +44,44 @@ void Layer::initialize_layer(){
     dummy_bottom->set_xy(x1,y2,x2,y2-1);
     a->set_lb(dummy_bottom);
     dummy_bottom->set_rt(a);
+
+    dummy_bottom_right = new Polygon("dummy");
+    dummy_bottom_right->set_xy(x1+1, y2, x1, y2-1);
+    dummy_bottom_right->set_rt(dummy_right);
+    dummy_bottom_right->set_bl(dummy_bottom);
+    dummy_right->set_lb(dummy_bottom_right);
+    dummy_bottom->set_tr(dummy_bottom_right);
+
+    dummy_right_top = new Polygon("dummy");
+    dummy_right_top->set_xy(x1+1, y1+1, x1, y1);
+    dummy_right_top->set_lb(dummy_right);
+    dummy_right_top->set_bl(dummy_top);
+    dummy_right->set_rt(dummy_right_top);
+    dummy_top->set_tr(dummy_right_top);
+
+    dummy_bottom_left = new Polygon("dummy");
+    dummy_bottom_left->set_xy(x2, y2, x2-1, y2-1);
+    dummy_bottom_left->set_rt(dummy_left);
+    dummy_bottom_left->set_tr(dummy_bottom);
+    dummy_left->set_lb(dummy_bottom_left);
+    dummy_bottom->set_bl(dummy_bottom_left);
+
+    dummy_top_left = new Polygon("dummy");
+    dummy_top_left->set_xy(x2, y1+1, x2-1, y1);
+    dummy_top_left->set_lb(dummy_left);
+    dummy_top_left->set_tr(dummy_top);
+    dummy_left->set_rt(dummy_top_left);
+    dummy_top->set_bl(dummy_top_left);
 }
 Polygon* Layer::point_search(Polygon* start,size_t x,size_t y){
     /* 當x,y有切齊的時候 我們會選被包在框框裡面的tile 因此是
     top y = y  or left x = x 的時候
     */
+
+    cout<<"point search "<<endl;
     Polygon* current=start;
-    while((x>=current->_top_right_x()||x<=current->_bottom_left_x())&&(y>=current->_top_right_y()||y<=current->_bottom_left_y())){
+    //如果要query的座標比現在的x還要大或還要小且 要query的座標比現在的y還要大或還要小
+    while((x>=current->_top_right_x()||x<current->_bottom_left_x())||(y>current->_top_right_y()||y<=current->_bottom_left_y())){
         while((y>=current->_top_right_y()||y<=current->_bottom_left_y())){
             if(y==current->_top_right_y())break;
             if(y>current->_top_right_y())current=current->get_rt();
@@ -102,7 +89,7 @@ Polygon* Layer::point_search(Polygon* start,size_t x,size_t y){
         }
         while((x>=current->_top_right_x()||x<=current->_bottom_left_x())){
             if(x==current->_bottom_left_x())break;
-            if(x>current->_top_right_x())current=current->get_tr();
+            if(x>=current->_top_right_x())current=current->get_tr();
             else current=current->get_bl();
         }
     }
@@ -110,6 +97,7 @@ Polygon* Layer::point_search(Polygon* start,size_t x,size_t y){
 }
 void neighbor_find_own(Polygon* T,vector<Polygon*> &v){
     //上到下找
+    cout<<"find own "<<endl;
     Polygon* current=T->get_tr();
     while(current->_bottom_left_y()>=T->_bottom_left_y()){
         v.push_back(current);
@@ -117,6 +105,8 @@ void neighbor_find_own(Polygon* T,vector<Polygon*> &v){
     }
 }
 void enumerate(Polygon* T,vector<Polygon*> &v,int max_x){
+    //找own
+    cout<<"enumerate "<<endl;
     if(T->isglobalref())return;
     v.push_back(T);
     T->setToglobalref();
@@ -156,11 +146,13 @@ vector<Polygon*> Layer::region_query(Polygon* start,size_t x1,size_t y1,size_t x
     /*x1,y1 是右上   x2,y2 是左下
     左上角的座標是 x2,y1 是我們要query的
     */
+    cout<<"region query "<<endl;
     Polygon::setGlobalref();
     vector<Polygon*> query_Polygon;
     vector<Polygon*>left_poly;
     start=point_search(start,x2,y1);
     while(start->_bottom_left_y()>=y2){
+        //cout<<"a"<<endl;
         left_poly.push_back(start);
         start=point_search(start,x2,start->_bottom_left_y());
     }
@@ -174,6 +166,7 @@ vector<Polygon*> Layer::region_query(Polygon* start,size_t x1,size_t y1,size_t x
     Polygon* T=left_poly[left_poly.size()-1];
     while(T->_bottom_left_x()<x1){
         bottom_poly.push_back(T);
+        //cout<<"b"<<endl;
         T=point_search(T,T->_top_right_x(),y2);
     }
     for(int i=0;i<bottom_poly.size();i++){
@@ -184,7 +177,8 @@ vector<Polygon*> Layer::region_query(Polygon* start,size_t x1,size_t y1,size_t x
 vector<Polygon*> Layer::region_query(Polygon* start,Polygon* T){
     return region_query(start,T->_top_right_x(),T->_top_right_y(),T->_bottom_left_x(),T->_bottom_left_y());
 }
-Polygon* Layer::split_Y(Polygon* &bigGG,size_t y,bool is_top){
+Polygon* Layer::split_Y(Polygon* &bigGG,size_t y,bool is_top,Polygon* & inserted){
+    cout<<"split y "<<endl;
     Polygon* new_poly=new Polygon(bigGG->getType(),bigGG->is_solid());
     if(is_top){
         new_poly->set_xy(bigGG->_top_right_x(),bigGG->_top_right_y(),bigGG->_bottom_left_x(),y);
@@ -198,6 +192,7 @@ Polygon* Layer::split_Y(Polygon* &bigGG,size_t y,bool is_top){
         for(tp=bigGG->get_rt();tp->get_lb()==bigGG;tp=tp->get_bl())
             tp->set_lb(new_poly);
         bigGG->set_rt(new_poly);
+        inserted->set_rt(new_poly);
         /*
         for(tp=bigGG->get_tr();tp->_bottom_left_y()>=y;tp=tp->get_lb())
             tp->set_bl(new_poly);
@@ -217,21 +212,33 @@ Polygon* Layer::split_Y(Polygon* &bigGG,size_t y,bool is_top){
 
         bigGG->set_xy(bigGG->_top_right_x(),bigGG->_top_right_y(),bigGG->_bottom_left_x(),y);
         bigGG->set_lb(new_poly);
+        inserted->set_lb(new_poly);
         //bigGG->set_bl(point_search(bigGG,bigGG->_bottom_left_x()-1,y));
     }
     return new_poly;
 
 }
-vector<Polygon*> Layer::split_X(Polygon* &bigGG, size_t x_left,size_t x_right ,Polygon* inserted){
-    Polygon* new_poly_left = new Polygon(bigGG->getType(), bigGG->is_solid());
-    Polygon* new_poly_right = new Polygon(bigGG->getType(), bigGG->is_solid());
+Polygon* Layer::split_X_left(Polygon* &bigGG, size_t x_left,size_t x_right ,Polygon* &  inserted){
+    cout<<"split x_left "<<endl;
     Polygon* tp;
+    Polygon* new_poly_left = new Polygon(bigGG->getType(), bigGG->is_solid());
     new_poly_left->set_xy(x_left,bigGG->_top_right_y(),bigGG->_bottom_left_x(),bigGG->_bottom_left_y());
     new_poly_left->set_rt(point_search(bigGG,x_left,bigGG->_top_right_y()+1));
     new_poly_left->set_tr(inserted);
     new_poly_left->set_lb(bigGG->get_lb());
     new_poly_left->set_bl(bigGG->get_bl());
     bigGG->get_bl()->set_tr(new_poly_left);
+    for(tp=bigGG->get_lb();tp->_top_right_x()<=x_right;tp=tp->get_tr()){
+        if(tp->_top_right_x()<=x_left){
+            tp->set_rt(new_poly_left);
+        }
+    }
+    return new_poly_left;
+}
+Polygon* Layer::split_X_right(Polygon* &bigGG, size_t x_left,size_t x_right ,Polygon* &  inserted){
+    cout<<"split x_right "<<endl;
+    Polygon* tp;
+    Polygon* new_poly_right = new Polygon(bigGG->getType(), bigGG->is_solid());
     new_poly_right->set_xy(bigGG->_top_right_x(),bigGG->_top_right_y(),x_right,bigGG->_bottom_left_y());
     new_poly_right->set_rt(bigGG->get_rt());
     new_poly_right->set_tr(bigGG->get_tr());
@@ -239,47 +246,18 @@ vector<Polygon*> Layer::split_X(Polygon* &bigGG, size_t x_left,size_t x_right ,P
     bigGG->get_tr()->set_bl(new_poly_right);
     for(tp=bigGG->get_rt();tp->_bottom_left_x()>=x_right;tp=tp->get_bl())
         tp->set_lb(new_poly_right);
-    for(tp=bigGG->get_lb();tp->_top_right_x()<=x_right;tp=tp->get_tr()){
-        if(tp->_top_right_x()<=x_left){
-            tp->set_rt(new_poly_left);
-        }
-    }
+
+    for(tp=bigGG->get_lb();tp->_top_right_x()<=x_right;tp=tp->get_tr())
+        ;
     new_poly_right->set_lb(tp);
     while(tp->get_rt()==bigGG){
         tp->set_rt(new_poly_right);
         tp=tp->get_tr();
     }
-    vector<Polygon*>split;
-    split.push_back(new_poly_right);
-    split.push_back(new_poly_left);
-    return split;
-}
-bool Layer::insert(Polygon* T){
-    //x y 是要給左上角的座標
-    vector<Polygon*> query_list=region_query(dummy_bottom,T);
-    for(size_t i=0;i<query_list.size();i++){
-        if(query_list[i]->is_solid())
-            return false;
-    }
-
-    //case 1 
-    if(query_list.size()==1){
-
-    }
-    //case 2
-    else if (query_list.size()==2){
-
-    }
-    //case 3 
-    else{
-        vector<Polygon*>edge_lilst;//存在邊上的那些的tile就好 只有那些要切
-
-    }
-
-return true;
-
+    return new_poly_right;
 }
 void join(Polygon* T1,Polygon *T2){
+    cout<<"joining"<<endl;
     Polygon* tp;
     if(T1->_bottom_left_x()==T2->_bottom_left_x()&&T1->_top_right_x()==T2->_top_right_x()){
         T1->set_xy(T1->_top_right_x(),T1->_top_right_y(),T2->_bottom_left_x(),T2->_bottom_left_y());
@@ -293,6 +271,82 @@ void join(Polygon* T1,Polygon *T2){
     }
     else return;
 }
+bool Layer::insert(Polygon* T){
+    // query 是給 先右上 再左下
+    //因為soild 會有最小間距 所以我們query看能不能夠塞的時候 
+    //要看大塊一點 四周都加最小間距
+    cout<<"insert "<<T->_top_right_x()<<" "<<T->_top_right_y()<<endl;
+    size_t bl_x,bl_y,tr_x,tr_y;
+    //決定query的邊界
+    //左下角
+    (T->_bottom_left_x()-get_gap()>=get_bl_boundary_x()) ? bl_x = T->_bottom_left_x() - get_gap() : bl_x = get_bl_boundary_x();
+    (T->_bottom_left_y()-get_gap()>=get_bl_boundary_y()) ? bl_y = T->_bottom_left_y() - get_gap() : bl_y = get_bl_boundary_y();
+    //右上角
+    (T->_top_right_x() + get_gap() >get_tr_boundary_x() ) ? tr_x = get_tr_boundary_x() : tr_x = T->_top_right_x() + get_gap();
+    (T->_top_right_y() + get_gap() >get_tr_boundary_y() ) ? tr_y = get_tr_boundary_y() : tr_y = T->_top_right_y() + get_gap();
+    
+    // 如果要插進去的這塊裡面有solid就不能插 就像有男友的女生一樣
+    vector<Polygon*> query_list=region_query(dummy_bottom,tr_x,tr_y,bl_x,bl_y);// (start,跟要插進去得tile)
+    for(size_t i=0;i<query_list.size();i++){
+        if(query_list[i]->is_solid())
+            return false;
+    }
+    Polygon*aa;
+    bool is_left= ( T->_bottom_left_x() != get_bl_boundary_x() );
+    bool is_right= ( T->_top_right_x() != get_tr_boundary_x() );
+    /*
+
+    split y
+
+    */
+    //cout<<"q_list size == "<<query_list.size()<<endl;
+    for(size_t i=0; i<query_list.size(); i++){
+        if(query_list[i]->_top_right_y() == T->_top_right_y())
+            T->set_rt(point_search(query_list[i],T->_top_right_x(),T->_top_right_y()+1));
+        if(query_list[i]->_bottom_left_y() == T->_bottom_left_y())
+            T->set_lb(point_search(query_list[i],T->_bottom_left_x(),T->_bottom_left_y()-1));
+        if(query_list[i]->_top_right_y() > T->_top_right_y())
+            aa = split_Y(query_list[i], T->_top_right_y(), true,T);
+        if(query_list[i]->_bottom_left_y()<T->_bottom_left_y())
+            split_Y(query_list[i],T->_bottom_left_y(),false,T);
+    }
+    //cout<<"a y1 = "<< aa->_bottom_left_y()<<endl;
+    vector<Polygon*> split_x_right;
+    vector<Polygon*> split_x_left;
+    /*
+
+    split x
+
+    */
+    for(size_t i=0;i<query_list.size();i++){
+        if(is_left){
+            Polygon* a = split_X_left(query_list[i],T->_bottom_left_x(),T->_top_right_x(),T);
+            if(a->_bottom_left_y()==T->_bottom_left_y())
+                T->set_bl(a);
+            split_x_left.push_back(a);
+        }
+        else {T->set_bl(dummy_left);cout<<"dummy_lefthaha"<<endl;}
+        if(is_right){
+            Polygon* a = split_X_right(query_list[i],T->_bottom_left_x(),T->_top_right_x(),T);
+            if(a->_top_right_y()==T->_top_right_y())
+                T->set_tr(a);
+            split_x_right.push_back(a);
+        }
+        else  T->set_tr(dummy_right);
+    }
+    /*
+    after splitting we join 
+
+    */
+    for(int i=split_x_left.size()-1;i>=1;i--)
+        join(split_x_left[i-1],split_x_left[i]);
+    for(int i=split_x_right.size()-1;i>=1;i--)
+        join(split_x_right[i-1],split_x_right[i]);
+    
+    return true;
+
+}
+
 
 
 

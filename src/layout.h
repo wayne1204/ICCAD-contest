@@ -53,6 +53,7 @@ public:
     inline size_t _bottom_left_y(){return _b_left_y;}
     inline size_t _top_right_x(){return _t_right_x;}
     inline size_t _top_right_y(){return _t_right_y;}
+    inline size_t get_layer_id(){return _layer_id;}
     bool is_solid(){return _is_solid;}
 private:
     size_t _b_left_x;
@@ -89,9 +90,16 @@ public:
     vector<Polygon*> region_query(Polygon* start,size_t x1,size_t y1,size_t x2,size_t y2);
     vector<Polygon*> region_query(Polygon* start,Polygon* T);
     bool insert(Polygon* T);
-    Polygon* split_Y(Polygon* &bigGG,size_t y,bool is_top);
-    vector<Polygon*> split_X(Polygon* &bigGG, size_t x_left,size_t x_right ,Polygon* inserted);
-    void initialize_layer();
+    Polygon* split_Y(Polygon* &bigGG,size_t y,bool is_top,Polygon* &inserted);
+    Polygon* split_X_left(Polygon* &bigGG, size_t x_left,size_t x_right ,Polygon* &  inserted);
+    Polygon* split_X_right(Polygon* &bigGG, size_t x_left,size_t x_right ,Polygon* &  inserted);
+    void initialize_layer(size_t x_bl, size_t y_bl, size_t x_tr, size_t y_tr);
+    inline size_t get_gap(){return 30;}
+    inline size_t get_width(){return mini_width;}
+    inline size_t get_bl_boundary_x(){return _bl_boundary_x;}
+    inline size_t get_bl_boundary_y(){return _bl_boundary_y;}
+    inline size_t get_tr_boundary_x(){return _tr_boundary_x;}
+    inline size_t get_tr_boundary_y(){return _tr_boundary_y;}
 private:
     size_t _bl_boundary_x;
     size_t _bl_boundary_y;
@@ -101,8 +109,13 @@ private:
     Polygon* dummy_right;
     Polygon* dummy_left;
     Polygon* dummy_bottom;
+    Polygon* dummy_bottom_right;
+    Polygon* dummy_right_top;
+    Polygon* dummy_bottom_left;
+    Polygon* dummy_top_left;
 
-
+    size_t mini_gap=30;
+    size_t mini_width=30;
     vector<Polygon*> _polygonlist;
 
 };

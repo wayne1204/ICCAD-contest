@@ -64,4 +64,5 @@ int main(int argc, char** argv)
 
         }
     }
+    pf->init_polygon(design, cnets_set);
 }
