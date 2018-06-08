@@ -92,6 +92,7 @@ Polygon* Layer::point_search(Polygon* start,size_t x,size_t y){
             if(x>=current->_top_right_x())current=current->get_tr();
             else current=current->get_bl();
         }
+        //current== 2200000 2477214
     }
     return current;
 }
@@ -167,7 +168,7 @@ vector<Polygon*> Layer::region_query(Polygon* start,size_t x1,size_t y1,size_t x
     while(T->_bottom_left_x()<x1){
         bottom_poly.push_back(T);
         //cout<<"b"<<endl;
-        T=point_search(T,T->_top_right_x(),y2);
+        T=point_search(T,T->_top_right_x(),y2+1);
     }
     for(int i=0;i<bottom_poly.size();i++){
         enumerate(bottom_poly[i],query_Polygon,x1);
@@ -198,7 +199,7 @@ Polygon* Layer::split_Y(Polygon* &bigGG,size_t y,bool is_top,Polygon* & inserted
             tp->set_bl(new_poly);
             */
         //bigGG->set_tr(point_search(new_poly,bigGG->_top_right_x()+1,y));
-        bigGG->set_xy(bigGG->_top_right_x(),y,bigGG->_bottom_left_x(),bigGG->_bottom_left_y());
+        bigGG->set_xy(bigGG->_top_right_x(), y ,bigGG->_bottom_left_x(),bigGG->_bottom_left_y());
     }
     else{   
         new_poly->set_xy(bigGG->_top_right_x(),y,bigGG->_bottom_left_x(),bigGG->_bottom_left_y());
@@ -286,7 +287,8 @@ bool Layer::insert(Polygon* T){
     (T->_top_right_y() + get_gap() >get_tr_boundary_y() ) ? tr_y = get_tr_boundary_y() : tr_y = T->_top_right_y() + get_gap();
     
     // 如果要插進去的這塊裡面有solid就不能插 就像有男友的女生一樣
-    vector<Polygon*> query_list=region_query(dummy_bottom,tr_x,tr_y,bl_x,bl_y);// (start,跟要插進去得tile)
+    //vector<Polygon*> query_list=region_query(dummy_bottom,tr_x,tr_y,bl_x,bl_y);// (start,跟要插進去得tile)
+    vector<Polygon*> query_list=region_query(dummy_bottom,T->_top_right_x(),T->_top_right_y(),T->_bottom_left_x(),T->_bottom_left_y());
     for(size_t i=0;i<query_list.size();i++){
         if(query_list[i]->is_solid())
             return false;
@@ -294,6 +296,7 @@ bool Layer::insert(Polygon* T){
     Polygon*aa;
     bool is_left= ( T->_bottom_left_x() != get_bl_boundary_x() );
     bool is_right= ( T->_top_right_x() != get_tr_boundary_x() );
+    cout<<"query_list num= "<<query_list.size()<<endl;
     /*
 
     split y
@@ -301,12 +304,13 @@ bool Layer::insert(Polygon* T){
     */
     //cout<<"q_list size == "<<query_list.size()<<endl;
     for(size_t i=0; i<query_list.size(); i++){
+
         if(query_list[i]->_top_right_y() == T->_top_right_y())
             T->set_rt(point_search(query_list[i],T->_top_right_x(),T->_top_right_y()+1));
         if(query_list[i]->_bottom_left_y() == T->_bottom_left_y())
             T->set_lb(point_search(query_list[i],T->_bottom_left_x(),T->_bottom_left_y()-1));
         if(query_list[i]->_top_right_y() > T->_top_right_y())
-            aa = split_Y(query_list[i], T->_top_right_y(), true,T);
+            split_Y(query_list[i], T->_top_right_y(), true,T);
         if(query_list[i]->_bottom_left_y()<T->_bottom_left_y())
             split_Y(query_list[i],T->_bottom_left_y(),false,T);
     }
