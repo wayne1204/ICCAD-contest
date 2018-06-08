@@ -58,8 +58,38 @@ double Capacitance::getCapacitance(double area)
     return ret * area / range.back();
 }
 
-// parse file
-void ProcessFile::readFile(const char* fileName)
+// parse rule file
+void chipManager::parseRuleFile(const string &fileName)
+{
+    string line, token;
+    int num1, num2, num3;
+    ifstream ifs(fileName.c_str(), ios::in);
+    _LayerList = new Layer[layer_num];
+    while (getline(ifs, line))
+    {
+        if(line == "")
+            break;
+        size_t pos = 0;
+        pos = myStrGetTok(line, token, pos);
+        int index = stoi(token);
+        pos = myStrGetTok(line, token, pos);
+        vector<string> storing;
+        while(pos != string::npos){
+            pos = myStrGetTok(line, token, pos);
+            storing.push_back(token);
+        }
+        myStr2Int(storing[0], num1);  
+        myStr2Int(storing[1], num2);
+        myStr2Int(storing[2], num3);
+        _LayerList[index].initRule(num1, num2, num3, stod(storing[3]), stod(storing[4]));
+        cout << "Layer#" << index << " "  << num1 << " " << num2 << " " << num3 << 
+        " " << stod(storing[3]) << " " << stod(storing[4]) <<endl;
+    }
+    cout << "Finish parsing rule file\n";
+}
+
+// parse process file
+void chipManager::parseProcessFile(const string &fileName)
 {
     string line, header, token;
     Capacitance *c;
@@ -103,7 +133,7 @@ void ProcessFile::readFile(const char* fileName)
 }
 
 // parse table mapping rules
-void ProcessFile::parseTable(ifstream& ifs)
+void chipManager::parseTable(ifstream &ifs)
 {
     int layer_n;
     int left, right, comma, pos = 0;
@@ -156,7 +186,7 @@ void ProcessFile::parseTable(ifstream& ifs)
 }
 
 // parse the line into different types of capacitance (area, lateral, fringe)
-void ProcessFile::parseCapRules(ifstream &ifs, int type)
+void chipManager::parseCapRules(ifstream &ifs, int type)
 {
     int layer_1, layer_2, count = 0;
     string line, token;
@@ -197,7 +227,7 @@ void ProcessFile::parseCapRules(ifstream &ifs, int type)
 }
 
 // find the corrseponding type of capacitance by using a hashmap
-double ProcessFile::calCapicitance(double area, int type, int layer1, int layer2)
+double chipManager::calCapicitance(double area, int type, int layer1, int layer2)
 {
     int key = (type * 100) + (layer1 * 10) + layer2;
 
@@ -210,7 +240,7 @@ double ProcessFile::calCapicitance(double area, int type, int layer1, int layer2
     return c->getCapacitance(area);
 }
 
-void ProcessFile::init_polygon(string &filename, unordered_set<int> &cnet_set)
+void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
 {
     cout<<"init poly..."<<endl;
     ifstream ifs(filename);
@@ -225,8 +255,7 @@ void ProcessFile::init_polygon(string &filename, unordered_set<int> &cnet_set)
     string token="haha";
     int num;
 
-    _LayerList = new Layer[layer_num];
-    
+     
 
     bool first_line = true;
     vector<int> tokens;
@@ -277,3 +306,4 @@ void ProcessFile::init_polygon(string &filename, unordered_set<int> &cnet_set)
         }
     }
 }
+

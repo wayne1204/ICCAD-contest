@@ -85,21 +85,22 @@ inline void Polygon::setType(string type) {
 class Layer
 {
 public:
+    void initRule(int, int, int, double, double);
     void init_polygon(string &filename, unordered_set<int> &cnet_set);
-    Polygon* point_search(Polygon* start,int x,int y);
-    vector<Polygon*> region_query(Polygon* start,int x1,int y1,int x2,int y2);
-    vector<Polygon*> region_query(Polygon* start,Polygon* T);
-    bool insert(Polygon* T);
-    Polygon* split_Y(Polygon* &bigGG,int y,bool is_top,Polygon* &inserted);
-    Polygon* split_X_left(Polygon* &bigGG, int x_left,int x_right ,Polygon* &  inserted);
-    Polygon* split_X_right(Polygon* &bigGG, int x_left,int x_right ,Polygon* &  inserted);
+    Polygon *point_search(Polygon *start, int x, int y);
+    vector<Polygon *> region_query(Polygon *start, int x1, int y1, int x2, int y2);
+    vector<Polygon *> region_query(Polygon *start, Polygon *T);
+    bool insert(Polygon *T);
+    Polygon *split_Y(Polygon *&bigGG, int y, bool is_top, Polygon *&inserted);
+    Polygon *split_X_left(Polygon *&bigGG, int x_left, int x_right, Polygon *&inserted);
+    Polygon *split_X_right(Polygon *&bigGG, int x_left, int x_right, Polygon *&inserted);
     void initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr);
-    inline int get_gap(){return 30;}
-    inline int get_width(){return mini_width;}
-    inline int get_bl_boundary_x(){return _bl_boundary_x;}
-    inline int get_bl_boundary_y(){return _bl_boundary_y;}
-    inline int get_tr_boundary_x(){return _tr_boundary_x;}
-    inline int get_tr_boundary_y(){return _tr_boundary_y;}
+    inline int get_gap() { return min_space; }
+    inline int get_width() { return min_width; }
+    inline int get_bl_boundary_x() { return _bl_boundary_x; }
+    inline int get_bl_boundary_y() { return _bl_boundary_y; }
+    inline int get_tr_boundary_x() { return _tr_boundary_x; }
+    inline int get_tr_boundary_y() { return _tr_boundary_y; }
 private:
     int _bl_boundary_x;
     int _bl_boundary_y;
@@ -114,8 +115,11 @@ private:
     Polygon* dummy_bottom_left;
     Polygon* dummy_top_left;
 
-    int mini_gap=30;
-    int mini_width=30;
+    int min_width;
+    int min_space;
+    int max_fill_width;
+    double min_density;
+    double max_density;
     vector<Polygon*> _polygonlist;
 
 };

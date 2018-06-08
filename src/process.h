@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <fstream>
 #include "layout.h"
 using namespace std;
@@ -38,14 +39,16 @@ private:
     vector<double> bias;
 };
 
-// process file parser
-class ProcessFile{
+// file parsing manager
+class chipManager{
 public:
-    ProcessFile(){
-        window_size = 0;
-        layer_num = 0;
+    chipManager()
+    {
+      window_size = 0;
+      layer_num = 0;
     }
-    void readFile(const char*);
+    void parseRuleFile(const string& fileName);
+    void parseProcessFile(const string &fileName);
     void parseTable(ifstream& );
     void parseCapRules(ifstream &, int);
     void setWindow(int num){ window_size = num;   }
