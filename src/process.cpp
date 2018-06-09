@@ -63,7 +63,12 @@ void chipManager::parseRuleFile(const string &fileName)
 {
     string line, token;
     int num1, num2, num3;
+    double d1, d2;
     ifstream ifs(fileName.c_str(), ios::in);
+    if(!ifs.is_open()){
+        cout << "[Error] can't open rule file \"" << fileName << "\" !!\n";
+        return;
+    }
     _LayerList = new Layer[layer_num];
     while (getline(ifs, line))
     {
@@ -73,19 +78,22 @@ void chipManager::parseRuleFile(const string &fileName)
         pos = myStrGetTok(line, token, pos);
         int index = stoi(token);
         pos = myStrGetTok(line, token, pos);
-        vector<string> storing;
-        while(pos != string::npos){
-            pos = myStrGetTok(line, token, pos);
-            storing.push_back(token);
-        }
-        myStr2Int(storing[0], num1);  
-        myStr2Int(storing[1], num2);
-        myStr2Int(storing[2], num3);
-        _LayerList[index].initRule(num1, num2, num3, stod(storing[3]), stod(storing[4]));
+
+        pos = myStrGetTok(line, token, pos);
+        myStr2Int(token, num1);
+        pos = myStrGetTok(line, token, pos);
+        myStr2Int(token, num2);
+        pos = myStrGetTok(line, token, pos);
+        myStr2Int(token, num3);
+        pos = myStrGetTok(line, token, pos);
+        d1 = stod(token);
+        pos = myStrGetTok(line, token, pos);
+        d2 = stod(token);
+        _LayerList[index].initRule(num1, num2, num3, d1, d2);
         cout << "Layer#" << index << " "  << num1 << " " << num2 << " " << num3 << 
-        " " << stod(storing[3]) << " " << stod(storing[4]) <<endl;
+        " " << d1 << " " << d2 <<endl;
     }
-    cout << "Finish parsing rule file\n";
+    cout << "=== Finish parsing rule file ===\n";
 }
 
 // parse process file
@@ -93,12 +101,11 @@ void chipManager::parseProcessFile(const string &fileName)
 {
     string line, header, token;
     Capacitance *c;
-    ifstream ifs(fileName, ios::in);
+    ifstream ifs(fileName.c_str(), ios::in);
     if(!ifs.is_open()){
-        cout<<"[Error] can't open file \"" << fileName << "\" \n";
+        cout << "[Error] can't open process file \"" << fileName << "\" !!\n";
         return;
     }
-    
     while(getline(ifs, line))
     {
         if(line != "") {
@@ -123,7 +130,7 @@ void chipManager::parseProcessFile(const string &fileName)
             }
         }
     }
-    cout << "Finish parsing porcess file \"" << fileName << "\"\n";
+    cout << "=== Finish parsing porcess file \"" << fileName << "\" ===\n";
     cout << "    Area    |   Lateral  |    Fringe  |    Total   \n";
     cout << setw(7) << area_mapping.size() << setw(6) << "|";
     cout << setw(7) << layer_num << setw(6) << "|";

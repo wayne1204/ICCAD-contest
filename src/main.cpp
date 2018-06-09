@@ -18,6 +18,11 @@ int main(int argc, char** argv)
     string dirName = getDirName(ConfigFile);
     
     ifstream ifs(ConfigFile);
+    if(!ifs.is_open()){
+        cerr << "[Error] confile file \"" << ConfigFile<< " not found !!\n";
+        return -1;
+    }
+
     int filesize;
     ifs.seekg(0, ios::end);
     filesize = ifs.tellg();
