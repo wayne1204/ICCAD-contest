@@ -268,6 +268,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
     vector<int> tokens;
     Polygon* poly;
     int aa = 1;
+    int bb = 1;
     cout<<"haha"<<endl;
     while (token != ""){
 
@@ -285,8 +286,8 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             tokens.clear();
             for (int i = 0; i < layer_num; ++i){
                 _LayerList[i].initialize_layer(_bl_bound_x, _bl_bound_y, _tr_bound_x, _tr_bound_y);
-                cout<<"layer num = "<<aa<<endl;
-                aa++;
+                cout<<"layer num = "<<bb<<endl;
+                bb++;
 
             }
         }
@@ -297,6 +298,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
                     tokens.push_back(num);
                 }
                 else {
+                    cout<<"start new.....tokens size = "<<tokens.size()<<endl;
                     poly = new Polygon(token);
                     poly->set_coordinate(tokens);
                     poly->setToSolid();
@@ -306,9 +308,10 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             if (cnet_set.count(tokens[5])){
                 poly->setToCNet();
             }
-            cout<<"layer id = "<<poly->get_layer_id()<<endl;
+            cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
+            cout<<"parse poly....number of poly = "<<aa<<"..................."<<endl;
             _LayerList[poly->get_layer_id()-1].insert(poly);
-            cout<<"parse poly..........................number of poly = "<<aa<<endl;
+            cout<<".................finish poly....................."<<endl;
             aa++;
         }
     }

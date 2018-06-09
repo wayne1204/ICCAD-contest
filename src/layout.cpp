@@ -37,46 +37,46 @@ void Layer::initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr){
     int y2=_bl_boundary_y;
     //dummy left
     dummy_left=new Polygon("dummy");
-    dummy_left->set_xy(x2,y1,x2-1,y2);
+    dummy_left->set_xy(x2,y1,x2-2,y2);
     a->set_bl(dummy_left);
     //dummy right
     dummy_right=new Polygon("dummy");
-    dummy_right->set_xy(x1+1,y1,x1,y2);
+    dummy_right->set_xy(x1+2,y1,x1,y2);
     a->set_tr(dummy_right);
     //dummy top
     dummy_top=new Polygon("dummy");
-    dummy_top->set_xy(x1,y1+1,x2,y1);
+    dummy_top->set_xy(x1,y1+2,x2,y1);
     a->set_rt(dummy_top);
     dummy_top->set_lb(a);
     //dummy bottom
     dummy_bottom=new Polygon("dummy");
-    dummy_bottom->set_xy(x1,y2,x2,y2-1);
+    dummy_bottom->set_xy(x1,y2,x2,y2-2);
     a->set_lb(dummy_bottom);
     dummy_bottom->set_rt(a);
 
     dummy_bottom_right = new Polygon("dummy");
-    dummy_bottom_right->set_xy(x1+1, y2, x1, y2-1);
+    dummy_bottom_right->set_xy(x1+2, y2, x1, y2-1);
     dummy_bottom_right->set_rt(dummy_right);
     dummy_bottom_right->set_bl(dummy_bottom);
     dummy_right->set_lb(dummy_bottom_right);
     dummy_bottom->set_tr(dummy_bottom_right);
 
     dummy_right_top = new Polygon("dummy");
-    dummy_right_top->set_xy(x1+1, y1+1, x1, y1);
+    dummy_right_top->set_xy(x1+2, y1+2, x1, y1);
     dummy_right_top->set_lb(dummy_right);
     dummy_right_top->set_bl(dummy_top);
     dummy_right->set_rt(dummy_right_top);
     dummy_top->set_tr(dummy_right_top);
 
     dummy_bottom_left = new Polygon("dummy");
-    dummy_bottom_left->set_xy(x2, y2, x2-1, y2-1);
+    dummy_bottom_left->set_xy(x2, y2, x2-2, y2-2);
     dummy_bottom_left->set_rt(dummy_left);
     dummy_bottom_left->set_tr(dummy_bottom);
     dummy_left->set_lb(dummy_bottom_left);
     dummy_bottom->set_bl(dummy_bottom_left);
 
     dummy_top_left = new Polygon("dummy");
-    dummy_top_left->set_xy(x2, y1+1, x2-1, y1);
+    dummy_top_left->set_xy(x2, y1+2, x2-2, y1);
     dummy_top_left->set_lb(dummy_left);
     dummy_top_left->set_tr(dummy_top);
     dummy_left->set_rt(dummy_top_left);
