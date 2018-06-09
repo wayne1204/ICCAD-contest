@@ -28,6 +28,9 @@ public:
         _net_id = tokens[5];
         _layer_id = tokens[6];
     }
+    void set_layer_id(int a){_layer_id=a;}
+    void set_net_id(int a){_net_id=a;}
+    void set_polygon_id(int a){_polygon_id=a;}
     void set_xy(int x1,int y1,int x2, int y2){
         _b_left_x=x2;
         _b_left_y=y2;
@@ -42,6 +45,9 @@ public:
     void set_lb(Polygon* a){lb=a;}
     void set_bl(Polygon* a){bl=a;}
     static void setGlobalref(){global_ref++;}
+    inline int get_layer_id(){return _layer_id;}
+    inline int get_net_id(){return _net_id;}
+    inline int get_polygon_id(){return _polygon_id;}
     Polygon* get_tr(){return tr;}
     Polygon* get_rt(){return rt;}
     Polygon* get_lb(){return lb;}
@@ -53,7 +59,6 @@ public:
     inline int _bottom_left_y(){return _b_left_y;}
     inline int _top_right_x(){return _t_right_x;}
     inline int _top_right_y(){return _t_right_y;}
-    inline int get_layer_id(){return _layer_id;}
     bool is_solid(){return _is_solid;}
 private:
     int _b_left_x;
@@ -91,9 +96,9 @@ public:
     vector<Polygon *> region_query(Polygon *start, int x1, int y1, int x2, int y2);
     vector<Polygon *> region_query(Polygon *start, Polygon *T);
     bool insert(Polygon *T);
-    Polygon *split_Y(Polygon *&bigGG, int y, bool is_top, Polygon *&inserted);
-    Polygon *split_X_left(Polygon *&bigGG, int x_left, int x_right, Polygon *&inserted);
-    Polygon *split_X_right(Polygon *&bigGG, int x_left, int x_right, Polygon *&inserted);
+    Polygon *split_Y(Polygon *&bigGG, int y, bool is_top);
+    Polygon *split_X_left(Polygon *&bigGG, int x_left, int x_right);
+    Polygon *split_X_right(Polygon *&bigGG, int x_left, int x_right);
     void initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr);
     inline int get_gap() { return min_space; }
     inline int get_width() { return min_width; }

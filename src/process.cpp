@@ -7,7 +7,7 @@
 #include <typeinfo>
 #include "process.h"
 #include "util.h"
-
+//#define DEBUG
 using namespace std;
 
 
@@ -308,11 +308,14 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             if (cnet_set.count(tokens[5])){
                 poly->setToCNet();
             }
-            cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
             cout<<"parse poly....number of poly = "<<aa<<"..................."<<endl;
+            #ifdef DEBUG
+            cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
             _LayerList[poly->get_layer_id()-1].insert(poly);
             cout<<".................finish poly....................."<<endl;
+            #endif
             aa++;
+            delete poly;
         }
     }
 }
