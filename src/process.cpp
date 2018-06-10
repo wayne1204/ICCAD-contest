@@ -261,15 +261,11 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
     char* buff_end = buff + filesize;
     string token="haha";
     int num;
-
-     
-
     bool first_line = true;
     vector<int> tokens;
     Polygon* poly;
     int aa = 1;
     int bb = 1;
-    cout<<"haha"<<endl;
     while (token != ""){
 
         if (first_line){
@@ -286,8 +282,10 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             tokens.clear();
             for (int i = 0; i < layer_num; ++i){
                 _LayerList[i].initialize_layer(_bl_bound_x, _bl_bound_y, _tr_bound_x, _tr_bound_y);
+                #ifdef DEBUG
                 cout<<"layer num = "<<bb<<endl;
                 bb++;
+                #endif
 
             }
         }
@@ -298,7 +296,9 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
                     tokens.push_back(num);
                 }
                 else {
-                    cout<<"start new.....tokens size = "<<tokens.size()<<endl;
+                    #ifdef DEBUG
+                    //cout<<"start new.....tokens size = "<<tokens.size()<<endl;
+                    #endif
                     poly = new Polygon(token);
                     poly->set_coordinate(tokens);
                     poly->setToSolid();
@@ -308,15 +308,40 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             if (cnet_set.count(tokens[5])){
                 poly->setToCNet();
             }
-            cout<<"parse poly....number of poly = "<<aa<<"..................."<<endl;
-            #ifdef DEBUG
-            cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
             _LayerList[poly->get_layer_id()-1].insert(poly);
-            cout<<".................finish poly....................."<<endl;
+            cout<<"parse poly....number of poly = "<<setw(6)<<aa<<"..................."<<"\r";
+            #ifdef DEBUG
+            //cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
+            //cout<<".................finish poly....................."<<endl;
             #endif
             aa++;
-            delete poly;
+            //delete poly;
         }
     }
+    cout<<".................幹你娘....................."<<endl;
+}
+
+void chipManager::insert_tile(){
+    int x = _bl_bound_x;
+    int y = _bl_bound_y;
+    double density=0;
+    double count=0,count2=0;
+    for (int i = 0; i < layer_num; ++i){
+        while(y + window_size <= _tr_bound_y){
+            while(x + window_size <= _tr_bound_x){
+                density = _LayerList[i].density_calculate(x,y,window_size);
+                x+=window_size/2;
+                if(density<_LayerList[i].get_min_density()){
+                    cout<<"density= "<<setw(6)<<density<<"( "<<x<<", "<<y<<" ) layer "<<i+1<<"\r";
+                }
+                else count+=1;
+                count2++;
+            }
+            x=_bl_bound_x;
+            y+=window_size/2;
+        }
+        y=_bl_bound_y;
+    }
+    cout<<"幹你娘只有"<<count/count2<<"%有滿足"<<endl;
 }
 

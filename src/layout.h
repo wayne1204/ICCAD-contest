@@ -16,7 +16,7 @@ using namespace std;
 class Polygon
 {
 public:
-    Polygon(string s = "",bool solid_ornot = false):_type(s),_is_solid(solid_ornot) {
+    Polygon(string s = "tile",bool solid_ornot = false):_type(s),_is_solid(solid_ornot) {
         _is_critical_net = false;
     }
     void set_coordinate(vector<int> tokens){
@@ -74,7 +74,6 @@ private:
     Polygon* rt;
     Polygon* lb;
     Polygon* bl;
-
     string _type;
     bool _is_critical_net;
     bool _is_solid;
@@ -95,7 +94,8 @@ public:
     Polygon *point_search(Polygon *start, int x, int y);
     vector<Polygon *> region_query(Polygon *start, int x1, int y1, int x2, int y2);
     vector<Polygon *> region_query(Polygon *start, Polygon *T);
-    bool insert(Polygon *T);
+    bool insert(Polygon* T);
+    double density_calculate(int x,int y,double windowsize);
     Polygon *split_Y(Polygon *&bigGG, int y, bool is_top);
     Polygon *split_X_left(Polygon *&bigGG, int x_left, int x_right);
     Polygon *split_X_right(Polygon *&bigGG, int x_left, int x_right);
@@ -106,6 +106,7 @@ public:
     inline int get_bl_boundary_y() { return _bl_boundary_y; }
     inline int get_tr_boundary_x() { return _tr_boundary_x; }
     inline int get_tr_boundary_y() { return _tr_boundary_y; }
+    inline double get_min_density() { return min_density; }
 private:
     int _bl_boundary_x;
     int _bl_boundary_y;

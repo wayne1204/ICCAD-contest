@@ -54,9 +54,10 @@ public:
     void setWindow(int num){ window_size = num;   }
     double calCapicitance(double, int, int, int = -1);
     void init_polygon(string &filename, unordered_set<int> &cnet_set);
+    void insert_tile();
 
 private:
-    int window_size;
+    double window_size;
     int layer_num;
     unordered_map<string, pair<int, int> > area_mapping;
     unordered_map<string, pair<int, int> > fringe_mapping;

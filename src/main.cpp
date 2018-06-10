@@ -71,4 +71,5 @@ int main(int argc, char** argv)
     mgr->parseProcessFile(process_file);
     mgr->parseRuleFile(rule_file);
     mgr->init_polygon(design, cnets_set);
+    mgr->insert_tile();
 }

@@ -12,51 +12,16 @@
 using namespace std;
 //#define DEBUG
 unsigned Polygon::global_ref=0;
-double classify(int xy1,int xy2,int query_xy1,int query_xy2)
-{   
-    //xy1>>xy2
-    //in range   
-    if(xy1<=query_xy1&&xy2>=query_xy2)
-        return (xy1 - xy2);
-    //not in 
-    else if(xy1>query_xy1&&xy2<query_xy2)
-        return (query_xy1 - query_xy2 );
-    //half 在上面或是在右邊
-    else if(xy1>query_xy1)
-        return (query_xy1 - xy2);
-    //half 在下面或是在左邊
-    else 
-        return (xy1 - query_xy2);
-}
-double Layer::density_calculate(int x,int y,double windowsize)
-{   
-    //region 右上/左下
-    vector<Polygon*> query_list=region_query(dummy_left,x+windowsize,y+windowsize,x,y);
-    double area=0,x_area=0,y_area=0;
-    for(int i=0;i<query_list.size();i++){
-        if(query_list[i]->is_solid()){
-            x_area=classify(query_list[i]->_top_right_x(),query_list[i]->_bottom_left_x(),x+windowsize,x);
-            y_area=classify(query_list[i]->_top_right_y(),query_list[i]->_bottom_left_y(),y+windowsize,y);
-            area+=x_area*y_area;
-        }
-    }
-    #ifdef DEBUG
-    cout<<"------------------------------------"<<area<<endl;
-    #endif
-    return area/(windowsize*windowsize);
-}
+
 void Layer::initRule(int n1, int n2, int n3, double min, double max)
 {
-
     min_width = n1;
     min_space = n2;
     max_fill_width = n3;
     min_density = min;
     max_density = max;
 }
-void print_Polygon(Polygon* T)
-{
-
+void print_Polygon(Polygon* T){
     cerr<<T->getType()<<" ("<<T->_top_right_x()<<","<<T->_top_right_y()<<") ("<<T->_bottom_left_x()<<","<<T->_bottom_left_y()<<")\n";
     int a;
     //if(T->_top_right_x()==3407008&&T->_bottom_left_x()==3407008)cin>>a;
@@ -69,10 +34,9 @@ void print_Polygon(Polygon* T)
     //if(T->get_lb()->_top_right_x()==3407008&&T->get_lb()->_bottom_left_x()==3407008)cin>>a;
     cerr<<"bl "<<T->get_bl()->getType()<<" ("<<T->get_bl()->_top_right_x()<<","<<T->get_bl()->_top_right_y()<<") ("<<T->get_bl()->_bottom_left_x()<<","<<T->get_bl()->_bottom_left_y()<<")\n";
     //if(T->get_bl()->_top_right_x()==3407008&&T->get_bl()->_bottom_left_x()==3407008)cin>>a;
-}
-void Layer::initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr)
-{
 
+}
+void Layer::initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr){
     #ifdef DEBUG
         cout<<"init layer "<<endl;
     #endif
@@ -134,9 +98,7 @@ void Layer::initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr)
     dummy_left->set_rt(dummy_top_left);
     dummy_top->set_bl(dummy_top_left);
 }
-Polygon* Layer::point_search(Polygon* start,int x,int y)
-{
-
+Polygon* Layer::point_search(Polygon* start,int x,int y){
     /* 當x,y有切齊的時候 我們會選被包在框框裡面的tile 因此是
     top y = y  or left x = x 的時候
     */
@@ -160,9 +122,7 @@ Polygon* Layer::point_search(Polygon* start,int x,int y)
     }
     return current;
 }
-void neighbor_find_own(Polygon* T,vector<Polygon*> &v)
-{
-
+void neighbor_find_own(Polygon* T,vector<Polygon*> &v){
     //上到下找
     #ifdef DEBUG
         cout<<"find own "<<endl;
@@ -173,9 +133,7 @@ void neighbor_find_own(Polygon* T,vector<Polygon*> &v)
         current=current->get_lb();
     }
 }
-void enumerate(Polygon* T,vector<Polygon*> &v,int max_x)
-{
-
+void enumerate(Polygon* T,vector<Polygon*> &v,int max_x){
     //找own
     #ifdef DEBUG
         cout<<"enumerate "<<endl;
@@ -195,9 +153,7 @@ void enumerate(Polygon* T,vector<Polygon*> &v,int max_x)
 }
 
 
-vector<Polygon*> Layer::region_query(Polygon* start,int x1,int y1,int x2,int y2)
-{
-
+vector<Polygon*> Layer::region_query(Polygon* start,int x1,int y1,int x2,int y2){
     /*x1,y1 是右上   x2,y2 是左下
     左上角的座標是 x2,y1 是我們要query的
     */
@@ -242,14 +198,10 @@ vector<Polygon*> Layer::region_query(Polygon* start,int x1,int y1,int x2,int y2)
     #endif
     return query_Polygon;
 }
-vector<Polygon*> Layer::region_query(Polygon* start,Polygon* T)
-{
-
+vector<Polygon*> Layer::region_query(Polygon* start,Polygon* T){
     return region_query(start,T->_top_right_x(),T->_top_right_y(),T->_bottom_left_x(),T->_bottom_left_y());
 }
-Polygon* Layer::split_Y(Polygon* &bigGG,int y,bool is_top)
-{
-
+Polygon* Layer::split_Y(Polygon* &bigGG,int y,bool is_top){
     #ifdef DEBUG
         cout<<"split y "<<endl;
     #endif     
@@ -309,9 +261,7 @@ Polygon* Layer::split_Y(Polygon* &bigGG,int y,bool is_top)
     return new_poly;
 
 }
-Polygon* Layer::split_X_left(Polygon* &bigGG, int x_left,int x_right)
-{
-
+Polygon* Layer::split_X_left(Polygon* &bigGG, int x_left,int x_right){
     #ifdef DEBUG
         cout<<"split x_left "<<endl;
     #endif
@@ -338,9 +288,7 @@ Polygon* Layer::split_X_left(Polygon* &bigGG, int x_left,int x_right)
     bigGG->set_bl(new_poly);
     return new_poly;
 }
-Polygon* Layer::split_X_right(Polygon* &bigGG, int x_left,int x_right )
-{
-
+Polygon* Layer::split_X_right(Polygon* &bigGG, int x_left,int x_right ){
     #ifdef DEBUG
         cout<<"split x_right "<<endl;
     #endif
@@ -369,9 +317,7 @@ Polygon* Layer::split_X_right(Polygon* &bigGG, int x_left,int x_right )
     bigGG->set_tr(new_poly);
     return new_poly;
 }
-void join(Polygon* T1,Polygon *T2)
-{
-
+void join(Polygon* T1,Polygon *T2){
     Polygon* tp;
     if(T1->_bottom_left_x()==T2->_bottom_left_x()&&T1->_top_right_x()==T2->_top_right_x()&&T1->_bottom_left_y()==T2->_top_right_y()){
         T1->set_xy(T1->_top_right_x(),T1->_top_right_y(),T2->_bottom_left_x(),T2->_bottom_left_y());
@@ -391,43 +337,43 @@ void join(Polygon* T1,Polygon *T2)
         }
         T1->set_lb(T2->get_lb());
         T1->set_bl(T2->get_bl());
-        //delete T2;
-        //T2=NULL;
+        delete T2;
+        T2=NULL;
         return;
     }
     else return;
 }
 
-bool Layer::insert(Polygon* T){
-    /*  
-        query 是給 先右上 再左下
-        因為soild 會有最小間距 所以我們query看能不能夠塞的時候 
-        要看大塊一點 四周都加最小間距
-    */
+bool Layer::insert(vector<int> tokens,bool is_cnet){
+    // query 是給 先右上 再左下
+    //因為soild 會有最小間距 所以我們query看能不能夠塞的時候 
+    //要看大塊一點 四周都加最小間距
+    _b_left_x = ;
+        _b_left_y = tokens[2];
+       
+        _t_right_y = 
     #ifdef DEBUG
-        cout<<"insert "<<T->_top_right_x()<<" "<<T->_top_right_y()<<endl;
+        cout<<"insert "<<tokens[3]<<" "<<tokens[4]<<endl;
     #endif
     int bl_x,bl_y,tr_x,tr_y;
-    vector<Polygon*> split_x_right;
-    vector<Polygon*> split_x_left;
-    Polygon*aa;
-    bool is_left= ( T->_bottom_left_x() != get_bl_boundary_x() );
-    bool is_right= ( T->_top_right_x() != get_tr_boundary_x() );
     //決定query的邊界
     //左下角
-    (T->_bottom_left_x()-get_gap()>=get_bl_boundary_x()) ? bl_x = T->_bottom_left_x() - get_gap() : bl_x = get_bl_boundary_x();
-    (T->_bottom_left_y()-get_gap()>=get_bl_boundary_y()) ? bl_y = T->_bottom_left_y() - get_gap() : bl_y = get_bl_boundary_y();
+    (tokens[1]-get_gap()>=get_bl_boundary_x()) ? bl_x = tokens[1] - get_gap() : bl_x = get_bl_boundary_x();
+    (tokens[2]-get_gap()>=get_bl_boundary_y()) ? bl_y = tokens[2] - get_gap() : bl_y = get_bl_boundary_y();
     //右上角
-    (T->_top_right_x() + get_gap() >get_tr_boundary_x() ) ? tr_x = get_tr_boundary_x() : tr_x = T->_top_right_x() + get_gap();
-    (T->_top_right_y() + get_gap() >get_tr_boundary_y() ) ? tr_y = get_tr_boundary_y() : tr_y = T->_top_right_y() + get_gap();
+    (tokens[3] + get_gap() >get_tr_boundary_x() ) ? tr_x = get_tr_boundary_x() : tr_x = tokens[3] + get_gap();
+    (tokens[4] + get_gap() >get_tr_boundary_y() ) ? tr_y = get_tr_boundary_y() : tr_y = tokens[4] + get_gap();
     
     // 如果要插進去的這塊裡面有solid就不能插 就像有男友的女生一樣
     //vector<Polygon*> query_list=region_query(dummy_bottom,tr_x,tr_y,bl_x,bl_y);// (start,跟要插進去得tile)
-    vector<Polygon*> query_list=region_query(dummy_bottom,T->_top_right_x(),T->_top_right_y(),T->_bottom_left_x(),T->_bottom_left_y());
+    vector<Polygon*> query_list=region_query(dummy_bottom,tokens[3],tokens[4],tokens[1],tokens[2]);
     for(int i=0;i<query_list.size();i++){
         if(query_list[i]->is_solid())
             return false;
     }
+    Polygon*aa;
+    bool is_left= ( tokens[1] != get_bl_boundary_x() );
+    bool is_right= (tokens[3] != get_tr_boundary_x() );
     #ifdef DEBUG
         cout<<"query_list num= "<<query_list.size()<<endl;
     #endif
@@ -436,12 +382,29 @@ bool Layer::insert(Polygon* T){
     split y
 
     */
+    //cout<<"q_list size == "<<query_list.size()<<endl;
     for(int i=0; i<query_list.size(); i++){
-        if(query_list[i]->_top_right_y() > T->_top_right_y())
-            split_Y(query_list[i], T->_top_right_y(), true);
-        if(query_list[i]->_bottom_left_y()<T->_bottom_left_y())
-            split_Y(query_list[i],T->_bottom_left_y(),false);
+        /*
+        if(query_list[i]->_top_right_y() == T->_top_right_y()){
+            //T->set_rt(point_search(query_list[i],T->_top_right_x(),T->_top_right_y()+1));
+            if(T->_top_right_y()==get_tr_boundary_y()&&T->_bottom_left_x()==get_bl_boundary_x())
+                //dummy_top->set_lb(T);
+        }
+        if(query_list[i]->_bottom_left_y() == T->_bottom_left_y()){
+            //T->set_lb(point_search(query_list[i],T->_bottom_left_x(),T->_bottom_left_y()-1));
+            if(T->_bottom_left_y()==get_bl_boundary_y()&&T->_top_right_x()==get_tr_boundary_x())
+                //dummy_bottom->set_rt(T);
+        }
+        */
+        if(query_list[i]->_top_right_y() > tokens[4])
+            split_Y(query_list[i], tokens[4], true);
+        if(query_list[i]->_bottom_left_y() < tokens[2])
+            split_Y(query_list[i],tokens[2],false);
     }
+    //cout<<"a y1 = "<< aa->_bottom_left_y()<<endl;
+    vector<Polygon*> split_x_right;
+    vector<Polygon*> split_x_left;
+    //vector<Polygon*> bigGG_list;
     /*
 
     split x
@@ -450,20 +413,35 @@ bool Layer::insert(Polygon* T){
     #ifdef DEBUG
         cout<<"query_list num= "<<query_list.size()<<endl;
     #endif
-    for(int i=0;i<query_list.size();i++)
-    {
+    for(int i=0;i<query_list.size();i++){
+
         if(is_left){
-            if(query_list[i]->_bottom_left_x() < T->_bottom_left_x()){
-                Polygon* a = split_X_left(query_list[i],T->_bottom_left_x(),T->_top_right_x());
+            if(query_list[i]->_bottom_left_x() < tokens[1]){
+                Polygon* a = split_X_left(query_list[i],tokens[1],tokens[3]);
+            //if(a->_bottom_left_y()<=T->_bottom_left_y())
+            //    T->set_bl(a);
                 split_x_left.push_back(a);
             }
         }
+        /*
+        else {
+            T->set_bl(dummy_left);
+            if(T->_top_right_y()==get_tr_boundary_y())dummy_left->set_tr(T);
+
+        }*/
         if(is_right){
-            if(query_list[i]->_top_right_y() > T->_top_right_y()){
-                Polygon* a = split_X_right(query_list[i],T->_bottom_left_x(),T->_top_right_x());
+            if(query_list[i]->_top_right_y() > tokens[4]){
+                Polygon* a = split_X_right(query_list[i],tokens[1],tokens[3]);
+            //if(a->_top_right_y()>=T->_top_right_y())
+            //    T->set_tr(a);
                 split_x_right.push_back(a);
             }
         }
+        /*
+        else  {
+            T->set_tr(dummy_right);
+            if(T->_bottom_left_y()==get_bl_boundary_y())dummy_right->set_bl(T);
+        }*/
     }
     /*
     after splitting we join 
@@ -471,6 +449,11 @@ bool Layer::insert(Polygon* T){
     */
     for(int i=query_list.size()-1;i>=1;i--)
         join(query_list[i-1],query_list[i]);
+    /*
+    for( std::vector<Polygon*>::iterator i = query_list.begin()+1, endI = query_list.end(); i != endI; ++i)
+        delete *i;
+    */
+    
     for(int i=split_x_left.size()-1;i>=1;i--)
         join(split_x_left[i-1],split_x_left[i]);
     for(int i=split_x_right.size()-1;i>=1;i--)
@@ -478,11 +461,13 @@ bool Layer::insert(Polygon* T){
     #ifdef DEBUG
         cout<<"query_list num= "<<query_list.size()<<endl;
         print_Polygon(query_list[0]);
+        //if(query_list.size()>1)print_Polygon(query_list[1]);
     #endif
     /*
     for( std::vector<Polygon*>::iterator i = query_list.begin()+1, endI = query_list.end(); i != endI; ++i)
         delete *i;
     */
+    query_list
     query_list[0]->setToSolid();
     query_list[0]->setType(T->getType());
     query_list[0]->set_layer_id(T->get_layer_id());
