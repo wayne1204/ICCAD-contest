@@ -96,6 +96,7 @@ public:
     Polygon *split_X_left(Polygon *&bigGG, int x_left, int x_right);
     Polygon *split_X_right(Polygon *&bigGG, int x_left, int x_right);
     void initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr);
+    void print_Polygon(Polygon* T);
     inline int get_gap() { return min_space; }
     inline int get_width() { return min_width; }
     inline int get_bl_boundary_x() { return _bl_boundary_x; }
@@ -103,6 +104,7 @@ public:
     inline int get_tr_boundary_x() { return _tr_boundary_x; }
     inline int get_tr_boundary_y() { return _tr_boundary_y; }
     inline double get_min_density() { return min_density; }
+    Polygon* get_dummy(){return dummy_left;}
 private:
     int _bl_boundary_x;
     int _bl_boundary_y;
