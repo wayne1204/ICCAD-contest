@@ -35,11 +35,12 @@ double Layer::density_calculate(const int &x, const int &y, const double &window
     vec.clear();
     double area=0,x_area=0,y_area=0;
     for(int i=0;i<query_list.size();i++){
-        if(query_list[i]->is_solid()){
+        //if(query_list[i]->is_solid()){
             x_area=classify(query_list[i]->_top_right_x(),query_list[i]->_bottom_left_x(),x+windowsize,x);
             y_area=classify(query_list[i]->_top_right_y(),query_list[i]->_bottom_left_y(),y+windowsize,y);
-            area+=x_area*y_area;
-        }
+            if(x_area<0||y_area<0) cout<<query_list[i]->_top_right_x()<<" "<<query_list[i]->_top_right_y()<<"in window"<<x<<","<<y<<"有問題\n";
+            else area+=x_area*y_area;
+        //}
         if (query_list[i]->is_critical())
         {
             vec.push_back(query_list[i]);
@@ -65,14 +66,14 @@ void Layer::print_Polygon(Polygon* T)
     int a;
     //if(T->_top_right_x()==3407008&&T->_bottom_left_x()==3407008)cin>>a;
     if(T->getType()[0]=='d')return;
-    //cerr<<"tr "<<T->get_tr()->getType()<<" ("<<T->get_tr()->_top_right_x()<<","<<T->get_tr()->_top_right_y()<<") ("<<T->get_tr()->_bottom_left_x()<<","<<T->get_tr()->_bottom_left_y()<<")\n";
-    if(T->get_tr()->_bottom_left_x()!=T->_top_right_x()||T->get_tr()->_bottom_left_y()>T->_top_right_y())cin>>a;
-    //cerr<<"rt "<<T->get_rt()->getType()<<" ("<<T->get_rt()->_top_right_x()<<","<<T->get_rt()->_top_right_y()<<") ("<<T->get_rt()->_bottom_left_x()<<","<<T->get_rt()->_bottom_left_y()<<")\n";
-    if(T->get_rt()->_bottom_left_y()!=T->_top_right_y()||T->get_rt()->_bottom_left_x()>T->_top_right_x())cin>>a;
-    //cerr<<"lb "<<T->get_lb()->getType()<<" ("<<T->get_lb()->_top_right_x()<<","<<T->get_lb()->_top_right_y()<<") ("<<T->get_lb()->_bottom_left_x()<<","<<T->get_lb()->_bottom_left_y()<<")\n";
-    if(T->get_lb()->_top_right_y()!=T->_bottom_left_y()||T->get_lb()->_top_right_x()<T->_bottom_left_x())cin>>a;
-    //cerr<<"bl "<<T->get_bl()->getType()<<" ("<<T->get_bl()->_top_right_x()<<","<<T->get_bl()->_top_right_y()<<") ("<<T->get_bl()->_bottom_left_x()<<","<<T->get_bl()->_bottom_left_y()<<")\n";
-    if(T->get_bl()->_top_right_x()!=T->_bottom_left_x()||T->get_bl()->_top_right_y()<T->_bottom_left_y())cin>>a;
+    cerr<<"tr "<<T->get_tr()->getType()<<" ("<<T->get_tr()->_top_right_x()<<","<<T->get_tr()->_top_right_y()<<") ("<<T->get_tr()->_bottom_left_x()<<","<<T->get_tr()->_bottom_left_y()<<")\n";
+    //if(T->get_tr()->_bottom_left_x()!=T->_top_right_x()||T->get_tr()->_bottom_left_y()>T->_top_right_y())cin>>a;
+    cerr<<"rt "<<T->get_rt()->getType()<<" ("<<T->get_rt()->_top_right_x()<<","<<T->get_rt()->_top_right_y()<<") ("<<T->get_rt()->_bottom_left_x()<<","<<T->get_rt()->_bottom_left_y()<<")\n";
+    //(T->get_rt()->_bottom_left_y()!=T->_top_right_y()||T->get_rt()->_bottom_left_x()>T->_top_right_x())cin>>a;
+    cerr<<"lb "<<T->get_lb()->getType()<<" ("<<T->get_lb()->_top_right_x()<<","<<T->get_lb()->_top_right_y()<<") ("<<T->get_lb()->_bottom_left_x()<<","<<T->get_lb()->_bottom_left_y()<<")\n";
+    //if(T->get_lb()->_top_right_y()!=T->_bottom_left_y()||T->get_lb()->_top_right_x()<T->_bottom_left_x())cin>>a;
+    cerr<<"bl "<<T->get_bl()->getType()<<" ("<<T->get_bl()->_top_right_x()<<","<<T->get_bl()->_top_right_y()<<") ("<<T->get_bl()->_bottom_left_x()<<","<<T->get_bl()->_bottom_left_y()<<")\n";
+    //if(T->get_bl()->_top_right_x()!=T->_bottom_left_x()||T->get_bl()->_top_right_y()<T->_bottom_left_y())cin>>a;
 }
 void Layer::initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr)
 {
@@ -166,12 +167,12 @@ Polygon* Layer::point_search(Polygon* start,int x,int y)
 }
 void neighbor_find_own(Polygon* T,vector<Polygon*> &v)
 {
-
     //上到下找
     #ifdef DEBUG
         cout<<"find own "<<endl;
     #endif
     Polygon* current=T->get_tr();
+
     while(current->_bottom_left_y()>=T->_bottom_left_y()){
         v.push_back(current);
         current=current->get_lb();
@@ -235,15 +236,13 @@ vector<Polygon*> Layer::region_query(Polygon* start,int x1,int y1,int x2,int y2)
     }
     #ifdef DEBUG
         cout<<"bot"<<bottom_poly.size()<<endl;
+        Polygon* aaa=left_poly[0];
+        Polygon* bbb=bottom_poly[0];
+        cout<<"query2"<<query_Polygon.size()<<endl;
     #endif
-    Polygon* aaa=left_poly[0];
-    Polygon* bbb=bottom_poly[0];
     for(int i=0;i<bottom_poly.size();i++){
         enumerate(bottom_poly[i],query_Polygon,x1);
     }
-    #ifdef DEBUG
-        cout<<"query2"<<query_Polygon.size()<<endl;
-    #endif
     return query_Polygon;
 }
 vector<Polygon*> Layer::region_query(Polygon* start,Polygon* T)
@@ -494,6 +493,10 @@ bool Layer::insert(Polygon* T){
     query_list[0]->set_layer_id(T->get_layer_id());
     query_list[0]->set_net_id(T->get_net_id());
     query_list[0]->set_polygon_id(T-> get_polygon_id());
+    int a;
+    if(query_list[0]->_top_right_x()==2200000&&query_list[0]->_top_right_y()==2420077)
+        cin>>a;
+    //print_Polygon(query_list[0]);
     return true;
 
 }
