@@ -28,10 +28,11 @@ double classify(int xy1,int xy2,int query_xy1,int query_xy2)
     else 
         return (xy1 - query_xy2);
 }
-double Layer::density_calculate(int x,int y,double windowsize)
+double Layer::density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *> &vec)
 {   
     //region 右上/左下
     vector<Polygon*> query_list=region_query(dummy_left,x+windowsize,y+windowsize,x,y);
+    vec.clear();
     double area=0,x_area=0,y_area=0;
     for(int i=0;i<query_list.size();i++){
         if(query_list[i]->is_solid()){
@@ -39,12 +40,15 @@ double Layer::density_calculate(int x,int y,double windowsize)
             y_area=classify(query_list[i]->_top_right_y(),query_list[i]->_bottom_left_y(),y+windowsize,y);
             area+=x_area*y_area;
         }
+        if (query_list[i]->is_critical())
+        {
+            vec.push_back(query_list[i]);
+        }
     }
-    #ifdef DEBUG
-    cout<<"------------------------------------"<<area<<endl;
-    #endif
     return area/(windowsize*windowsize);
 }
+
+
 void Layer::initRule(int n1, int n2, int n3, double min, double max)
 {
 
@@ -483,6 +487,8 @@ bool Layer::insert(Polygon* T){
     for( std::vector<Polygon*>::iterator i = query_list.begin()+1, endI = query_list.end(); i != endI; ++i)
         delete *i;
     */
+    if(T->is_critical())
+        query_list[0]->setToCNet();
     query_list[0]->setToSolid();
     query_list[0]->setType(T->getType());
     query_list[0]->set_layer_id(T->get_layer_id());

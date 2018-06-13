@@ -6,14 +6,16 @@
 #include <iomanip> 
 #include <vector>
 #include <string>
-#include "process.h"
+#include "chipMgr.h"
 #include "util.h"
+#include "usage.h"
 #include <unordered_set>
 
 using namespace std;
 
 int main(int argc, char** argv)
 {
+    MyUsage* mu = new MyUsage();
     string ConfigFile = argv[1];
     string dirName = getDirName(ConfigFile);
     
@@ -71,5 +73,7 @@ int main(int argc, char** argv)
     mgr->parseProcessFile(process_file);
     mgr->parseRuleFile(rule_file);
     mgr->init_polygon(design, cnets_set);
+    mu->report();
     mgr->insert_tile();
+    mu->report();
 }

@@ -90,10 +90,10 @@ void chipManager::parseRuleFile(const string &fileName)
         pos = myStrGetTok(line, token, pos);
         d2 = stod(token);
         _LayerList[index].initRule(num1, num2, num3, d1, d2);
-        cout << "Layer#" << index << " "  << num1 << " " << num2 << " " << num3 << 
-        " " << d1 << " " << d2 <<endl;
+        // cout << "Layer#" << index << " "  << num1 << " " << num2 << " " << num3 << 
+        // " " << d1 << " " << d2 <<endl;
     }
-    cout << "=== Finish parsing rule file ===\n";
+    cout << "=== Finish parsing rule file \"" << fileName << "\" ===\n";
 }
 
 // parse process file
@@ -130,12 +130,12 @@ void chipManager::parseProcessFile(const string &fileName)
             }
         }
     }
-    cout << "=== Finish parsing porcess file \"" << fileName << "\" ===\n";
     cout << "    Area    |   Lateral  |    Fringe  |    Total   \n";
     cout << setw(7) << area_mapping.size() << setw(6) << "|";
     cout << setw(7) << layer_num << setw(6) << "|";
     cout << setw(7) << fringe_mapping.size() - layer_num << setw(6) << "|";
     cout << setw(7) << total_Cap_List.size() << endl;
+    cout << "=== Finish parsing porcess file \"" << fileName << "\" ===\n";
     ifs.close();
 }
 
@@ -308,8 +308,9 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             if (cnet_set.count(tokens[5])){
                 poly->setToCNet();
             }
+            
             _LayerList[poly->get_layer_id()-1].insert(poly);
-            cout<<"parse poly....number of poly = "<<setw(6)<<aa<<"..................."<<"\r";
+            cout<<"parse poly....number of poly = "<<setw(6)<<aa<<"...."<<"\r";
             #ifdef DEBUG
             //cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
             //cout<<".................finish poly....................."<<endl;
@@ -318,29 +319,32 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             //delete poly;
         }
     }
-    cout<<".................幹你娘....................."<<endl;
+    cout << "===    Finish inserting "<< aa << " polygon    ===" << endl;
 }
 
 void chipManager::insert_tile(){
-    int x = _bl_bound_x;
-    int y = _bl_bound_y;
-    double density=0;
-    double count[9]={0},count2[9]={0};
+    int x, y, wnd_num;
+    double density = 0;
+    double count[9] = {0}, count2[9] = {0};
+    int horizontal_cnt = (_tr_bound_x - window_size - _bl_bound_x) * 2 / window_size + 1;
+    int vertical_cnt = (_tr_bound_y - window_size - _bl_bound_y) * 2 / window_size + 1;
+    vector<Polygon*> critical_nets;
+
     for (int i = 0; i < layer_num; ++i){
-        while(y + window_size <= _tr_bound_y){
-            while(x + window_size <= _tr_bound_x){
-                density = _LayerList[i].density_calculate(x,y,window_size);
-                x+=window_size/2;
+        for(int row = 0; row < vertical_cnt; ++row){
+            for (int col = 0; col < horizontal_cnt; ++col){
+                x = _bl_bound_x + col * window_size / 2;
+                y = _bl_bound_y + row * window_size / 2;
+                wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;
+                density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
+                total_Cnet_List.emplace(wnd_num, critical_nets);
                 if(density<_LayerList[i].get_min_density()){
                     cout<<"density= "<<setw(6)<<density<<"( "<<x<<", "<<y<<" ) layer "<<i+1<<"\r";
                 }
                 else count[i]+=1;
                 count2[i]++;
             }
-            x=_bl_bound_x;
-            y+=window_size/2;
-        }
-        y=_bl_bound_y;
+        }       
     }
     cout<<endl;
     for(int i=0;i<9;i++)

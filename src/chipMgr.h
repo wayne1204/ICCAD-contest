@@ -62,6 +62,7 @@ private:
     unordered_map<string, pair<int, int> > area_mapping;
     unordered_map<string, pair<int, int> > fringe_mapping;
     unordered_map<int, Capacitance*> total_Cap_List;
+    unordered_map<int, vector<Polygon*> > total_Cnet_List;
     Layer* _LayerList;
     int _bl_bound_x;
     int _bl_bound_y;
