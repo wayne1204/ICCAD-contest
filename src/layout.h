@@ -88,8 +88,8 @@ public:
     void initRule(int, int, int, double, double);
     void init_polygon(string &filename, unordered_set<int> &cnet_set);
     Polygon *point_search(Polygon *start, int x, int y);
-    vector<Polygon *> region_query(Polygon *start, int x1, int y1, int x2, int y2);
-    vector<Polygon *> region_query(Polygon *start, Polygon *T);
+    void region_query(Polygon *start, int x1, int y1, int x2, int y2, vector<Polygon *>& query_Polygon);
+    void region_query(Polygon *start, Polygon *T, vector<Polygon *> &query_Polygon);
     bool insert(Polygon *T);
     double density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *>& vec);
     Polygon *split_Y(Polygon *bigGG, int y, bool is_top);

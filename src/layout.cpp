@@ -36,7 +36,8 @@ double classify(int xy1,int xy2,int query_xy1,int query_xy2)
 double Layer::density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *> &vec)
 {   
     //region 右上/左下
-    vector<Polygon*> query_list=region_query(dummy_bottom,x+windowsize,y+windowsize,x,y);
+    vector<Polygon*> query_list;
+    region_query(dummy_bottom,x+windowsize,y+windowsize,x,y, query_list);
     vec.clear();
     double area=0,x_area=0,y_area=0;
     for(int i=0;i<query_list.size();i++){
@@ -214,9 +215,8 @@ void enumerate(Polygon* T,vector<Polygon*> &v,const int& max_x,const int& max_y,
 }
 
 
-vector<Polygon*> Layer::region_query(Polygon* start,int x1,int y1,int x2,int y2)
+void Layer::region_query(Polygon* start,int x1,int y1,int x2,int y2, vector<Polygon*>& query_Polygon)
 {
-
     /*x1,y1 是右上   x2,y2 是左下
     左上角的座標是 x2,y1 是我們要query的
     */
@@ -224,7 +224,7 @@ vector<Polygon*> Layer::region_query(Polygon* start,int x1,int y1,int x2,int y2)
         cout<<"region query "<<endl;
     #endif
     Polygon::setGlobalref();
-    vector<Polygon*> query_Polygon;
+    // vector<Polygon*> query_Polygon;
     vector<Polygon*>left_poly;
     start=point_search(start,x2,y1);
     while(start->_top_right_y()>y2){
@@ -257,13 +257,14 @@ vector<Polygon*> Layer::region_query(Polygon* start,int x1,int y1,int x2,int y2)
     for(int i=0;i<bottom_poly.size();i++){
         enumerate(bottom_poly[i],query_Polygon,x1,y1,y2);
     }
-    return query_Polygon;
+    // return query_Polygon;
 }
-vector<Polygon*> Layer::region_query(Polygon* start,Polygon* T)
-{
 
-    return region_query(start,T->_top_right_x(),T->_top_right_y(),T->_bottom_left_x(),T->_bottom_left_y());
+void Layer::region_query(Polygon *start, Polygon *T, vector<Polygon *> &query_Polygon)
+{
+    return region_query(start, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_Polygon);
 }
+
 Polygon* Layer::split_Y(Polygon* bigGG,int y,bool is_top)
 {
 
@@ -412,8 +413,8 @@ void join(Polygon* T1,Polygon *T2)
         }
         T1->set_lb(T2->get_lb());
         T1->set_bl(T2->get_bl());
-        //delete T2;
-        //T2=NULL;
+        delete T2;
+        T2 = NULL;
         return;
     }
     else return;
@@ -444,7 +445,8 @@ bool Layer::insert(Polygon* T){
     
     // 如果要插進去的這塊裡面有solid就不能插 就像有男友的女生一樣
     //vector<Polygon*> query_list=region_query(dummy_bottom,tr_x,tr_y,bl_x,bl_y);// (start,跟要插進去得tile)
-    vector<Polygon*> query_list=region_query(dummy_bottom,T->_top_right_x(),T->_top_right_y(),T->_bottom_left_x(),T->_bottom_left_y());
+    vector<Polygon*> query_list;
+    region_query(dummy_bottom, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list);
     for(int i=0;i<query_list.size();i++){
         if(query_list[i]->is_solid())
             return false;
