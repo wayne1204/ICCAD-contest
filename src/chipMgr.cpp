@@ -336,15 +336,16 @@ void chipManager::insert_tile(){
                 x = _bl_bound_x + col * window_size / 2;
                 y = _bl_bound_y + row * window_size / 2;
                 wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;
+                //cout<<"density cal"<<x<<","<<y<<endl;
                 density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
                 total_Cnet_List.emplace(wnd_num, critical_nets);
-                
+                /*
                 if(density<1){
                     cout<<"query "<<x+window_size<<" "<<y+window_size<<" "<<x<<" "<<y<<endl;
                     vector<Polygon*>a=_LayerList[i].region_query(_LayerList[i].get_dummy(),x+window_size,y+window_size,x,y);
                     for(int j=0;j<a.size();j++)_LayerList[i].print_Polygon(a[j]);
                     cout<<"density= "<<setw(6)<<density<<"( "<<x<<", "<<y<<" ) layer "<<i+1<<"\r"<<endl;
-                }
+                }*/
                 if(density==1) count[i]+=1;
                 count2[i]++;
             }

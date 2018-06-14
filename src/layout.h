@@ -92,9 +92,9 @@ public:
     vector<Polygon *> region_query(Polygon *start, Polygon *T);
     bool insert(Polygon *T);
     double density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *>& vec);
-    Polygon *split_Y(Polygon *&bigGG, int y, bool is_top);
-    Polygon *split_X_left(Polygon *&bigGG, int x_left, int x_right);
-    Polygon *split_X_right(Polygon *&bigGG, int x_left, int x_right);
+    Polygon *split_Y(Polygon *bigGG, int y, bool is_top);
+    Polygon *split_X_left(Polygon *bigGG, int x_left, int x_right);
+    Polygon *split_X_right(Polygon *bigGG, int x_left, int x_right);
     void initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr);
     void print_Polygon(Polygon* T);
     inline int get_gap() { return min_space; }
