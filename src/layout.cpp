@@ -185,9 +185,10 @@ void neighbor_find_own(Polygon* T,vector<Polygon*> &v,const int& max_y,const int
     #endif
     Polygon* current=T->get_tr();
 
-    while(current->_bottom_left_y()>=T->_bottom_left_y()&&current->_bottom_left_y()<max_y&&current->_top_right_y()>min_y){
+    while(current->_bottom_left_y()>=T->_bottom_left_y()){
         //
-        v.push_back(current);
+        if(current->_bottom_left_y()<max_y&&current->_top_right_y()>min_y)
+            v.push_back(current);
         current=current->get_lb();
     }
 }
