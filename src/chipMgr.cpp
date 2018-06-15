@@ -349,11 +349,10 @@ void chipManager::insert_tile(){
                 
                 if(density < _LayerList[i].get_min_density()){   
                     double new_density=density;
-                    cout<<"密度 "<<density<<x<<","<<y<<"windownum= "<<wnd_num<<endl;
-                    while(new_density < _LayerList[i].get_min_density()){
-                        _LayerList[i].insert_dummy(x,y,window_size,new_density,i+1);
-                    }
-                    cout<<"新的密度 "<<new_density<<x<<","<<y<<"windownum= "<<wnd_num<<"layer id= "<<i+1<<endl;
+                    cout<<endl<<"密度 "<<density<<x<<","<<y<<" windownum= "<<wnd_num<<endl;
+                    _LayerList[i].insert_dummy(x,y,window_size,new_density,i+1);
+                    cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
+
                 }
                 else count[i]+=1;
                 count2[i]++;
