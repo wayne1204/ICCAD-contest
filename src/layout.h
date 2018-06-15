@@ -16,49 +16,36 @@ using namespace std;
 class Polygon
 {
 public:
-    Polygon(string s = "tile",bool solid_ornot = false):_type(s),_is_solid(solid_ornot) {
+    Polygon(string s = "normal",bool solid_ornot = false):_type(s),_is_solid(solid_ornot) {
         _is_critical_net = false;
     }
-    void set_coordinate(vector<int> tokens){
-        _polygon_id = tokens[0];
-        _b_left_x = tokens[1];
-        _b_left_y = tokens[2];
-        _t_right_x = tokens[3];
-        _t_right_y = tokens[4];
-        _net_id = tokens[5];
-        _layer_id = tokens[6];
-    }
+    void set_coordinate(vector<int> tokens);
     void set_layer_id(int a){_layer_id=a;}
     void set_net_id(int a){_net_id=a;}
     void set_polygon_id(int a){_polygon_id=a;}
-    void set_xy(int x1,int y1,int x2, int y2){
-        _b_left_x=x2;
-        _b_left_y=y2;
-        _t_right_x=x1;
-        _t_right_y=y1;
-    }
-    inline void setToSolid(){_is_solid = true;}
-    inline void setToCNet() { _is_critical_net = true; }
-    inline void setType(string type){ _type = type;}
+    void set_xy(int x1,int y1,int x2, int y2);
     void set_tr(Polygon* a){tr=a;}
     void set_rt(Polygon* a){rt=a;}
     void set_lb(Polygon* a){lb=a;}
     void set_bl(Polygon* a){bl=a;}
+    void setToglobalref(){ref=global_ref;}
     static void setGlobalref(){global_ref++;}
-    inline int get_layer_id(){return _layer_id;}
-    inline int get_net_id(){return _net_id;}
-    inline int get_polygon_id(){return _polygon_id;}
     Polygon* get_tr(){return tr;}
     Polygon* get_rt(){return rt;}
     Polygon* get_lb(){return lb;}
     Polygon* get_bl(){return bl;}
-    void setToglobalref(){ref=global_ref;}
     string getType(){return _type;}
-    bool isglobalref(){return ref==global_ref;}
+    inline void setToSolid(){_is_solid = true;}
+    inline void setToCNet() { _is_critical_net = true; }
+    inline void setType(string type){ _type = type;}
+    inline int get_layer_id(){return _layer_id;}
+    inline int get_net_id(){return _net_id;}
+    inline int get_polygon_id(){return _polygon_id;}
     inline int _bottom_left_x(){return _b_left_x;}
     inline int _bottom_left_y(){return _b_left_y;}
     inline int _top_right_x(){return _t_right_x;}
     inline int _top_right_y(){return _t_right_y;}
+    bool isglobalref(){return ref==global_ref;}
     bool is_solid(){return _is_solid;}
     bool is_critical(){return _is_critical_net;}
 private:
@@ -66,9 +53,7 @@ private:
     int _b_left_y;
     int _t_right_x;
     int _t_right_y;
-    static unsigned global_ref;
     int _polygon_id;
-    unsigned ref;
     int _net_id;
     int _layer_id;
     Polygon* tr;
@@ -78,6 +63,8 @@ private:
     string _type;
     bool _is_critical_net;
     bool _is_solid;
+    unsigned ref;
+    static unsigned global_ref;
 };
 
 
@@ -85,18 +72,20 @@ private:
 class Layer
 {
 public:
+    void initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr);
+    void print_Polygon(Polygon* T);
+    void insert_dummy(const int& x, const int& y,const double& windowsize, double& density,const int& layer_id);
     void initRule(int, int, int, double, double);
     void init_polygon(string &filename, unordered_set<int> &cnet_set);
-    Polygon *point_search(Polygon *start, int x, int y);
     void region_query(Polygon *start, int x1, int y1, int x2, int y2, vector<Polygon *>& query_Polygon);
     void region_query(Polygon *start, Polygon *T, vector<Polygon *> &query_Polygon);
-    bool insert(Polygon *T);
+    bool insert(Polygon *T,bool is_myinset);
     double density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *>& vec);
+    Polygon *point_search(Polygon *start, int x, int y);
     Polygon *split_Y(Polygon *bigGG, int y, bool is_top);
     Polygon *split_X_left(Polygon *bigGG, int x_left, int x_right);
     Polygon *split_X_right(Polygon *bigGG, int x_left, int x_right);
-    void initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr);
-    void print_Polygon(Polygon* T);
+    Polygon* get_dummy(){return dummy_left;}
     inline int get_gap() { return min_space; }
     inline int get_width() { return min_width; }
     inline int get_bl_boundary_x() { return _bl_boundary_x; }
@@ -104,7 +93,6 @@ public:
     inline int get_tr_boundary_x() { return _tr_boundary_x; }
     inline int get_tr_boundary_y() { return _tr_boundary_y; }
     inline double get_min_density() { return min_density; }
-    Polygon* get_dummy(){return dummy_left;}
 private:
     int _bl_boundary_x;
     int _bl_boundary_y;

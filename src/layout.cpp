@@ -12,6 +12,22 @@
 using namespace std;
 //#define DEBUG
 unsigned Polygon::global_ref=0;
+void Polygon::set_xy(int x1,int y1,int x2, int y2){
+        //先右上再左下
+        _b_left_x=x2;
+        _b_left_y=y2;
+        _t_right_x=x1;
+        _t_right_y=y1;
+}
+void Polygon::set_coordinate(vector<int> tokens){
+        _polygon_id = tokens[0];
+        _b_left_x = tokens[1];
+        _b_left_y = tokens[2];
+        _t_right_x = tokens[3];
+        _t_right_y = tokens[4];
+        _net_id = tokens[5];
+        _layer_id = tokens[6];
+}
 double classify(int xy1,int xy2,int query_xy1,int query_xy2)
 {   
     //xy1>>xy2
@@ -41,12 +57,12 @@ double Layer::density_calculate(const int &x, const int &y, const double &window
     vec.clear();
     double area=0,x_area=0,y_area=0;
     for(int i=0;i<query_list.size();i++){
-        //if(query_list[i]->is_solid()){
+        if(query_list[i]->is_solid()){
             x_area=classify(query_list[i]->_top_right_x(),query_list[i]->_bottom_left_x(),x+windowsize,x);
             y_area=classify(query_list[i]->_top_right_y(),query_list[i]->_bottom_left_y(),y+windowsize,y);
             if(x_area<0||y_area<0) ;//cout<<query_list[i]->_top_right_x()<<" "<<query_list[i]->_top_right_y()<<"in window"<<x<<","<<y<<"有問題\n";
             else area+=x_area*y_area;
-        //}
+        }
         if (query_list[i]->is_critical())
         {
             vec.push_back(query_list[i]);
@@ -419,13 +435,57 @@ void join(Polygon* T1,Polygon *T2)
     }
     else return;
 }
+void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& windowsize, double& density,const int& layer_id){
+    // x,y 左下角座標 黃平瑋要看喔
+    
+    int x = edge_x;
+    int y = edge_y;
+    int n = 1;
+    double stride=1*get_gap();
+    while(density<get_min_density()){
+        //不確定是不是可以是正方形
+        //先設最小的面積的來塞
+        while(y + get_width() <= edge_y + windowsize){
+            while(x + get_width() <= edge_x + windowsize){
+                Polygon* T = new Polygon("filled",true);
+                T->set_layer_id(layer_id);
+                T->set_xy(x + n* get_width(),y + n* get_width(),x,y);
 
-bool Layer::insert(Polygon* T){
+                //cout<<"now insert "<<x + get_width()<<","<<y + get_width()<<" "<<x<<","<<y<<endl;
+                //cout<<"now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<endl;
+                if(insert(T,false)){
+                    density=(density*windowsize*windowsize+get_width()*get_width())/(windowsize*windowsize);
+                    cout<<"now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
+                    cout<<"density= "<<density<<endl;
+                }
+                delete T;
+                T=NULL;
+                x+=1;
+            }
+            y+=1;
+            x=edge_x;
+        }
+        if (n == 1) n = 1;
+        else n--;
+        x=edge_x+get_gap();
+        y=edge_y;
+        if(stride>2) stride-= n*get_gap();
+        else {
+            stride =2;
+            cout<<"幹你娘做不出來拉"<<endl;
+        }
+        
+    }
+
+}
+
+bool Layer::insert(Polygon* T,bool first_inset){
     /*  
         query 是給 先右上 再左下
         因為soild 會有最小間距 所以我們query看能不能夠塞的時候 
         要看大塊一點 四周都加最小間距
     */
+    //3414815,1800065 3414750,1800000
     #ifdef DEBUG
         cout<<"insert "<<T->_top_right_x()<<" "<<T->_top_right_y()<<endl;
     #endif
@@ -435,21 +495,27 @@ bool Layer::insert(Polygon* T){
     Polygon*aa;
     bool is_left= ( T->_bottom_left_x() != get_bl_boundary_x() );
     bool is_right= ( T->_top_right_x() != get_tr_boundary_x() );
-    //決定query的邊界
-    //左下角
-    //(T->_bottom_left_x()-get_gap()>=get_bl_boundary_x()) ? bl_x = T->_bottom_left_x() - get_gap() : bl_x = get_bl_boundary_x();
-    //(T->_bottom_left_y()-get_gap()>=get_bl_boundary_y()) ? bl_y = T->_bottom_left_y() - get_gap() : bl_y = get_bl_boundary_y();
-    //右上角
-    //(T->_top_right_x() + get_gap() >get_tr_boundary_x() ) ? tr_x = get_tr_boundary_x() : tr_x = T->_top_right_x() + get_gap();
-    //(T->_top_right_y() + get_gap() >get_tr_boundary_y() ) ? tr_y = get_tr_boundary_y() : tr_y = T->_top_right_y() + get_gap();
-    
-    // 如果要插進去的這塊裡面有solid就不能插 就像有男友的女生一樣
-    //vector<Polygon*> query_list=region_query(dummy_bottom,tr_x,tr_y,bl_x,bl_y);// (start,跟要插進去得tile)
     vector<Polygon*> query_list;
-    region_query(dummy_bottom, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list);
+    if(!first_inset){
+        //決定query的邊界
+        //左下角
+        (T->_bottom_left_x()-get_gap()>=get_bl_boundary_x()) ? bl_x = T->_bottom_left_x() - get_gap() : bl_x = get_bl_boundary_x();
+        (T->_bottom_left_y()-get_gap()>=get_bl_boundary_y()) ? bl_y = T->_bottom_left_y() - get_gap() : bl_y = get_bl_boundary_y();
+        //右上角
+        (T->_top_right_x() + get_gap() >get_tr_boundary_x() ) ? tr_x = get_tr_boundary_x() : tr_x = T->_top_right_x() + get_gap();
+        (T->_top_right_y() + get_gap() >get_tr_boundary_y() ) ? tr_y = get_tr_boundary_y() : tr_y = T->_top_right_y() + get_gap();
+        
+        // 如果要插進去的這塊裡面有solid就不能插 就像有男友的女生一樣
+        region_query(dummy_bottom,tr_x,tr_y,bl_x,bl_y,query_list);// (start,跟要插進去得tile)
+    }
+    else region_query(dummy_bottom, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list);
     for(int i=0;i<query_list.size();i++){
         if(query_list[i]->is_solid())
             return false;
+    }
+    if(!first_inset){
+        query_list.clear();
+        region_query(dummy_bottom, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list);
     }
     #ifdef DEBUG
         cout<<"query_list num= "<<query_list.size()<<endl;
@@ -509,24 +575,24 @@ bool Layer::insert(Polygon* T){
         cout<<"query_list num= "<<query_list.size()<<endl;
         print_Polygon(query_list[0]);
     #endif
-    /*
-    for( std::vector<Polygon*>::iterator i = query_list.begin()+1, endI = query_list.end(); i != endI; ++i)
-        delete *i;
-    */
     if(T->is_critical())
         query_list[0]->setToCNet();
-    query_list[0]->setToSolid();
-    query_list[0]->setType(T->getType());
-    query_list[0]->set_layer_id(T->get_layer_id());
-    query_list[0]->set_net_id(T->get_net_id());
-    query_list[0]->set_polygon_id(T-> get_polygon_id());
+    //set somthing
+        query_list[0]->setToSolid();
+        query_list[0]->setType(T->getType());
+        query_list[0]->set_layer_id(T->get_layer_id());
+        if(first_inset){
+            query_list[0]->set_net_id(T->get_net_id());
+            query_list[0]->set_polygon_id(T-> get_polygon_id());
+        }
+    #ifdef DEBUG
     if(T->_top_right_y()!=query_list[0]->_top_right_y()||T->_top_right_x()!=query_list[0]->_top_right_x()
         ||T->_bottom_left_y()!=query_list[0]->_bottom_left_y()||T->_bottom_left_x()!=query_list[0]->_bottom_left_x()){
         cout<<endl;
         cout<<"T"<<T->_top_right_x()<<","<<T->_top_right_y()<<endl;
         cout<<"Q"<<query_list[0]->_top_right_x()<<","<<query_list[0]->_top_right_y()<<endl;
     }
-    //print_Polygon(query_list[0]);
+    #endif
     return true;
 
 }

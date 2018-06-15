@@ -290,8 +290,10 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             }
         }
         else {
+            bool if_new=false;
             while ( (token = next_token(buff_beg, buff_end)) != ""){
                 if (token[0] == '\n') break;
+                if_new=false;
                 if (myStr2Int(token, num)){
                     tokens.push_back(num);
                 }
@@ -299,6 +301,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
                     #ifdef DEBUG
                     //cout<<"start new.....tokens size = "<<tokens.size()<<endl;
                     #endif
+                    if_new=true;
                     poly = new Polygon(token);
                     poly->set_coordinate(tokens);
                     poly->setToSolid();
@@ -309,19 +312,23 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
                 poly->setToCNet();
             }
             
-            _LayerList[poly->get_layer_id()-1].insert(poly);
+            _LayerList[poly->get_layer_id()-1].insert(poly,true);
             cout<<"parse poly....number of poly = "<<setw(6)<<aa<<"...."<<"\r";
             #ifdef DEBUG
             //cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
             //cout<<".................finish poly....................."<<endl;
             #endif
             aa++;
-            //delete poly;
+            /*
+            if(if_new){
+                delete poly;
+                poly=NULL;
+            }*/
+            
         }
     }
     cout << "===    Finish inserting "<< aa << " polygon    ===" << endl;
 }
-
 void chipManager::insert_tile(){
     int x, y, wnd_num;
     double density = 0;
@@ -339,14 +346,16 @@ void chipManager::insert_tile(){
                 //cout<<"density cal"<<x<<","<<y<<endl;
                 density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
                 total_Cnet_List.emplace(wnd_num, critical_nets);
-                /*
-                if(density<1){
-                    cout<<"query "<<x+window_size<<" "<<y+window_size<<" "<<x<<" "<<y<<endl;
-                    vector<Polygon*>a=_LayerList[i].region_query(_LayerList[i].get_dummy(),x+window_size,y+window_size,x,y);
-                    for(int j=0;j<a.size();j++)_LayerList[i].print_Polygon(a[j]);
-                    cout<<"density= "<<setw(6)<<density<<"( "<<x<<", "<<y<<" ) layer "<<i+1<<"\r"<<endl;
-                }*/
-                if(density==1) count[i]+=1;
+                
+                if(density < _LayerList[i].get_min_density()){   
+                    double new_density=density;
+                    cout<<"密度 "<<density<<x<<","<<y<<"windownum= "<<wnd_num<<endl;
+                    while(new_density < _LayerList[i].get_min_density()){
+                        _LayerList[i].insert_dummy(x,y,window_size,new_density,i+1);
+                    }
+                    cout<<"新的密度 "<<new_density<<x<<","<<y<<"windownum= "<<wnd_num<<"layer id= "<<i+1<<endl;
+                }
+                else count[i]+=1;
                 count2[i]++;
             }
         }       
@@ -354,6 +363,5 @@ void chipManager::insert_tile(){
     cout<<endl;
     for(int i=0;i<9;i++)
         cout<<"幹你娘第"<<i+1<<"層只有"<<count[i]/count2[i]*100<<"%有滿足"<<endl;
-    
 }
 
