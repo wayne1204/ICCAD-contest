@@ -345,13 +345,13 @@ void chipManager::insert_tile(){
                 wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;
                 //cout<<"density cal"<<x<<","<<y<<endl;
                 density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
-                total_Cnet_List.emplace(wnd_num, critical_nets);
+                //total_Cnet_List.emplace(wnd_num, critical_nets);
                 
                 if(density < _LayerList[i].get_min_density()){   
                     double new_density=density;
-                    cout<<endl<<"密度 "<<density<<x<<","<<y<<" windownum= "<<wnd_num<<endl;
+                    //cout<<endl<<"密度 "<<density<<x<<","<<y<<" windownum= "<<wnd_num<<endl;
                     _LayerList[i].insert_dummy(x,y,window_size,new_density,i+1);
-                    cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
+                    //cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
 
                 }
                 else count[i]+=1;
