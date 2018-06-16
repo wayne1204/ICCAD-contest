@@ -12,22 +12,6 @@
 using namespace std;
 //#define DEBUG
 unsigned Polygon::global_ref=0;
-void Polygon::set_xy(int x1,int y1,int x2, int y2){
-        //先右上再左下
-        _b_left_x=x2;
-        _b_left_y=y2;
-        _t_right_x=x1;
-        _t_right_y=y1;
-}
-void Polygon::set_coordinate(vector<int> tokens){
-        _polygon_id = tokens[0];
-        _b_left_x = tokens[1];
-        _b_left_y = tokens[2];
-        _t_right_x = tokens[3];
-        _t_right_y = tokens[4];
-        _net_id = tokens[5];
-        _layer_id = tokens[6];
-}
 double classify(int xy1,int xy2,int query_xy1,int query_xy2)
 {   
     //xy1>>xy2
@@ -48,6 +32,35 @@ double classify(int xy1,int xy2,int query_xy1,int query_xy2)
         cout<<xy1<<" "<<xy2<<" "<<query_xy1<<" "<<query_xy2<<endl;
         return 0;
     }
+}
+struct Local {
+    Local(int x,int y,int windowsize){
+    this->x= x;
+    this->y= y;
+    this->windowsize= windowsize;
+    }
+    bool operator () (Polygon* i, Polygon* j) {
+    int area_i=classify(i->_top_right_x(),i->_bottom_left_x(),x+windowsize,x)*classify(i->_top_right_y(),i->_bottom_left_y(),y+windowsize,y);
+    int area_j=classify(j->_top_right_x(),j->_bottom_left_x(),x+windowsize,x)*classify(j->_top_right_y(),j->_bottom_left_y(),y+windowsize,y);
+    return (area_i <= area_j)? i<j : j<i; 
+    }
+    int x,y,windowsize;
+};
+void Polygon::set_xy(int x1,int y1,int x2, int y2){
+        //先右上再左下
+        _b_left_x=x2;
+        _b_left_y=y2;
+        _t_right_x=x1;
+        _t_right_y=y1;
+}
+void Polygon::set_coordinate(vector<int> tokens){
+        _polygon_id = tokens[0];
+        _b_left_x = tokens[1];
+        _b_left_y = tokens[2];
+        _t_right_x = tokens[3];
+        _t_right_y = tokens[4];
+        _net_id = tokens[5];
+        _layer_id = tokens[6];
 }
 double Layer::density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *> &vec)
 {   
@@ -70,17 +83,6 @@ double Layer::density_calculate(const int &x, const int &y, const double &window
     }
     return area/(windowsize*windowsize);
 }
-
-
-void Layer::initRule(int n1, int n2, int n3, double min, double max)
-{
-
-    min_width = n1;
-    min_space = n2;
-    max_fill_width = n3;
-    min_density = min;
-    max_density = max;
-}
 void Layer::print_Polygon(Polygon* T)
 {
 
@@ -97,6 +99,16 @@ void Layer::print_Polygon(Polygon* T)
     cerr<<"bl "<<T->get_bl()->getType()<<" ("<<T->get_bl()->_top_right_x()<<","<<T->get_bl()->_top_right_y()<<") ("<<T->get_bl()->_bottom_left_x()<<","<<T->get_bl()->_bottom_left_y()<<")\n";
     //if(T->get_bl()->_top_right_x()!=T->_bottom_left_x()||T->get_bl()->_top_right_y()<T->_bottom_left_y())cin>>a;
 }
+void Layer::initRule(int n1, int n2, int n3, double min, double max)
+{
+
+    min_width = n1;
+    min_space = n2;
+    max_fill_width = n3;
+    min_density = min;
+    max_density = max;
+}
+
 void Layer::initialize_layer(int x_bl, int y_bl, int x_tr, int y_tr)
 {
 
@@ -434,47 +446,43 @@ void join(Polygon* T1,Polygon *T2)
     }
     else return;
 }
+
 void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& windowsize, double& density,const int& layer_id){
     // x,y 左下角座標 黃平瑋要看喔
-    
-    int x = edge_x;
-    int y = edge_y;
-    int n = 1;
-    double stride=1*get_gap();
-    while(density<get_min_density()){
-        //不確定是不是可以是正方形
-        //先設最小的面積的來塞
-        while(y + get_width() <= edge_y + windowsize){
-            while(x + get_width() <= edge_x + windowsize){
-                Polygon* T = new Polygon("filled",true);
-                T->set_layer_id(layer_id);
-                T->set_xy(x + n* get_width(),y + n* get_width(),x,y);
+    vector<Polygon*> query_list;
+    //cout<<"query\n";
+    region_query(dummy_bottom,edge_x+windowsize-get_gap(),edge_y+windowsize-get_gap(),edge_x+get_gap(),edge_y+get_gap(),query_list);// (start,跟要插進去得tile)
+    //cout<<"query_list size= "<<query_list.size()<<endl;
+    //cout<<"sort\n";
+    sort (query_list.begin(), query_list.end(),  Local(edge_x,edge_y,windowsize));
+    //cout<<"begin insert\n";
+    for(int i=0;i<query_list.size();i++){
+        //cout<<query_list[i]->getType()<<endl;
+        if(query_list[i]->getType()=="space"){
+            //query 要內縮getgap 因為等一下插入的tile是會內縮過的 所以這裡query先縮才會找到合法的tile
+            if(query_list[i]->_top_right_x()-get_gap()-query_list[i]->_bottom_left_x()-get_gap()>=get_width()){
+                if(query_list[i]->_top_right_y()-get_gap()-query_list[i]->_bottom_left_y()-get_gap()>=get_width()){
+                    //the two aboves are to verify the validility of the the region will be inserted
+                    Polygon* T = new Polygon("filled",true);
+                    T->set_layer_id(layer_id);
+                    T->set_xy(query_list[i]->_top_right_x()-get_gap(),query_list[i]->_top_right_y()-get_gap(),query_list[i]->_bottom_left_x()+get_gap(),query_list[i]->_bottom_left_y()+get_gap());
+                    if(insert(T,false)){
+                        //cout<<"now insert "<<T->_top_right_x()<<","<<T->_top_right_y()<<" "<<T->_bottom_left_x()<<","<<T->_bottom_left_y()<<endl;
+                        double new_area=classify(T->_top_right_x(),T->_bottom_left_x(),edge_x+windowsize,edge_x)*classify(T->_top_right_y(),T->_bottom_left_y(),edge_y+windowsize,edge_y);
+                        density=(density*windowsize*windowsize + new_area)/(windowsize*windowsize);
 
-                //cout<<"now insert "<<x + get_width()<<","<<y + get_width()<<" "<<x<<","<<y<<endl;
-                //cout<<"now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<endl;
-                if(insert(T,false)){
-                    density=(density*windowsize*windowsize+get_width()*get_width())/(windowsize*windowsize);
-                    cout<<"now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
-                    cout<<"density= "<<density<<endl;
+                    }
+                    else cout<<"幹你娘錯了拉幹\n";
+                    delete T;
+                    T=NULL;
+                    if(density>=get_min_density()){
+                        break;
+                    }
                 }
-                delete T;
-                T=NULL;
-                x+=1;
             }
-            y+=1;
-            x=edge_x;
         }
-        if (n == 1) n = 1;
-        else n--;
-        x=edge_x+get_gap();
-        y=edge_y;
-        if(stride>2) stride-= n*get_gap();
-        else {
-            stride =2;
-            cout<<"幹你娘做不出來拉"<<endl;
-        }
-        
     }
+    cout<<"QQ塞不滿"<<endl;
 
 }
 

@@ -75,5 +75,11 @@ int main(int argc, char** argv)
     mgr->init_polygon(design, cnets_set);
     mu->report();
     mgr->insert_tile();
+    mgr->insert_tile();
+    mgr->insert_tile();
+    mgr->insert_tile();
+    mgr->insert_tile();
+    mgr->insert_tile();
+    
     mu->report();
 }
