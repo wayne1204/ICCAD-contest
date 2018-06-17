@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip> 
 #include <vector>
+#include <algorithm>
 #include <string>
 #include <unordered_set>
 #include "layout.h"
@@ -457,7 +458,7 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
     //cout<<"sort\n";
     sort (query_list.begin(), query_list.end(),  Local(edge_x,edge_y,windowsize));
     //cout<<"begin insert\n";
-    for(int i=0;i<query_list.size();i++){
+    for(int i=query_list.size()-1;i>=0;i--){
         //cout<<query_list[i]->getType()<<endl;
         if(query_list[i]->getType()=="space"){
             //query 要內縮getgap 因為等一下插入的tile是會內縮過的 所以這裡query先縮才會找到合法的tile
@@ -477,12 +478,53 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
                     delete T;
                     T=NULL;
                     if(density>=get_min_density()){
-                        break;
+                        return;
                     }
                 }
             }
         }
     }
+    int x = edge_x;
+    int y = edge_y;
+    int n = 10;
+    double stride=1*get_gap();
+    while(density<get_min_density()){
+        //不確定是不是可以是正方形
+        //先設最小的面積的來塞
+        while(y + n*get_width() <= edge_y + windowsize){
+            while(x + n*get_width() <= edge_x + windowsize){
+                Polygon* T = new Polygon("filled",true);
+                T->set_layer_id(layer_id);
+                T->set_xy(x + n* get_width(),y + n* get_width(),x,y);
+
+                //cout<<"now insert "<<x + get_width()<<","<<y + get_width()<<" "<<x<<","<<y<<endl;
+                //cout<<"now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<endl;
+                if(insert(T,false)){
+                    density=(density*windowsize*windowsize+n*n*get_width()*get_width())/(windowsize*windowsize);
+                    cout<<"now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
+                    cout<<"density= "<<density<<endl;
+                    if(density>=get_min_density())return;
+                }
+                delete T;
+                T=NULL;
+                x+=get_width();
+            }
+            y+=1;
+            x=edge_x;
+        }
+        if (n == 1) n = 1;
+        else n--;
+        x=edge_x+get_gap();
+        y=edge_y;
+        /*
+        if(stride>1) stride-= int(0.5*get_gap());
+        else {
+            stride =1;
+            cout<<"幹你娘做不出來拉"<<endl;
+        }*/
+        
+    }
+    if(density>=get_min_density())return;
     cout<<"QQ塞不滿"<<endl;
 
 }
