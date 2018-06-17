@@ -296,7 +296,6 @@ void Layer::region_query(Polygon *start, Polygon *T, vector<Polygon *> &query_Po
 
 Polygon* Layer::split_Y(Polygon* bigGG,int y,bool is_top)
 {
-
     #ifdef DEBUG
         cout<<"split y "<<endl;
     #endif     
