@@ -306,6 +306,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
                     poly->set_coordinate(tokens);
                     poly->setToSolid();
                     tokens.clear();
+
                 }
             }
             if (cnet_set.count(tokens[5])){
@@ -330,6 +331,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
     cout << "===    Finish inserting "<< aa << " polygon    ===" << endl;
 }
 void chipManager::insert_tile(){
+    
     int x, y, wnd_num;
     double density = 0;
     double count[9] = {0}, count2[9] = {0};
@@ -362,5 +364,6 @@ void chipManager::insert_tile(){
     cout<<endl;
     for(int i=0;i<9;i++)
         cout<<"幹你娘第"<<i+1<<"層只有"<<count[i]/count2[i]*100<<"%有滿足"<<endl;
+        
 }
 
