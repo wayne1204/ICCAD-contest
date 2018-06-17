@@ -434,8 +434,8 @@ void join(Polygon* T1,Polygon *T2)
         }
         T1->set_lb(T2->get_lb());
         T1->set_bl(T2->get_bl());
-        // delete T2;
-        // T2 = NULL;
+        delete T2;
+        T2 = NULL;
         return;
     }
     else return;
@@ -507,8 +507,8 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
                         density=(density*windowsize*windowsize + new_area)/(windowsize*windowsize);
                     }
                     else cout<<"幹你娘錯了拉幹\n";
-                    // delete T;
-                    // T=NULL;
+                    delete T;
+                    T=NULL;
                     if(density>=get_min_density()){
                         cout<<"now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
                         cout<<"density= "<<density<<endl;

@@ -302,7 +302,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
                     //cout<<"start new.....tokens size = "<<tokens.size()<<endl;
                     #endif
                     if_new=true;
-                    poly = new Polygon();
+                    poly = new Polygon(token);
                     poly->set_coordinate(tokens);
                     poly->setToSolid();
                     tokens.clear();
