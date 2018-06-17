@@ -3,16 +3,21 @@
 
 #include <istream>
 #include <vector>
+#include "polygon.h"
 
 using namespace std;
 
-// In myString.cpp
+// string function
 extern int myStrNCmp(const string& s1, const string& s2, unsigned n);
 extern size_t myStrGetTok(const string& str, string& tok, size_t pos = 0,
                           const char del = ' ');
 extern bool myStr2Int(const string& str, int& num);
-extern bool isValidVarName(const string& str);
 extern string next_token(char *&_buff, char *&buff_end);
 extern string getDirName(const string&);
 
+// polygon function
+extern double classify(int xy1, int xy2, int query_xy1, int query_xy2);
+extern void print_Polygon(Polygon *T);
+extern void neighbor_find_own(Polygon*, vector<Polygon *> &, const int &, const int &);
+extern void enumerate(Polygon*, vector<Polygon *> &, const int &, const int &, const int &);
 #endif // UTIL_H

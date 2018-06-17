@@ -6,10 +6,11 @@
 #include <iomanip> 
 #include <vector>
 #include <string>
+#include <unordered_set>
 #include "chipMgr.h"
 #include "util.h"
 #include "usage.h"
-#include <unordered_set>
+#include "polygon.h"
 
 using namespace std;
 
@@ -74,12 +75,16 @@ int main(int argc, char** argv)
     mgr->parseRuleFile(rule_file);
     mgr->init_polygon(design, cnets_set);
     mu->report();
+
+    cout << "int size: " << sizeof(int) <<endl;
+    cout << "double size: " << sizeof(double) << endl;
+    cout << "polygon ptr:" << sizeof(Polygon*) << endl;
     mgr->insert_tile();
-    mgr->insert_tile();
-    mgr->insert_tile();
-    mgr->insert_tile();
-    mgr->insert_tile();
-    mgr->insert_tile();
+    // mgr->insert_tile();
+    // mgr->insert_tile();
+    // mgr->insert_tile();
+    // mgr->insert_tile();
+    // mgr->insert_tile();
     
     mu->report();
 }

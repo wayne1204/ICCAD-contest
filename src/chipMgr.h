@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <fstream>
+#include "polygon.h"
 #include "layout.h"
 using namespace std;
 
