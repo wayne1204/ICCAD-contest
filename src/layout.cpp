@@ -538,7 +538,7 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
                 Polygon* T = new Polygon("filled",true);
                 T->set_layer_id(layer_id);
                 T->set_xy(t_x-get_gap(),t_y-get_gap(),b_x+get_gap(),b_y+get_gap());
-                if(insert(T,true)){
+                if(insert(T,false)){
                     double new_area=classify(T->_top_right_x(),T->_bottom_left_x(),edge_x+windowsize,edge_x)*classify(T->_top_right_y(),T->_bottom_left_y(),edge_y+windowsize,edge_y);
                     density=(density*windowsize*windowsize + new_area)/(windowsize*windowsize);
                     //cout<<"喔幹可以\n";

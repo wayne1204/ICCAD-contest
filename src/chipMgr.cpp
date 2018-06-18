@@ -344,28 +344,25 @@ void chipManager::insert_tile(){
             for (int col = 0; col < horizontal_cnt; ++col){
                 x = _bl_bound_x + col * window_size / 2;
                 y = _bl_bound_y + row * window_size / 2;
-                wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;
-                //cout<<"density cal"<<x<<","<<y<<endl;
+                wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;                
                 density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
-                // cout << i << " " <<setw(4)<< row << " "<<setw(4) << col<< endl;
                 total_Cnet_List.emplace(wnd_num, critical_nets);
                 
                 if(density < _LayerList[i].get_min_density()){  
-                    //cout<<"layer "<<i+1<<"density= "<< _LayerList[i].get_min_density()<<endl;
-                    double new_density=density;
+                    double new_density = density;
+                    cout << "Layer: " << i + 1 << " Window: " << row * horizontal_cnt + col << "/" 
+                        << horizontal_cnt * vertical_cnt << endl;
                     // cout<<endl<<"密度 "<<density<<x<<","<<y<<" windownum= "<<wnd_num<<endl;
                     _LayerList[i].insert_dummy(x,y,window_size,new_density,i+1);
                     // cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
-
                 }
                 else count[i]+=1;
                 ++count2[i];
             }
         }       
     }
-    cout<<endl;
-    for(int i=0;i<9;i++)
-        cout<<"幹你娘第"<<i+1<<"層只有"<<count[i]/count2[i]*100<<"%有滿足"<<endl;
-        
+    cout << endl;
+    for (int i = 0; i < 9; i++)
+        cout << "第" << i + 1 << "層只有" << count[i] / count2[i] * 100 << "%有滿足" << endl;
 }
 

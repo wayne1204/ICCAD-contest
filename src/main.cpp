@@ -80,7 +80,7 @@ int main(int argc, char** argv)
     cout << "double size: " << sizeof(double) << endl;
     cout << "polygon ptr:" << sizeof(Polygon*) << endl;
     mgr->insert_tile();
-    // mgr->insert_tile();
+    mgr->insert_tile();
     // mgr->insert_tile();
     // mgr->insert_tile();
     // mgr->insert_tile();
