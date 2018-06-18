@@ -493,7 +493,7 @@ bool Layer::expand( int& x1,  int& y1,int& x2,  int& y2){
 
 }
 void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& windowsize, double& density,const int& layer_id){
-    // x,y 左下角座標 黃平瑋要看喔
+    // x,y 左下角座標 
     
     vector<Polygon*> query_list;
     region_query(dummy_bottom,edge_x+windowsize-get_gap(),edge_y+windowsize-get_gap(),edge_x+get_gap(),edge_y+get_gap(),query_list);// (start,跟要插進去得tile)
@@ -516,7 +516,7 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
                     T=NULL;
                     if(density>=get_min_density()){
                         //cout<<"1now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
-                        //cout<<"1density= "<<density<<" constraints= "<<get_min_density()<<endl;
+                        cout << "density= " << density << " / " << get_min_density() << endl;
                         return;
                     }
                 }
@@ -555,7 +555,7 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
                         //cout<<"density= "<<density<<endl;
                         if(density>=get_min_density()){
                             //cout<<"2now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
-                            //cout<<"2density= "<<density<<" constraints= "<<get_min_density()<<endl;
+                            cout << "density= " << density << " / " << get_min_density() << endl;
                             return;
                         }
                     }

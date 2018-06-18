@@ -8,6 +8,7 @@ import sys
 class CircuitParser():
     def __init__(self):
         self.layers = [[] for item in range(9)]
+        self.layers_gnd = [[] for item in range(9)]
         self.layers_cnet = [[] for item in range(9)]
         self.boundary = []
         self.cnet = set()
@@ -39,6 +40,9 @@ class CircuitParser():
                 a = [int(row[i]) for i in range(1, 5)]
                 if int(row[5]) in self.cnet:
                     self.layers_cnet[idx].append(a)
+                elif int(row[5]) == 0:
+                    print(row)
+                    self.layers_gnd[idx].append(a)
                 else:
                     self.layers[idx].append(a)
 
@@ -100,8 +104,15 @@ class CircuitParser():
                     if insert != []:
                         self.insert_polygon(insert, 'red')
 
+                for k in range(len(self.layers_gnd[num])):
+                    insert = self.adjustPoly(self.layers_gnd[num][k], lb_x, lb_y, rt_x, rt_y)
+                    if insert != []:
+                        print('ground')
+                        self.insert_polygon(insert, 'yellow')
+
                 plt.axis([lb_x, rt_x, lb_y, rt_y])
                 plt.title('Layer_{}_{}_{}'.format(num+1, i, j))
+                # plt.legend(['black', 'red', 'yellow'], ['normal', 'critical', 'VDD/GND'])
                 plt.savefig("visualize/layer{}/layer_{}_{}_{}.png".format(num+1,num+1, i, j))
                 plt.close()
         print()
@@ -113,7 +124,9 @@ def main():
 
     for i in range(9):
         path = os.path.join('visualize', 'layer{}'.format(i+1))
-        os.mkdir(path)
+        if not os.path.exists(path):
+            # os.mkdir('visualize')
+            os.mkdir(path)
         cp.scaling(i)
         cp.plot(i)
         
