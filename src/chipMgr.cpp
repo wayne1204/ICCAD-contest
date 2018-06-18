@@ -330,7 +330,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
     }
     cout << "===    Finish inserting "<< aa << " polygon    ===" << endl;
 }
-void chipManager::insert_tile(){
+void chipManager::insert_tile(string& output_fill){
     
     int x, y, wnd_num;
     double density = 0;
@@ -338,6 +338,8 @@ void chipManager::insert_tile(){
     int horizontal_cnt = (_tr_bound_x - window_size - _bl_bound_x) * 2 / window_size + 1;
     int vertical_cnt = (_tr_bound_y - window_size - _bl_bound_y) * 2 / window_size + 1;
     vector<Polygon*> critical_nets;
+    int fillnum = 1;
+    stringstream out_fill;
 
     for (int i = 0; i < layer_num; ++i){
         for(int row = 0; row < vertical_cnt; ++row){
@@ -353,7 +355,9 @@ void chipManager::insert_tile(){
                     cout << "Layer: " << i + 1 << " Window: " << row * horizontal_cnt + col << "/" 
                         << horizontal_cnt * vertical_cnt << endl;
                     // cout<<endl<<"密度 "<<density<<x<<","<<y<<" windownum= "<<wnd_num<<endl;
-                    _LayerList[i].insert_dummy(x,y,window_size,new_density,i+1);
+                    string out = "";
+                    _LayerList[i].insert_dummy(x,y,window_size,new_density,i+1, out, fillnum);
+                    out_fill<<out;
                     // cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
                 }
                 else count[i]+=1;
@@ -364,5 +368,12 @@ void chipManager::insert_tile(){
     cout << endl;
     for (int i = 0; i < 9; i++)
         cout << "第" << i + 1 << "層只有" << count[i] / count2[i] * 100 << "%有滿足" << endl;
+    output_fill = out_fill.str();
+}
+
+void chipManager::write_fill(string output, string output_fill){
+    ofstream o;
+    o.open(output.c_str());
+    o<<output_fill;
 }
 

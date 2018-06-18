@@ -492,9 +492,11 @@ bool Layer::expand( int& x1,  int& y1,int& x2,  int& y2){
    
 
 }
-void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& windowsize, double& density,const int& layer_id){
+void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& windowsize, double& density,const int& layer_id, string& out, int& fillnum){
     // x,y 左下角座標 黃平瑋要看喔
     
+    stringstream output;
+
     vector<Polygon*> query_list;
     vector<int> rest;
     region_query(dummy_bottom,edge_x+windowsize-get_gap(),edge_y+windowsize-get_gap(),edge_x+get_gap(),edge_y+get_gap(),query_list);// (start,跟要插進去得tile)
@@ -511,6 +513,8 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
                 if(insert(T,true)){
                     double new_area=classify(T->_top_right_x(),T->_bottom_left_x(),edge_x+windowsize,edge_x)*classify(T->_top_right_y(),T->_bottom_left_y(),edge_y+windowsize,edge_y);
                     density=(density*windowsize*windowsize + new_area)/(windowsize*windowsize);
+                    output<<fillnum<<" "<<T->_bottom_left_x()<<" "<<T->_bottom_left_y()<<" "<<T->_top_right_x()<<" "<<T->_top_right_y()<<" 0 "<<layer_id<<" FILL"<<endl;
+                    fillnum++;
                 }
                 else cout<<"幹你娘錯了拉幹\n";
                 delete T;
@@ -518,6 +522,7 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
                 if(density>=get_min_density()){
                 //cout<<"1now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
                 cout<<"1density= "<<density<<" constraints= "<<get_min_density()<<" layer= "<<layer_id<<endl;
+                out = output.str();
                 return;
                 } 
             }
@@ -538,13 +543,16 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
                 Polygon* T = new Polygon("filled",true);
                 T->set_layer_id(layer_id);
                 T->set_xy(t_x-get_gap(),t_y-get_gap(),b_x+get_gap(),b_y+get_gap());
-                if(insert(T,false)){
+                if(insert(T,true)){
                     double new_area=classify(T->_top_right_x(),T->_bottom_left_x(),edge_x+windowsize,edge_x)*classify(T->_top_right_y(),T->_bottom_left_y(),edge_y+windowsize,edge_y);
                     density=(density*windowsize*windowsize + new_area)/(windowsize*windowsize);
+                    output<<fillnum<<" "<<T->_bottom_left_x()<<" "<<T->_bottom_left_y()<<" "<<T->_top_right_x()<<" "<<T->_top_right_y()<<" 0 "<<layer_id<<" FILL"<<endl;
+                    fillnum++;
                     //cout<<"喔幹可以\n";
                     if(density>=get_min_density()){
                     //cout<<"1now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
                     cout<<"3density= "<<density<<" constraints= "<<get_min_density()<<" layer= "<<layer_id<<endl;
+                    out = output.str();
                     return;
                     } 
                 }
@@ -578,11 +586,14 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
                     if(insert(T,true)){
                         double new_area=classify(T->_top_right_x(),T->_bottom_left_x(),edge_x+windowsize,edge_x)*classify(T->_top_right_y(),T->_bottom_left_y(),edge_y+windowsize,edge_y);
                         density=(density*windowsize*windowsize+new_area)/(windowsize*windowsize);
+                        output<<fillnum<<" "<<T->_bottom_left_x()<<" "<<T->_bottom_left_y()<<" "<<T->_top_right_x()<<" "<<T->_top_right_y()<<" 0 "<<layer_id<<" FILL"<<endl;
+                        fillnum++;
                         //cout<<"now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
                         //cout<<"density= "<<density<<endl;
                         if(density>=get_min_density()){
                             //cout<<"2now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
                             cout<<"2density= "<<density<<" constraints= "<<get_min_density()<<" layer= "<<layer_id<<endl;
+                            out = output.str();
                             return;
                         }
                     }
@@ -604,9 +615,13 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
             
         }
     }
-    if(density>=get_min_density())return;
+    if(density>=get_min_density()){
+        out = output.str();
+        return;
+    }
     
     cout<<"QQ塞不滿\n";
+    out = output.str();
     return;
 }
 bool Layer::insert(Polygon* T,bool first_inset){

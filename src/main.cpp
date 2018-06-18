@@ -79,12 +79,8 @@ int main(int argc, char** argv)
     cout << "int size: " << sizeof(int) <<endl;
     cout << "double size: " << sizeof(double) << endl;
     cout << "polygon ptr:" << sizeof(Polygon*) << endl;
-    mgr->insert_tile();
-    mgr->insert_tile();
-    // mgr->insert_tile();
-    // mgr->insert_tile();
-    // mgr->insert_tile();
-    // mgr->insert_tile();
-    
+    string output_fill;
+    mgr->insert_tile(output_fill);
+    mgr->write_fill(output, output_fill);
     mu->report();
 }

@@ -55,7 +55,8 @@ public:
     void setWindow(int num){ window_size = num;   }
     double calCapicitance(double, int, int, int = -1);
     void init_polygon(string &filename, unordered_set<int> &cnet_set);
-    void insert_tile();
+    void insert_tile(string&);
+    void write_fill(string, string);
 
 private:
     double window_size;
