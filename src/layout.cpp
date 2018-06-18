@@ -483,8 +483,12 @@ bool Layer::expand( int& x1,  int& y1,int& x2,  int& y2){
             }
         }
         //cout<<"left over "<<x2<<"\n";
-        if((x1-x2-2*get_gap()>=get_width())&&(y1-y2-2*get_gap()>=get_width()))
+        if((x1-x2-2*get_gap()>=get_width())&&(y1-y2-2*get_gap()>=get_width())){
+            //if (x1 - x2 > get_max_width()) cout<<"到底為什麼"<<endl;
+            //if (x1 - x2 > get_max_width()) x1 = x2 + get_max_width();
+            //if (y1 - y2 > get_max_width()) y1 = y2 + get_max_width();
             return true;
+        }
         else return false;
     }
     

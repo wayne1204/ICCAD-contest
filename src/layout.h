@@ -37,6 +37,7 @@ public:
     inline int get_bl_boundary_y() { return _bl_boundary_y; }
     inline int get_tr_boundary_x() { return _tr_boundary_x; }
     inline int get_tr_boundary_y() { return _tr_boundary_y; }
+    inline int get_max_width() {return max_fill_width;}
     inline double get_min_density() { return min_density; }
 private:
     int _bl_boundary_x;
