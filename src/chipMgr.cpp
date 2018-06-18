@@ -350,7 +350,8 @@ void chipManager::insert_tile(){
                 // cout << i << " " <<setw(4)<< row << " "<<setw(4) << col<< endl;
                 total_Cnet_List.emplace(wnd_num, critical_nets);
                 
-                if(density < _LayerList[i].get_min_density()){   
+                if(density < _LayerList[i].get_min_density()){  
+                    //cout<<"layer "<<i+1<<"density= "<< _LayerList[i].get_min_density()<<endl;
                     double new_density=density;
                     // cout<<endl<<"密度 "<<density<<x<<","<<y<<" windownum= "<<wnd_num<<endl;
                     _LayerList[i].insert_dummy(x,y,window_size,new_density,i+1);
