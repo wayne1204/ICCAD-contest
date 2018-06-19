@@ -132,8 +132,8 @@ double classify(int xy1,int xy2,int query_xy1,int query_xy2)
     else if(xy2<query_xy2&&xy1<=query_xy1&&xy1>query_xy2)
         return (xy1 - query_xy2);
     else{
-        cout<<endl<<"幹你娘找到囉"<<endl;
-        cout<<xy1<<" "<<xy2<<" "<<query_xy1<<" "<<query_xy2<<endl;
+        // cout<<endl<<"幹你娘找到囉"<<endl;
+        // cout<<xy1<<" "<<xy2<<" "<<query_xy1<<" "<<query_xy2<<endl;
         return 0;
     }
 }

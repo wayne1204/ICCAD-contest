@@ -313,7 +313,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
                 poly->setToCNet();
             }
             
-            _LayerList[poly->get_layer_id()-1].insert(poly,true);
+            _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
             cout<<"parse poly....number of poly = "<<setw(6)<<aa<<"...."<<"\r";
             #ifdef DEBUG
             //cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
@@ -352,11 +352,11 @@ void chipManager::insert_tile(string& output_fill){
                 
                 if(density < _LayerList[i].get_min_density()){  
                     double new_density = density;
-                    cout << "Layer: " << i + 1 << " Window: " << row * horizontal_cnt + col << "/" 
-                        << horizontal_cnt * vertical_cnt << endl;
+                    cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
+                         << horizontal_cnt * vertical_cnt << "]==========" << endl;
                     // cout<<endl<<"密度 "<<density<<x<<","<<y<<" windownum= "<<wnd_num<<endl;
                     string out = "";
-                    _LayerList[i].insert_dummy(x,y,window_size,new_density,i+1, out, fillnum);
+                    _LayerList[i].layer_fill(x, y, window_size, new_density, i + 1, out, fillnum);
                     out_fill<<out;
                     // cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
                 }

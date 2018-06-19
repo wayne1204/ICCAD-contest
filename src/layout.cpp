@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <string>
 #include <unordered_set>
+#include <cassert>
 #include "layout.h"
 #include "util.h"
 #include "polygon.h"
@@ -457,40 +458,44 @@ bool Layer::expand( int& x1,  int& y1,int& x2,  int& y2, const int& edge_x, cons
     if(region_query_bool(dummy_bottom,x1,y1,x2,y2,query_list)){
         //is top
         //cout<<"1"<<endl;
-        if(y1+1 <= edge_y+ windowsize){
+        if (y1 + 1 <= tr_y)
+        {
             while(region_query_bool(dummy_bottom,x1,y1+1,x2,y1,query_list)){
                 y1++;
-                if(y1>=tr_y|| y1 == edge_y + windowsize) break;
+                if(y1>=tr_y) break;
                 //|| y1 == edge_y + windowsize - get_gap())break;
             }
         }
         //cout<<"top over "<<y1<<"\n";
         //is bottom
         //cout<<"2"<<endl;
-        if(y2 -1 >= edge_y){
+        if (y2 - 1 >= bl_y)
+        {
             while(region_query_bool(dummy_bottom,x1,y2,x2,y2-1,query_list)){
                 y2--;
-                if(y2<=bl_y|| y2 == edge_y) break;
+                if(y2<=bl_y) break;
                 //|| y2 == edge_y + get_gap())break;
             }
         }
         //cout<<"bottom over "<<y2<<"\n";
         //is right
         //cout<<"3"<<endl;
-        if(x1 +1 <= edge_x + windowsize){
+        if (x1 + 1 <= tr_x)
+        {
             while(region_query_bool(dummy_bottom,x1+1,y1,x1,y2,query_list)){ 
                 x1++;
-                if(x1>=tr_x|| x1 == edge_x + windowsize) break; 
+                if(x1>=tr_x) break; 
                 //|| x1 == edge_x + windowsize - get_gap())break;
             }
         }
         //cout<<"right over "<<x1<<"\n";
         //is left
         //cout<<"4"<<endl;
-        if(x2 -1 >= edge_x){
+        if (x2 - 1 >= bl_x)
+        {
             while(region_query_bool(dummy_bottom,x2,y1,x2-1,y2,query_list)){
                 x2--;
-                if(x2<=bl_x|| x2 == edge_x)break; 
+                if(x2<=bl_x)break; 
                 //|| x2 == edge_x + get_gap())break;
             }
         }
@@ -510,48 +515,99 @@ bool Layer::expand( int& x1,  int& y1,int& x2,  int& y2, const int& edge_x, cons
     }   
 
 }
-void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& windowsize, double& density,const int& layer_id, string& out, int& fillnum){
-    // x,y 左下角座標 黃平瑋要看喔
-    
-    stringstream output;
+void Layer::insert_dummies(Polygon* T, const int &layer_id, double &density, const int &edge_x, 
+                        const int &edge_y, const double &windowsize, int type)
+{
+    int x_next, y_next;
+    int x_cur = T->_bottom_left_x() + get_gap();
+    int y_cur = T->_bottom_left_y() + get_gap();
+    const int x_bound = T->_top_right_x();
+    const int y_bound = T->_top_right_y();
+    double sum = 0;
+    double area = (x_bound - T->_bottom_left_x()) * (y_bound - T->_bottom_left_y());
 
+    // y到邊界至少要有一個 min width + min space 的距離
+    while (y_cur + get_gap() + get_width() <= y_bound)
+    {
+        y_next = y_cur + get_max_width();
+        y_next = (y_next > y_bound - get_gap()) ? y_bound - get_gap() : y_next;
+        while(x_cur + get_gap() + get_width() <= x_bound){
+            x_next = x_cur + get_max_width();
+            x_next = (x_next > x_bound - get_gap()) ? x_bound - get_gap() : x_next;
+             
+            Polygon* fill = new Polygon("filled", true);
+            fill->set_layer_id(layer_id);
+            fill->set_xy(x_next, y_next, x_cur, y_cur);
+            sum += (x_next - x_cur) * (y_next - y_cur);
+            if(type == 1)
+                insert(fill, false, dummy_bottom);
+            else
+                insert(fill, false, dummy_bottom);
+            double new_area = classify(x_next, x_cur, edge_x + windowsize, edge_x) * 
+                              classify(y_next, y_cur, edge_y + windowsize, edge_y);
+            density = (density * windowsize * windowsize + new_area) / (windowsize * windowsize);
+
+            delete fill;
+            fill = NULL;
+            if (density >= get_min_density())
+            {
+                // cout << setprecision(4) << sum / area * 100 << "%         " << sum << " / " << area << "\n";
+                cout << "\ndensity= " << density << "/" << get_min_density() << endl;
+                if (type == 1)
+                    cout << ".................finish in stage 1.............."<<endl;
+                else if(type == 2)
+                    cout << ".................finish in expand .............." << endl;
+                else
+                    cout << "................. stupid  stage ................\n";
+                return;
+            }
+            x_cur += (get_gap() + get_max_width());
+        }
+        y_cur += (get_gap() + get_max_width());
+        x_cur = T->_bottom_left_x() + get_gap();
+    }
+    // cout << setprecision(4) << sum/area*100 << "%         " << sum << " / " << area << "\n";
+}
+
+void Layer::layer_fill(const int &edge_x, const int &edge_y, const double &windowsize, double &density, const int &layer_id, string &out, int &fillnum)
+{    
+    stringstream output;
     vector<Polygon*> query_list;
-    vector<int*> rest;
+    vector<int> rest;
     region_query(dummy_bottom,edge_x+windowsize-get_gap(),edge_y+windowsize-get_gap(),edge_x+get_gap(),edge_y+get_gap(),query_list);// (start,跟要插進去得tile)
     sort (query_list.begin(), query_list.end(),  Compare(edge_x,edge_y,windowsize));
     for(int i=0;i < query_list.size();i++){
-        if(query_list[i]->getType()=="space"){
+        if (density >= get_min_density())
+            return;
+        cout << "polygon# "<< i+1 << " / " << query_list.size() << " | width:" <<query_list[i]->_top_right_x() - query_list[i]->_bottom_left_x()
+        << " | density: " << density <<'\r';
+        if(query_list[i]->getType()=="space" ){
             //query 要內縮getgap 因為等一下插入的tile是會內縮過的 所以這裡query先縮才會找到合法的tile
             if(query_list[i]->_top_right_x() - get_gap()-query_list[i]->_bottom_left_x()-get_gap() >= get_width()
                 &&query_list[i]->_top_right_y()-get_gap()-query_list[i]->_bottom_left_y()-get_gap()>=get_width()){
-                //the two aboves are to verify the validility of the the region will be inserted
-                Polygon* T = new Polygon("filled",true);
-                T->set_layer_id(layer_id);
-                T->set_xy(query_list[i]->_top_right_x()-get_gap(),query_list[i]->_top_right_y()-get_gap(),query_list[i]->_bottom_left_x()+get_gap(),query_list[i]->_bottom_left_y()+get_gap());
-                if(insert(T,true)){
-                    double new_area=classify(T->_top_right_x(),T->_bottom_left_x(),edge_x+windowsize,edge_x)*classify(T->_top_right_y(),T->_bottom_left_y(),edge_y+windowsize,edge_y);
-                    density=(density*windowsize*windowsize + new_area)/(windowsize*windowsize);
-                    output<<fillnum<<" "<<T->_bottom_left_x()<<" "<<T->_bottom_left_y()<<" "<<T->_top_right_x()<<" "<<T->_top_right_y()<<" 0 "<<layer_id<<" Fill"<<endl;
-                    fillnum++;
-                }
-                else cout<<"幹你娘錯了拉幹\n";
-                delete T;
-                T=NULL;
-                if(density>=get_min_density()){
-                //cout<<"1now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
-                cout<<"1density= "<<density<<" constraints= "<<get_min_density()<<" layer= "<<layer_id<<endl;
-                out = output.str();
-                return;
-                } 
+                // //the two aboves are to verify the validility of the the region will be inserted
+                insert_dummies(query_list[i], layer_id, density, edge_x, edge_y, windowsize, 1);
+
+                // Polygon* T = new Polygon("filled",true);
+                // T->set_layer_id(layer_id);
+                // T->set_xy(query_list[i]->_top_right_x()-get_gap(),query_list[i]->_top_right_y()-get_gap(),query_list[i]->_bottom_left_x()+get_gap(),query_list[i]->_bottom_left_y()+get_gap());
+                // if(insert(T,true, dummy_bottom)){
+                //     double new_area=classify(T->_top_right_x(),T->_bottom_left_x(),edge_x+windowsize,edge_x)*classify(T->_top_right_y(),T->_bottom_left_y(),edge_y+windowsize,edge_y);
+                //     density=(density*windowsize*windowsize + new_area)/(windowsize*windowsize);
+                //     output<<fillnum<<" "<<T->_bottom_left_x()<<" "<<T->_bottom_left_y()<<" "<<T->_top_right_x()<<" "<<T->_top_right_y()<<" 0 "<<layer_id<<" Fill"<<endl;
+                //     fillnum++;
+                // }
+                // else cout<<"幹你娘錯了拉幹\n";
+                // delete T;
+                // T=NULL;
+                // if(density>=get_min_density()){
+                //     cout<<"1density= "<<density<<" constraints= "<<get_min_density()<<" layer= "<<layer_id<<endl;
+                //     out = output.str();
+                //     return;
+                // }
             }
-            else{
-                int r[4];
-                r[0] = query_list[i]->_top_right_x();
-                r[1] = query_list[i]->_top_right_y();
-                r[2] = query_list[i]->_bottom_left_x();
-                r[3] = query_list[i]->_bottom_left_y();
-                rest.push_back(r);
-            }
+            else
+                rest.push_back(i);
         }
     }
     /* 別刪
@@ -560,46 +616,55 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
         int t_y=int(query_list[rest[i]]->_top_right_y()+query_list[rest[i]]->_bottom_left_y()+get_width())/2;
         int b_y=int(query_list[rest[i]]->_top_right_y()+query_list[rest[i]]->_bottom_left_y()-get_width())/2;
     */
-    for(int i=0;i<rest.size();i++){
-        int t_x = rest[i][0], t_y = rest[i][1], b_x = rest[i][2], b_y = rest[i][3];
-        //int t_x=query_list[rest[i]]->_top_right_x(),t_y=query_list[rest[i]]->_top_right_y(),b_x=query_list[rest[i]]->_bottom_left_x(),b_y=query_list[rest[i]]->_bottom_left_y();
-        if(expand(t_x,t_y,b_x,b_y, edge_x, edge_y, windowsize)){
-            if (t_x > edge_x + windowsize + get_gap()){t_x = edge_x + windowsize + get_gap();}
-            if (t_y > edge_y + windowsize + get_gap()) t_y = edge_y + windowsize + get_gap();
-            if (b_x < edge_x - get_gap()) b_x = edge_x - get_gap();
-            if (b_y < edge_y - get_gap()) b_y = edge_y - get_gap();
 
+    cout <<"\n.........expanding" <<" | density = " << density << "\n";
+    int cnt = 0;
+    for(int i=0;i<rest.size();i++){
+        if (density >= get_min_density())
+            return;
+        cout << i <<"/" << rest.size() << '\r';
+        int t_x = query_list[rest[i]]->_top_right_x(), t_y = query_list[rest[i]]->_top_right_y();
+        int b_x = query_list[rest[i]]->_bottom_left_x(), b_y = query_list[rest[i]]->_bottom_left_y();
+
+        if(expand(t_x,t_y,b_x,b_y, edge_x, edge_y, windowsize)){
+            // if (t_x > edge_x + windowsize + get_gap()){t_x = edge_x + windowsize + get_gap();}
+            // if (t_y > edge_y + windowsize + get_gap()) t_y = edge_y + windowsize + get_gap();
+            // if (b_x < edge_x - get_gap()) b_x = edge_x - get_gap();
+            // if (b_y < edge_y - get_gap()) b_y = edge_y - get_gap();
             if(t_x-b_x-2*get_gap()>=get_width()&&t_y-b_y-2*get_gap()>=get_width()){
                 Polygon* T = new Polygon("filled",true);
                 T->set_layer_id(layer_id);
-                if (t_x - b_x > get_max_width()+2*get_gap()) {
-                        //cout<<"x > max , max width = "<<get_max_width()<<endl;
-                        t_x = b_x + get_max_width() + 2*get_gap();
-                    }
-                if (t_y - b_y > get_max_width()+2*get_gap()) {
-                    //cout<<"y > max"<<endl;
-                    t_y = b_y + get_max_width() + 2*get_gap();
-                }
+                // T->set_xy(t_x, t_y, b_x, b_y);
+                // insert_dummies(T, layer_id, density, edge_x, edge_y, windowsize, 2);
+                // delete T;
+                // T=NULL;
+
+                // if (t_x - b_x > get_max_width()+2*get_gap()) {
+                //         //cout<<"x > max , max width = "<<get_max_width()<<endl;
+                //         t_x = b_x + get_max_width() + 2*get_gap();
+                //     }
+                // if (t_y - b_y > get_max_width()+2*get_gap()) {
+                //     //cout<<"y > max"<<endl;
+                //     t_y = b_y + get_max_width() + 2*get_gap();
+                // }
                 T->set_xy(t_x-get_gap(),t_y-get_gap(),b_x+get_gap(),b_y+get_gap());
-                if(insert(T,true)){
-                    double new_area=classify(T->_top_right_x(),T->_bottom_left_x(),edge_x+windowsize,edge_x)*classify(T->_top_right_y(),T->_bottom_left_y(),edge_y+windowsize,edge_y);
-                    density=(density*windowsize*windowsize + new_area)/(windowsize*windowsize);
-                    output<<fillnum<<" "<<T->_bottom_left_x()<<" "<<T->_bottom_left_y()<<" "<<T->_top_right_x()<<" "<<T->_top_right_y()<<" 0 "<<layer_id<<" Fill"<<endl;
-                    fillnum++;
-                    //cout<<"喔幹可以\n";   
-                    if(density>=get_min_density()){
-                    //cout<<"1now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
+                insert(T,true, dummy_bottom);
+                double new_area=classify(T->_top_right_x(),T->_bottom_left_x(),edge_x+windowsize,edge_x)*classify(T->_top_right_y(),T->_bottom_left_y(),edge_y+windowsize,edge_y);
+                density=(density*windowsize*windowsize + new_area)/(windowsize*windowsize);
+                output<<fillnum<<" "<<T->_bottom_left_x()<<" "<<T->_bottom_left_y()<<" "<<T->_top_right_x()<<" "<<T->_top_right_y()<<" 0 "<<layer_id<<" Fill"<<endl;
+                fillnum++;
+                ++cnt;
+                 
+                if(density>=get_min_density()){
                     cout<<"3density= "<<density<<" constraints= "<<get_min_density()<<" layer= "<<layer_id<<endl;
                     out = output.str();
                     return;
-                    } 
-                }
-                else cout<<"QQ有時候不行\n";
-                delete T;
-                T=NULL;
+                } 
             }
         }
     }
+    cout << "expand# " << cnt << " / " << rest.size() << endl;
+    cout << ".......brute force | density = " << density <<"\n";
     int bl_y, bl_x, tr_x, tr_y;     
     int x = edge_x;
     int y = edge_y;
@@ -617,7 +682,17 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
                 (y2 - get_gap() >= get_bl_boundary_y()) ? bl_y = y2 - get_gap()      : bl_y = get_bl_boundary_y();
                 (x1 + get_gap() >  get_tr_boundary_x()) ? tr_x = get_tr_boundary_x() : tr_x = x1 + get_gap()     ;
                 (y1 + get_gap() >  get_tr_boundary_y()) ? tr_y = get_tr_boundary_y() : tr_y = y1 + get_gap()     ;  
+
+                
                 if(expand(tr_x,tr_y,bl_x,bl_y, edge_x, edge_y, windowsize)){
+                    if(tr_x-bl_x-2*get_gap()>=get_width()&&tr_y-bl_y-2*get_gap()>=get_width()){
+                    //     if (density >= get_min_density())
+                    //         break;
+                    //     Polygon* T = new Polygon("filled",true);
+                    //     T->set_xy(tr_x, tr_y, bl_x, bl_y);
+                    //     insert_dummies(T, layer_id, density, edge_x, edge_y, windowsize, 3);
+                    // }
+
                     Polygon* T = new Polygon("filled",true);
                     if (tr_x - bl_x > get_max_width()+2*get_gap()) {
                         //cout<<"x > max"<<endl;
@@ -629,26 +704,26 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
                     }
                     T->set_layer_id(layer_id);
                     T->set_xy(tr_x-get_gap(),tr_y-get_gap(),bl_x+get_gap(),bl_y+get_gap());
-                    if(insert(T,true)){
+                    if(insert(T,true, dummy_bottom)){
                         double new_area=classify(T->_top_right_x(),T->_bottom_left_x(),edge_x+windowsize,edge_x)*classify(T->_top_right_y(),T->_bottom_left_y(),edge_y+windowsize,edge_y);
                         density=(density*windowsize*windowsize+new_area)/(windowsize*windowsize);
                         output<<fillnum<<" "<<T->_bottom_left_x()<<" "<<T->_bottom_left_y()<<" "<<T->_top_right_x()<<" "<<T->_top_right_y()<<" 0 "<<layer_id<<" Fill"<<endl;
                         fillnum++;
-                        //cout<<"now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
-                        //cout<<"density= "<<density<<endl;
+
                         if(density>=get_min_density()){
                             //cout<<"2now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
-                            cout<<"2density= "<<density<<" constraints= "<<get_min_density()<<" layer= "<<layer_id<<endl;
+                            cout << "stupidddddddddddddddddddd\n";
+                            cout<<"density = "<<density<<" / "<<get_min_density()<<" layer= "<<layer_id<<endl;
                             out = output.str();
                             return;
                         }
+                        delete T;
+                        T = NULL;
                     }
                     else cout<<"幹你娘真的錯爆\n";
-                    //delete T;
-                    //T=NULL;
                     x2=tr_x;
                     x1=x2+get_width();
-                    //}
+                    }
 
                 }
                 else {
@@ -670,7 +745,7 @@ void Layer::insert_dummy(const int& edge_x, const int& edge_y,const double& wind
     out = output.str();
     return;
 }
-bool Layer::insert(Polygon* T,bool first_inset){
+bool Layer::insert(Polygon* T, bool first_inset, Polygon* start){
     /*  
         query 是給 先右上 再左下
         因為soild 會有最小間距 所以我們query看能不能夠塞的時候 
@@ -697,11 +772,11 @@ bool Layer::insert(Polygon* T,bool first_inset){
         (T->_top_right_y() + get_gap() >get_tr_boundary_y() ) ? tr_y = get_tr_boundary_y() : tr_y = T->_top_right_y() + get_gap();
         
         // 如果要插進去的這塊裡面有solid就不能插 就像有男友的女生一樣
-        if(!region_query_bool(dummy_bottom,tr_x,tr_y,bl_x,bl_y,query_list))
+        if (!region_query_bool(start, tr_x, tr_y, bl_x, bl_y, query_list))
             return false;// (start,跟要插進去得tile)
     }
     else {
-        if(!region_query_bool(dummy_bottom, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list))
+        if (!region_query_bool(start, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list))
             return false;
         }
     /*for(int i=0;i<query_list.size();i++){
@@ -710,7 +785,7 @@ bool Layer::insert(Polygon* T,bool first_inset){
     }*/
     if(!first_inset){
         query_list.clear();
-        region_query(dummy_bottom, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list);
+        region_query(start, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list);
     }
     #ifdef DEBUG
         cout<<"query_list num= "<<query_list.size()<<endl;

@@ -24,8 +24,9 @@ public:
     bool expand( int& x1,  int& y1,int& x2,  int& y2, const int& edge_x, const int& edge_y, const int& windowsize);
     bool region_query_bool(Polygon *start, int x1, int y1, int x2, int y2, vector<Polygon *>& query_Polygon);
     bool region_query_bool(Polygon *start, Polygon *T, vector<Polygon *> &query_Polygon);
-    void insert_dummy(const int& x, const int& y,const double& windowsize, double& density,const int& layer_id, string& out, int& fillnum);
-    bool insert(Polygon *T,bool is_myinset);
+    void insert_dummies(Polygon* T, const int &, double &, const int &, const int &, const double &, int);
+    void layer_fill(const int& x, const int& y,const double& windowsize, double& density,const int& layer_id, string& out, int& fillnum);
+    bool insert(Polygon *T, bool is_myinset, Polygon *start);
     double density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *>& vec);
     Polygon *point_search(Polygon *start, int x, int y);
     Polygon *split_Y(Polygon *bigGG, int y, bool is_top);
@@ -33,6 +34,7 @@ public:
     Polygon *split_X_right(Polygon *bigGG, int x_left, int x_right);
     inline int get_gap() { return min_space; }
     inline int get_width() { return min_width; }
+    inline Polygon* get_dummy() { return dummy_bottom; }
     inline int get_bl_boundary_x() { return _bl_boundary_x; }
     inline int get_bl_boundary_y() { return _bl_boundary_y; }
     inline int get_tr_boundary_x() { return _tr_boundary_x; }
