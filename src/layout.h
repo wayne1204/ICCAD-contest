@@ -21,7 +21,7 @@ public:
     void init_rule(int, int, int, double, double);
     void region_query(Polygon *start, int x1, int y1, int x2, int y2, vector<Polygon *>& query_Polygon);
     void region_query(Polygon *start, Polygon *T, vector<Polygon *> &query_Polygon);
-    bool expand( int& x1,  int& y1,int& x2,  int& y2);
+    bool expand( int& x1,  int& y1,int& x2,  int& y2, const int& edge_x, const int& edge_y, const int& windowsize);
     bool region_query_bool(Polygon *start, int x1, int y1, int x2, int y2, vector<Polygon *>& query_Polygon);
     bool region_query_bool(Polygon *start, Polygon *T, vector<Polygon *> &query_Polygon);
     void insert_dummy(const int& x, const int& y,const double& windowsize, double& density,const int& layer_id, string& out, int& fillnum);
