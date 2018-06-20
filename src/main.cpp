@@ -82,6 +82,7 @@ int main(int argc, char** argv)
     string output_fill;
     mgr->insert_tile(output_fill);
     mgr->insert_tile(output_fill);
+    //mgr->insert_tile(output_fill);
     mgr->write_fill(output, output_fill);
     mu->report();
 }

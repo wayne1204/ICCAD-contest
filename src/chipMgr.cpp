@@ -349,13 +349,16 @@ void chipManager::insert_tile(string& output_fill){
                 wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;                
                 density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
                 total_Cnet_List.emplace(wnd_num, critical_nets);
-                
+                //int a;
+                //cout<<"in chmgr..........."<<_LayerList[i].get_min_density()<<endl;
+                //cin >> a;
                 if(density < _LayerList[i].get_min_density()){  
                     double new_density = density;
                     cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
                          << horizontal_cnt * vertical_cnt << "]==========" << endl;
                     // cout<<endl<<"密度 "<<density<<x<<","<<y<<" windownum= "<<wnd_num<<endl;
                     string out = "";
+                    //cout<<"insert dummy in Layer: "<<setw(1)<<i+1<<".......................\r";
                     _LayerList[i].layer_fill(x, y, window_size, new_density, i + 1, out, fillnum);
                     out_fill<<out;
                     // cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
