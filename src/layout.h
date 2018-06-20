@@ -21,10 +21,10 @@ public:
     void init_rule(int, int, int, double, double);
     void region_query(Polygon *start, int x1, int y1, int x2, int y2, vector<Polygon *>& query_Polygon);
     void region_query(Polygon *start, Polygon *T, vector<Polygon *> &query_Polygon);
-    bool expand( int& x1,  int& y1,int& x2,  int& y2, const int& edge_x, const int& edge_y, const int& windowsize);
+    bool expand( int& x1,  int& y1,int& x2,  int& y2, const int& edge_x, const int& edge_y, const int& windowsize, int num);
     bool region_query_bool(Polygon *start, int x1, int y1, int x2, int y2, vector<Polygon *>& query_Polygon);
     bool region_query_bool(Polygon *start, Polygon *T, vector<Polygon *> &query_Polygon);
-    void insert_dummies(Polygon* T, const int &, double &, const int &, const int &, const double &, int);
+    void insert_dummies(Polygon* T, const int &, double &, const int &, const int &, const double &, int, stringstream&, int&);
     void layer_fill(const int& x, const int& y,const double& windowsize, double& density,const int& layer_id, string& out, int& fillnum);
     bool insert(Polygon *T, bool is_myinset, Polygon *start);
     double density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *>& vec);
