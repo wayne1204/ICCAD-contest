@@ -89,7 +89,7 @@ void chipManager::parseRuleFile(const string &fileName)
         d1 = stod(token);
         pos = myStrGetTok(line, token, pos);
         d2 = stod(token);
-        _LayerList[index].init_rule(num1, num2, num3, d1, d2);
+        _LayerList[index-1].init_rule(num1, num2, num3, d1, d2);
         // cout << "Layer#" << index << " "  << num1 << " " << num2 << " " << num3 << 
         // " " << d1 << " " << d2 <<endl;
     }
@@ -356,7 +356,6 @@ void chipManager::insert_tile(string& output_fill){
                     double new_density = density;
                     cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
                          << horizontal_cnt * vertical_cnt << "]==========" << endl;
-                    // cout<<endl<<"密度 "<<density<<x<<","<<y<<" windownum= "<<wnd_num<<endl;
                     string out = "";
                     //cout<<"insert dummy in Layer: "<<setw(1)<<i+1<<".......................\r";
                     _LayerList[i].layer_fill(x, y, window_size, new_density, i + 1, out, fillnum);

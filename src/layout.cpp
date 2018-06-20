@@ -12,9 +12,9 @@
 #include "layout.h"
 #include "util.h"
 #include "polygon.h"
-
 using namespace std;
 //#define DEBUG
+#define PRINT
 unsigned Polygon::global_ref=0;
 
 struct Compare {
@@ -560,6 +560,7 @@ void Layer::insert_dummies(Polygon* T, const int &layer_id, double &density, con
             fill = NULL;
             if (density >= get_min_density())
             {
+                #ifdef PRINT
                 cout << setprecision(4) << sum / area * 100 << "%         " << sum << " / " << area << "\n";
                 cout << "\ndensity= " << density << "/" << get_min_density() << endl;
                 if (type == 1)
@@ -568,6 +569,7 @@ void Layer::insert_dummies(Polygon* T, const int &layer_id, double &density, con
                     cout << ".................finish in expand .............." << endl;
                 else
                     cout << "................. stupid  stage ................\n";
+                #endif
                 return;
             }
             x_cur += (get_gap() + get_max_width());
@@ -587,11 +589,12 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const double &windo
     sort (query_list.begin(), query_list.end(),  Compare(edge_x,edge_y,windowsize));
     for(int i=0;i < query_list.size();i++){
         if (density >= get_min_density()){
-            //cout<<"ee"<<endl;
             return;
         }
+        #ifdef PRINT
         cout << "polygon# "<< i+1 << " / " << query_list.size() << " | width:" <<query_list[i]->_top_right_x() - query_list[i]->_bottom_left_x()
         << " | density: " << density <<'\r';
+        #endif
         if(query_list[i]->getType()=="space" ){
             //query 要內縮getgap 因為等一下插入的tile是會內縮過的 所以這裡query先縮才會找到合法的tile
             if(query_list[i]->_top_right_x() - get_gap()-query_list[i]->_bottom_left_x()-get_gap() >= get_width()
@@ -633,13 +636,14 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const double &windo
         int t_y=int(query_list[rest[i]]->_top_right_y()+query_list[rest[i]]->_bottom_left_y()+get_width())/2;
         int b_y=int(query_list[rest[i]]->_top_right_y()+query_list[rest[i]]->_bottom_left_y()-get_width())/2;
     */
-
+    #ifdef PRINT
     cout <<"\n.........expanding" <<" | density = " << density << "\n";
+    #endif
     int cnt = 0;
     for(int i=0;i<rest.size();i++){
         if (density >= get_min_density())
             return;
-        cout << i <<"/" << rest.size() << '\r';
+        // cout << i <<"/" << rest.size() << '\r';
         // int t_x = query_list[rest[i]]->_top_right_x(), t_y = query_list[rest[i]]->_top_right_y();
         // int b_x = query_list[rest[i]]->_bottom_left_x(), b_y = query_list[rest[i]]->_bottom_left_y();
         int t_x = rest[i][0], t_y = rest[i][1], b_x = rest[i][2], b_y = rest[i][3]; 
@@ -680,8 +684,10 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const double &windo
             }
         }
     }
+    #ifdef PRINT
     cout << "expand# " << cnt << " / " << rest.size() << endl;
     cout << ".......brute force | density = " << density <<"\n";
+    #endif
     int bl_y, bl_x, tr_x, tr_y;     
     int x = edge_x;
     int y = edge_y;
