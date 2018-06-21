@@ -330,37 +330,65 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
     }
     cout << "===    Finish inserting "<< aa << " polygon    ===" << endl;
 }
-void chipManager::insert_tile(string& output_fill){
-    
+
+void chipManager::report_density(bool init_cnet){
     int x, y, wnd_num;
     double density = 0;
     double count[9] = {0}, count2[9] = {0};
-    int horizontal_cnt = (_tr_bound_x - window_size - _bl_bound_x) * 2 / window_size + 1;
-    int vertical_cnt = (_tr_bound_y - window_size - _bl_bound_y) * 2 / window_size + 1;
+    int half_wnd = window_size / 2;
+    int horizontal_cnt = (_tr_bound_x - _bl_bound_x)  / half_wnd ;
+    int vertical_cnt = (_tr_bound_y - _bl_bound_y)  / half_wnd ;
+    vector<Polygon*> critical_nets;
+
+    for (int i = 0; i < layer_num; ++i){
+        for(int row = 0; row < vertical_cnt; ++row){
+            for (int col = 0; col < horizontal_cnt; ++col){
+                x = _bl_bound_x + col * half_wnd;
+                y = _bl_bound_y + row * half_wnd;
+                wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;                
+                density = _LayerList[i].density_calculate(x, y, half_wnd, critical_nets);
+                if(init_cnet)
+                    total_Cnet_List.emplace(wnd_num, critical_nets);
+                if(density >= _LayerList[i].get_min_density())
+                    count[i]+=1;
+                ++count2[i];
+            }
+        }       
+    }
+    cout << "\n============[denity report]============\n";
+    for (int i = 0; i < 9; i++)
+        cout << "Layer #" << i + 1 << " | density:" << count[i] / count2[i] * 100 << "% \n";
+}
+
+void chipManager::insert_tile(string& output_fill){ 
+    int x, y, wnd_num;
+    double density = 0;
+    double count[9] = {0}, count2[9] = {0};
+    int half_wnd = window_size / 2;
+    int horizontal_cnt = (_tr_bound_x - _bl_bound_x)  / half_wnd ;
+    int vertical_cnt = (_tr_bound_y - _bl_bound_y)  / half_wnd ;
     vector<Polygon*> critical_nets;
     int fillnum = 1;
     stringstream out_fill;
-
+ 
     for (int i = 0; i < layer_num; ++i){
         for(int row = 0; row < vertical_cnt; ++row){
             for (int col = 0; col < horizontal_cnt; ++col){
                 x = _bl_bound_x + col * window_size / 2;
                 y = _bl_bound_y + row * window_size / 2;
                 wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;                
-                density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
-                total_Cnet_List.emplace(wnd_num, critical_nets);
-                //int a;
-                //cout<<"in chmgr..........."<<_LayerList[i].get_min_density()<<endl;
-                //cin >> a;
+                density = _LayerList[i].density_calculate(x, y, half_wnd, critical_nets);
+                
                 if(density < _LayerList[i].get_min_density()){  
                     double new_density = density;
                     cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
-                         << horizontal_cnt * vertical_cnt << "]==========" << endl;
+                         << horizontal_cnt * vertical_cnt << "]=========="<< endl;
+                    // cout << "\n==========[ Layer: " << i + 1 << " | Row: " << row << "/"
+                        //  << "Col|"<< horizontal_cnt * vertical_cnt << "]==========" << endl;
                     string out = "";
                     //cout<<"insert dummy in Layer: "<<setw(1)<<i+1<<".......................\r";
-                    _LayerList[i].layer_fill(x, y, window_size, new_density, i + 1, out, fillnum);
+                    _LayerList[i].layer_fill(x, y, half_wnd, new_density, i + 1, out, fillnum);
                     out_fill<<out;
-                    //cout<<"...................輸出..............."<<out<<endl;
                     // cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
                 }
                 else count[i]+=1;
@@ -369,8 +397,6 @@ void chipManager::insert_tile(string& output_fill){
         }       
     }
     cout << endl;
-    for (int i = 0; i < 9; i++)
-        cout << "第" << i + 1 << "層只有" << count[i] / count2[i] * 100 << "%有滿足" << endl;
     output_fill = out_fill.str();
     //cout<<"///////////////"<<output_fill<<endl;
 }

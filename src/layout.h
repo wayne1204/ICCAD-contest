@@ -25,7 +25,7 @@ public:
     bool region_query_bool(Polygon *start, int x1, int y1, int x2, int y2, vector<Polygon *>& query_Polygon);
     bool region_query_bool(Polygon *start, Polygon *T, vector<Polygon *> &query_Polygon);
     void insert_dummies(Polygon* T, const int &, double &, const int &, const int &, const double &, int, stringstream&, int&);
-    void layer_fill(const int& x, const int& y,const double& windowsize, double& density,const int& layer_id, string& out, int& fillnum);
+    void layer_fill(const int& x, const int& y,const int& windowsize, double& density,const int& layer_id, string& out, int& fillnum);
     bool insert(Polygon *T, bool is_myinset, Polygon *start);
     double density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *>& vec);
     Polygon *point_search(Polygon *start, int x, int y);

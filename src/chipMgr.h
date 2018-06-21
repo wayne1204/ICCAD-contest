@@ -56,6 +56,7 @@ public:
     double calCapicitance(double, int, int, int = -1);
     void init_polygon(string &filename, unordered_set<int> &cnet_set);
     void insert_tile(string&);
+    void report_density(bool);
     void write_fill(string, string);
 
 private:
