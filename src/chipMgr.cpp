@@ -360,6 +360,7 @@ void chipManager::insert_tile(string& output_fill){
                     //cout<<"insert dummy in Layer: "<<setw(1)<<i+1<<".......................\r";
                     _LayerList[i].layer_fill(x, y, window_size, new_density, i + 1, out, fillnum);
                     out_fill<<out;
+                    //cout<<"...................輸出..............."<<out<<endl;
                     // cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
                 }
                 else count[i]+=1;
@@ -371,11 +372,19 @@ void chipManager::insert_tile(string& output_fill){
     for (int i = 0; i < 9; i++)
         cout << "第" << i + 1 << "層只有" << count[i] / count2[i] * 100 << "%有滿足" << endl;
     output_fill = out_fill.str();
+    //cout<<"///////////////"<<output_fill<<endl;
 }
 
 void chipManager::write_fill(string output, string output_fill){
-    ofstream o;
-    o.open(output.c_str());
-    o<<output_fill;
+    ofstream ofs(output);
+    cout<<"ddddddddddd...........             "<<output<<endl;
+
+    //ofs.open(output.c_str());
+    if(!ofs.is_open()){
+        cout << "[Error] can't open rule file \"" << output << "\" !!\n";
+        return;
+    }
+    ofs<<output_fill;
+    ofs.close();
 }
 

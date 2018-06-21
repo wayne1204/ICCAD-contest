@@ -593,6 +593,7 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const double &windo
     sort (query_list.begin(), query_list.end(),  Compare(edge_x,edge_y,windowsize));
     for(int i=0;i < query_list.size();i++){
         if (density >= get_min_density()){
+            out = output.str();
             return;
         }
         #ifdef PRINT
@@ -645,8 +646,10 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const double &windo
     #endif
     int cnt = 0;
     for(int i=0;i<rest.size();i++){
-        if (density >= get_min_density())
+        if (density >= get_min_density()){
+            out = output.str();
             return;
+        }
         cout << i <<"/" << rest.size() << '\r';
         // int t_x = query_list[rest[i]]->_top_right_x(), t_y = query_list[rest[i]]->_top_right_y();
         // int b_x = query_list[rest[i]]->_bottom_left_x(), b_y = query_list[rest[i]]->_bottom_left_y();
@@ -716,6 +719,7 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const double &windo
                 {
                     if(tr_x-bl_x-2*get_gap()>=get_width()&&tr_y-bl_y-2*get_gap()>=get_width()){
                         if (density >= get_min_density())
+                            out = output.str();
                             return;
                         Polygon* T = new Polygon("filled",true);
                         T->set_xy(tr_x, tr_y, bl_x, bl_y);
@@ -739,13 +743,13 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const double &windo
                     //     output<<fillnum<<" "<<T->_bottom_left_x()<<" "<<T->_bottom_left_y()<<" "<<T->_top_right_x()<<" "<<T->_top_right_y()<<" 0 "<<layer_id<<" Fill"<<endl;
                     //     fillnum++;
 
-                    //     if(density>=get_min_density()){
-                    //         //cout<<"2now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
-                    //         // cout << "..........................stupidddddddddddddddddddd\n";
-                    //         // cout<<"density = "<<density<<" / "<<get_min_density()<<" layer= "<<layer_id<<endl;
-                    //         // out = output.str();
-                    //         return;
-                    //     }
+                        if(density>=get_min_density()){
+                            //cout<<"2now in window "<<edge_x + windowsize<<","<<edge_y + windowsize<<" "<<edge_x<<","<<edge_y<<"layer= "<<layer_id<<endl;
+                            // cout << "..........................stupidddddddddddddddddddd\n";
+                            // cout<<"density = "<<density<<" / "<<get_min_density()<<" layer= "<<layer_id<<endl;
+                            out = output.str();
+                            return;
+                        }
                         delete T;
                         T = NULL;
                     //}
