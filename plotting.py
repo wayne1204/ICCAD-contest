@@ -73,14 +73,14 @@ class CircuitParser():
         for j in range(len(self.layers_cnet[num])):
             self.layers_cnet[num][j] = [i/1000.0 for i in self.layers_cnet[num][j]]
         print('scaling layer #{}...'.format(num+1))
+        
 
-    
     def adjustPoly(self, poly, lb_x, lb_y, rt_x, rt_y):
         ret = poly[:]
         if poly[0] > rt_x or poly[2] < lb_x:
-            return []
+            return [], 0
         if poly[1] > rt_y or poly[3] < lb_y:
-            return []
+            return [], 0
 
         if poly[0] < lb_x:
             ret[0] = lb_x
@@ -90,7 +90,7 @@ class CircuitParser():
             ret[2] = rt_x
         if poly[3] > rt_y:
             ret[3] = rt_y
-        return ret
+        return ret, (ret[2] - ret[0]) * (ret[3] - ret[1])
 
     def plot(self, num):
         WINDOW = 10
@@ -103,28 +103,32 @@ class CircuitParser():
                 lb_y = self.boundary[1] + i * WINDOW
                 rt_x = self.boundary[0] + (j+1) * WINDOW
                 rt_y = self.boundary[1] + (i+1) * WINDOW
+                area_sum = 0.0
                 print('window #{} / {}'.format(i * WIDTH + j+1, WIDTH * HEIGHT), end='\r')
 
                 for k in range(len(self.layers[num])):
-                    insert = self.adjustPoly(self.layers[num][k], lb_x, lb_y, rt_x, rt_y)
-                    # print('black ', self.layers[num][k])
+                    insert, area = self.adjustPoly(self.layers[num][k], lb_x, lb_y, rt_x, rt_y)
+                    area_sum += area
                     if insert != []:
                         self.insert_polygon(insert, 'black')
 
                 for points in self.layers_fill[num]:
-                    insert = self.adjustPoly(points, lb_x, lb_y, rt_x, rt_y)
-                    # print('blue ', self.layers_fill[num][k])
+                    insert, area = self.adjustPoly(points, lb_x, lb_y, rt_x, rt_y)
+                    area_sum += area
                     if insert != []:
                         self.insert_polygon(insert, 'blue')
 
                 for k in range(len(self.layers_cnet[num])):
-                    insert = self.adjustPoly(self.layers_cnet[num][k], lb_x, lb_y, rt_x, rt_y)
-                    # print('red ', self.layers_cnet[num][k])
+                    insert, area = self.adjustPoly(self.layers_cnet[num][k], lb_x, lb_y, rt_x, rt_y)
+                    area_sum += area
                     if insert != []:
                         self.insert_polygon(insert, 'red')
 
+                density = area_sum/100.0
                 plt.axis([lb_x, rt_x, lb_y, rt_y])
-                plt.title('Layer_{}_{}_{}'.format(num+1, i, j))
+                # plt.title('0:{} 1:{} 2:{} 3:{:.4f}'.format(num, i, j, density))
+                plt.title('Layer_{}_{}_{}  density={:.4f}'.format(num+1, i, j, density))
+                # plt.savefig("visualize/layer{}/layer_{}_{}_{}_{}.png".format(num+1,num+1, i//2, j//2,(i%2)*2+(j%2)))
                 plt.savefig("visualize/layer{}/layer_{}_{}_{}.png".format(num+1,num+1, i, j))
                 plt.close()
         print()
@@ -135,15 +139,15 @@ def main():
     cp.parseDesign(True)  
     cp.parseDesign(False)
 
-    if not os.path.exists('visualize')
-        os.pardir(visualize)
-    # for i in range(9):
-    i = 8
-    path = os.path.join('visualize', 'layer{}'.format(i+1))
-    if not os.path.exists(path):
-        os.mkdir(path)
-    cp.scaling(i)
-    cp.plot(i)
+    # if not os.path.exists('/visualize')
+    #     os.mkdir(visualize)
+    for i in range(9):
+    # i = 8
+        path = os.path.join('visualize', 'layer{}'.format(i+1))
+        if not os.path.exists(path):
+            os.mkdir(path)
+        cp.scaling(i)
+        cp.plot(i)
         
 
 if __name__ == "__main__":

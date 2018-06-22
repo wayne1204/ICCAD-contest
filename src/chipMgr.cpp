@@ -336,8 +336,8 @@ void chipManager::report_density(bool init_cnet){
     double density = 0;
     double count[9] = {0}, count2[9] = {0};
     int half_wnd = window_size / 2;
-    int horizontal_cnt = (_tr_bound_x - _bl_bound_x)  / half_wnd ;
-    int vertical_cnt = (_tr_bound_y - _bl_bound_y)  / half_wnd ;
+    int horizontal_cnt = (_tr_bound_x - _bl_bound_x)  / half_wnd -1;
+    int vertical_cnt = (_tr_bound_y - _bl_bound_y)  / half_wnd -1 ;
     vector<Polygon*> critical_nets;
 
     for (int i = 0; i < layer_num; ++i){
@@ -345,8 +345,8 @@ void chipManager::report_density(bool init_cnet){
             for (int col = 0; col < horizontal_cnt; ++col){
                 x = _bl_bound_x + col * half_wnd;
                 y = _bl_bound_y + row * half_wnd;
-                wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;                
-                density = _LayerList[i].density_calculate(x, y, half_wnd, critical_nets);
+                wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;
+                density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
                 if(init_cnet)
                     total_Cnet_List.emplace(wnd_num, critical_nets);
                 if(density >= _LayerList[i].get_min_density())
@@ -363,40 +363,47 @@ void chipManager::report_density(bool init_cnet){
 }
 
 void chipManager::insert_tile(string& output_fill){ 
-    int x, y, wnd_num;
-    double density = 0;
-    double count[9] = {0}, count2[9] = {0};
-    int half_wnd = window_size / 2;
-    int horizontal_cnt = (_tr_bound_x - _bl_bound_x)  / half_wnd ;
-    int vertical_cnt = (_tr_bound_y - _bl_bound_y)  / half_wnd ;
     vector<Polygon*> critical_nets;
     int fillnum = 1;
     stringstream out_fill;
- 
-    for (int i = 0; i < layer_num; ++i){
-        for(int row = 0; row < vertical_cnt; ++row){
-            for (int col = 0; col < horizontal_cnt; ++col){
-                x = _bl_bound_x + col * window_size / 2;
-                y = _bl_bound_y + row * window_size / 2;
-                wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;                
-                density = _LayerList[i].density_calculate(x, y, half_wnd, critical_nets);
-                
-                if(density < _LayerList[i].get_min_density()){  
-                    double new_density = density;
-                    // cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
-                        //  << horizontal_cnt * vertical_cnt << "]=========="<< endl;
-                    cout << "\n==========[ Layer: " << i + 1 << " | Row: " << row/2 
-                         << "| Col:"<< col/2 << "]==========" << endl;
-                    string out = "";
-                    //cout<<"insert dummy in Layer: "<<setw(1)<<i+1<<".......................\r";
-                    _LayerList[i].layer_fill(x, y, half_wnd, new_density, i + 1, out, fillnum);
-                    out_fill<<out;
-                    // cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
+
+    for (int _time = 0; _time < 4; ++_time){
+        int x, y, wnd_num;
+        double density = 0;
+        int half_wnd = window_size / 2;
+        int horizontal_cnt = (_tr_bound_x - _bl_bound_x) / window_size;
+        int vertical_cnt = (_tr_bound_y - _bl_bound_y) / window_size;
+        if(_time == 1 || _time == 3)
+            horizontal_cnt -= 1;
+        if(_time == 2 || _time == 3)
+            vertical_cnt -= 1;
+        for (int i = 0; i < layer_num; ++i){
+            for(int row = 0; row < vertical_cnt; ++row){
+                for (int col = 0; col < horizontal_cnt; ++col){
+                    x = _bl_bound_x + col * window_size;
+                    y = _bl_bound_y + row * window_size;
+                    if(_time == 1 or _time == 3)
+                        x += half_wnd;
+                    if(_time == 2 or _time == 3)
+                        y += half_wnd;
+                    wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;                
+                    density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
+                    
+                    if(density < _LayerList[i].get_min_density()){  
+                        double new_density = density;
+                        cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
+                            << horizontal_cnt * vertical_cnt << "]=========="<< endl;
+                        // cout << "\n=============[ Layer: " << i + 1 << " | Row: " << row/2 << "| Col:"
+                        //     << col/2 << " | Pos:" << (row%2)*2+col%2 << "]=============" << endl;
+                        string out = "";
+                        //cout<<"insert dummy in Layer: "<<setw(1)<<i+1<<".......................\r";
+                        _LayerList[i].layer_fill(x, y, window_size, new_density, i + 1, out, fillnum);
+                        out_fill<<out;
+                        // cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
+                    }
                 }
-                else count[i]+=1;
-                ++count2[i];
-            }
-        }       
+            }       
+        }
     }
     cout << endl;
     output_fill = out_fill.str();
