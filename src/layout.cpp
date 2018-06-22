@@ -447,13 +447,13 @@ void join(Polygon* T1,Polygon *T2)
 bool Layer::expand( int& x1,  int& y1,int& x2,  int& y2, const int& edge_x, const int& edge_y, 
                     const int& windowsize, int num){
     vector<Polygon *> query_list;
-    const int bl_x = edge_x;
-    const int bl_y = edge_y;
-    const int tr_x = edge_x + windowsize;
-    const int tr_y = edge_y + windowsize;
-    x1 = (x1 > tr_x) ? tr_x : x1;
+    const int bl_x = (edge_x - get_max_width()) < get_bl_boundary_x() ? get_bl_boundary_x() : edge_x - get_max_width();
+    const int bl_y = (edge_y - get_max_width()) < get_bl_boundary_y() ? get_bl_boundary_y() : edge_y - get_max_width();
+    const int tr_x = get_tr_boundary_x();
+    const int tr_y = get_tr_boundary_y();
+    // x1 = (x1 > tr_x) ? tr_x : x1;
     x2 = (x2 < bl_x) ? bl_x : x2;
-    y1 = (y1 > tr_y) ? tr_y : y1;
+    // y1 = (y1 > tr_y) ? tr_y : y1;
     y2 = (y2 < bl_y) ? bl_y : y2;
 
     if(region_query_bool(dummy_bottom,x1,y1,x2,y2,query_list)){
@@ -509,11 +509,13 @@ void Layer::insert_dummies(Polygon* T, const int &layer_id, double &density, con
                 const int &edge_y, const double &windowsize, int type, stringstream& output, int& fillnum)
 {
     int x_next, y_next, y, x;
-    int x_cur = (T->_bottom_left_x() < edge_x) ? edge_x+get_gap() : T->_bottom_left_x() + get_gap();
+    int x_cur = (T->_bottom_left_x() < edge_x - get_max_width()) ? edge_x - get_max_width() + get_gap() : T->_bottom_left_x() + get_gap();
+    // int x_cur = T->_bottom_left_x() + get_gap();
     int x_left_bound = x_cur;
-    int y_cur = (T->_bottom_left_y() < edge_y) ? edge_y+get_gap() : T->_bottom_left_y() + get_gap();
-    const int x_bound = (T->_top_right_x() > edge_x + windowsize) ? edge_x + windowsize: T->_top_right_x();
-    const int y_bound = (T->_top_right_y() > edge_y + windowsize) ? edge_y + windowsize: T->_top_right_y();
+    int y_cur = (T->_bottom_left_y() < edge_y - get_max_width()) ? edge_y - get_max_width() + get_gap() : T->_bottom_left_y() + get_gap();
+    // int y_cur = T->_bottom_left_y() + get_gap();
+    const int x_bound = (T->_top_right_x());//> edge_x + windowsize) ? edge_x + windowsize: T->_top_right_x();
+    const int y_bound = (T->_top_right_y());// > edge_y + windowsize) ? edge_y + windowsize: T->_top_right_y();
     double sum = 0;
     double area = (x_bound - T->_bottom_left_x()) * (y_bound - T->_bottom_left_y());
     double new_density = 0;
@@ -527,23 +529,19 @@ void Layer::insert_dummies(Polygon* T, const int &layer_id, double &density, con
             x_next = x_cur + get_max_width();
             x_next = (x_next > x_bound - get_gap()) ? x_bound - get_gap() : x_next;
             //////小龜的優化/////
-            double n_area = classify(x_next, x_cur, edge_x + windowsize, edge_x) * 
-                            classify(y_next, y_cur, edge_y + windowsize, edge_y);
-            new_density = (density * windowsize * windowsize + n_area) / (windowsize * windowsize);
-            if (new_density > get_min_density()){
-                double temp = get_min_density() - density;
-                y = y_next - y_cur;
-                x = temp*windowsize*windowsize/y + 1;
-                x_next = x_cur + x;
-            }
+            // double n_area = classify(x_next, x_cur, edge_x + windowsize, edge_x) * 
+            //                 classify(y_next, y_cur, edge_y + windowsize, edge_y);
+            // new_density = (density * windowsize * windowsize + n_area) / (windowsize * windowsize);
+            // if (new_density > get_min_density()){
+            //     double temp = get_min_density() - density;
+            //     y = y_next - y_cur;
+            //     x = temp * windowsize * windowsize/y + 1;
+            //     x_next = x_cur + x;
+            // }
             Polygon* fill = new Polygon("filled", true);
             fill->set_layer_id(layer_id);
             fill->set_xy(x_next, y_next, x_cur, y_cur);
-            // cout << "x_cur: " << x_cur << " | x_bound " << edge_x <<endl;
-            assert(x_cur - get_gap() >= edge_x);
-            // cout << "y_cur: " << y_cur << " | y_bound " << edge_y << endl;
-            assert(y_cur - get_gap() >= edge_y);
-
+            
             sum += (x_next - x_cur) * (y_next - y_cur);
             if(type == 1)
                 insert(fill, false, dummy_bottom);
@@ -659,10 +657,11 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const int &windowsi
                 (x2 - get_gap() >= get_bl_boundary_x()) ? bl_x = x2 - get_gap()      : bl_x = get_bl_boundary_x();
                 (y2 - get_gap() >= get_bl_boundary_y()) ? bl_y = y2 - get_gap()      : bl_y = get_bl_boundary_y();
                 (x1 + get_gap() >  get_tr_boundary_x()) ? tr_x = get_tr_boundary_x() : tr_x = x1 + get_gap()     ;
-                (y1 + get_gap() >  get_tr_boundary_y()) ? tr_y = get_tr_boundary_y() : tr_y = y1 + get_gap()     ;  
-
+                (y1 + get_gap() >  get_tr_boundary_y()) ? tr_y = get_tr_boundary_y() : tr_y = y1 + get_gap()     ;
+                // cout << "Wei Kai is " << x1 << " " << y1 <<endl;
                 if(expand(tr_x,tr_y,bl_x,bl_y, edge_x, edge_y, windowsize, 2))
                 {
+                    // cout << "Wei Kai is __!!!" << endl;
                     if(tr_x-bl_x-2*get_gap()>=get_width()&&tr_y-bl_y-2*get_gap()>=get_width()){
                         Polygon* T = new Polygon("filled",true);
                         T->set_xy(tr_x, tr_y, bl_x, bl_y);

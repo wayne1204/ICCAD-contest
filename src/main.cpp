@@ -80,6 +80,8 @@ int main(int argc, char** argv)
     mgr->report_density(true);
     mgr->insert_tile(output_fill);
     mgr->report_density(false);
+    // mgr->insert_tile(output_fill);
+    // mgr->report_density(false);
     mgr->write_fill(output, output_fill);
     mu->report();
 }

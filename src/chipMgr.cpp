@@ -351,6 +351,8 @@ void chipManager::report_density(bool init_cnet){
                     total_Cnet_List.emplace(wnd_num, critical_nets);
                 if(density >= _LayerList[i].get_min_density())
                     count[i]+=1;
+                else
+                    cout << i+1 << " row " <<row/2 << " col "<<col/2 <<" pos " <<(row%2)*2 + (col%2) <<endl;
                 ++count2[i];
             }
         }       
@@ -381,10 +383,10 @@ void chipManager::insert_tile(string& output_fill){
                 
                 if(density < _LayerList[i].get_min_density()){  
                     double new_density = density;
-                    cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
-                         << horizontal_cnt * vertical_cnt << "]=========="<< endl;
-                    // cout << "\n==========[ Layer: " << i + 1 << " | Row: " << row << "/"
-                        //  << "Col|"<< horizontal_cnt * vertical_cnt << "]==========" << endl;
+                    // cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
+                        //  << horizontal_cnt * vertical_cnt << "]=========="<< endl;
+                    cout << "\n==========[ Layer: " << i + 1 << " | Row: " << row/2 
+                         << "| Col:"<< col/2 << "]==========" << endl;
                     string out = "";
                     //cout<<"insert dummy in Layer: "<<setw(1)<<i+1<<".......................\r";
                     _LayerList[i].layer_fill(x, y, half_wnd, new_density, i + 1, out, fillnum);
