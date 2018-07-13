@@ -140,18 +140,18 @@ double classify(int xy1,int xy2,int query_xy1,int query_xy2)
 
 void print_Polygon(Polygon* T)
 {
-//     cerr<<T->getType()<<" ("<<T->_top_right_x()<<","<<T->_top_right_y()<<") ("<<T->_bottom_left_x()<<","<<T->_bottom_left_y()<<")\n";
-//     int a;
-//     //if(T->_top_right_x()==3407008&&T->_bottom_left_x()==3407008)cin>>a;
-//     if(T->getType()[0]=='d')return;
-//     cerr<<"tr "<<T->get_tr()->getType()<<" ("<<T->get_tr()->_top_right_x()<<","<<T->get_tr()->_top_right_y()<<") ("<<T->get_tr()->_bottom_left_x()<<","<<T->get_tr()->_bottom_left_y()<<")\n";
-//     //if(T->get_tr()->_bottom_left_x()!=T->_top_right_x()||T->get_tr()->_bottom_left_y()>T->_top_right_y())cin>>a;
-//     cerr<<"rt "<<T->get_rt()->getType()<<" ("<<T->get_rt()->_top_right_x()<<","<<T->get_rt()->_top_right_y()<<") ("<<T->get_rt()->_bottom_left_x()<<","<<T->get_rt()->_bottom_left_y()<<")\n";
-//     //(T->get_rt()->_bottom_left_y()!=T->_top_right_y()||T->get_rt()->_bottom_left_x()>T->_top_right_x())cin>>a;
-//     cerr<<"lb "<<T->get_lb()->getType()<<" ("<<T->get_lb()->_top_right_x()<<","<<T->get_lb()->_top_right_y()<<") ("<<T->get_lb()->_bottom_left_x()<<","<<T->get_lb()->_bottom_left_y()<<")\n";
-//     //if(T->get_lb()->_top_right_y()!=T->_bottom_left_y()||T->get_lb()->_top_right_x()<T->_bottom_left_x())cin>>a;
-//     cerr<<"bl "<<T->get_bl()->getType()<<" ("<<T->get_bl()->_top_right_x()<<","<<T->get_bl()->_top_right_y()<<") ("<<T->get_bl()->_bottom_left_x()<<","<<T->get_bl()->_bottom_left_y()<<")\n";
-//     //if(T->get_bl()->_top_right_x()!=T->_bottom_left_x()||T->get_bl()->_top_right_y()<T->_bottom_left_y())cin>>a;
+    cerr<<T->getType()<<" ("<<T->_top_right_x()<<","<<T->_top_right_y()<<") ("<<T->_bottom_left_x()<<","<<T->_bottom_left_y()<<")\n";
+    int a;
+    //if(T->_top_right_x()==3407008&&T->_bottom_left_x()==3407008)cin>>a;
+    if(T->getType()[0]=='d')return;
+    cerr<<"tr "<<T->get_tr()->getType()<<" ("<<T->get_tr()->_top_right_x()<<","<<T->get_tr()->_top_right_y()<<") ("<<T->get_tr()->_bottom_left_x()<<","<<T->get_tr()->_bottom_left_y()<<")\n";
+    //if(T->get_tr()->_bottom_left_x()!=T->_top_right_x()||T->get_tr()->_bottom_left_y()>T->_top_right_y())cin>>a;
+    cerr<<"rt "<<T->get_rt()->getType()<<" ("<<T->get_rt()->_top_right_x()<<","<<T->get_rt()->_top_right_y()<<") ("<<T->get_rt()->_bottom_left_x()<<","<<T->get_rt()->_bottom_left_y()<<")\n";
+    //(T->get_rt()->_bottom_left_y()!=T->_top_right_y()||T->get_rt()->_bottom_left_x()>T->_top_right_x())cin>>a;
+    cerr<<"lb "<<T->get_lb()->getType()<<" ("<<T->get_lb()->_top_right_x()<<","<<T->get_lb()->_top_right_y()<<") ("<<T->get_lb()->_bottom_left_x()<<","<<T->get_lb()->_bottom_left_y()<<")\n";
+    //if(T->get_lb()->_top_right_y()!=T->_bottom_left_y()||T->get_lb()->_top_right_x()<T->_bottom_left_x())cin>>a;
+    cerr<<"bl "<<T->get_bl()->getType()<<" ("<<T->get_bl()->_top_right_x()<<","<<T->get_bl()->_top_right_y()<<") ("<<T->get_bl()->_bottom_left_x()<<","<<T->get_bl()->_bottom_left_y()<<")\n";
+    //if(T->get_bl()->_top_right_x()!=T->_bottom_left_x()||T->get_bl()->_top_right_y()<T->_bottom_left_y())cin>>a;
 }
 
 void neighbor_find_own(Polygon* T,vector<Polygon*> &v,const int& max_y,const int& min_y)

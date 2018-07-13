@@ -14,7 +14,7 @@
 #include "polygon.h"
 using namespace std;
 //#define DEBUG
-#define PRINT
+//#define PRINT
 unsigned Polygon::global_ref=0;
 
 struct Compare {
@@ -45,7 +45,7 @@ double Layer::density_calculate(const int &x, const int &y, const double &window
         if(query_list[i]->is_solid()){
             x_area=classify(query_list[i]->_top_right_x(),query_list[i]->_bottom_left_x(),x+windowsize,x);
             y_area=classify(query_list[i]->_top_right_y(),query_list[i]->_bottom_left_y(),y+windowsize,y);
-            if(x_area<0||y_area<0) cout<<query_list[i]->_top_right_x()<<" "<<query_list[i]->_top_right_y()<<"in window"<<x<<","<<y<<"有問題\n";
+            if(x_area<0||y_area<0); //cout<<query_list[i]->_top_right_x()<<" "<<query_list[i]->_top_right_y()<<"in window"<<x<<","<<y<<"有問題\n";
             else area+=x_area*y_area;
         }
         if (query_list[i]->is_critical())
@@ -466,7 +466,6 @@ bool Layer::expand( int& x1, int& y1, int& x2, int& y2, const int& edge_x, const
             while(region_query_bool(dummy_bottom,x1,y1+num,x2,y1,query_list)){
                 y1+=num;
                 if(y1>=tr_y) break;
-                //|| y1 == edge_y + windowsize - get_gap())break;
             }
         }
         if (y2 - num >= bl_y)
@@ -474,15 +473,13 @@ bool Layer::expand( int& x1, int& y1, int& x2, int& y2, const int& edge_x, const
             while(region_query_bool(dummy_bottom,x1,y2,x2,y2-num,query_list)){
                 y2-=num;
                 if(y2<=bl_y) break;
-                //|| y2 == edge_y + get_gap())break;
             }
         }
         if (x1 + num <= tr_x)
         {
             while(region_query_bool(dummy_bottom,x1+num,y1,x1,y2,query_list)){ 
                 x1+=num;
-                if(x1>=tr_x) break; 
-                //|| x1 == edge_x + windowsize - get_gap())break;
+                if(x1>=tr_x) break;
             }
         }
         if (x2 - num >= bl_x)
@@ -490,21 +487,16 @@ bool Layer::expand( int& x1, int& y1, int& x2, int& y2, const int& edge_x, const
             while(region_query_bool(dummy_bottom,x2,y1,x2-num,y2,query_list)){
                 x2-=num;
                 if(x2<=bl_x)break; 
-                //|| x2 == edge_x + get_gap())break;
             }
         }
-        // cout<<"left over "<<x2   <<"\n";
         if((x1-x2-2*get_gap()>=get_width())&&(y1-y2-2*get_gap()>=get_width())){
             return true;
         }
         else {
-            // cout<<"not enough"<<endl;
             return false;
         }
     }
-    
     else {
-        //cout<<"not expand"<<endl;
         return false;
     }   
 
@@ -582,7 +574,8 @@ void Layer::insert_dummies(Polygon* T, const int &layer_id, double &density, con
     // cout << setprecision(4) << sum/area*100 << "%         " << sum << " / " << area << "\n";
 }
 
-void Layer::layer_fill(const int &edge_x, const int &edge_y, const int &windowsize, double &density, const int &layer_id, string &out, int &fillnum)
+void Layer::layer_fill(const int &edge_x, const int &edge_y, const int &windowsize, 
+                    double &density, const int &layer_id, string &out, int &fillnum)
 {    
     stringstream output;
     vector<Polygon*> query_list;
@@ -619,7 +612,7 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const int &windowsi
         }
     }
 
-    cout << endl;
+    // cout << endl;
     int cnt = 0;
     // for (int i = 0 ; i < query_list.size(); ++i){
     for(int i=0;i<rest.size();i++){
@@ -630,9 +623,9 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const int &windowsi
         // int t_x = query_list[i]->_top_right_x(), t_y = query_list[i]->_top_right_y();
         // int b_x = query_list[i]->_bottom_left_x(), b_y = query_list[i]->_bottom_left_y();
         int t_x = rest[i][0], t_y = rest[i][1], b_x = rest[i][2], b_y = rest[i][3];
-        if (expand(t_x, t_y, b_x, b_y, edge_x, edge_y, windowsize, 2))
+        if (expand(t_x, t_y, b_x, b_y, edge_x, edge_y, windowsize, 8))
         {
-            cout << "..............expanding " << cnt  << "/" << rest.size() <<'\r';
+            // cout << "..............expanding " << cnt  << "/" << rest.size() <<'\r';
             Polygon* T = new Polygon("filled",true);
             T->set_layer_id(layer_id);
             T->set_xy(t_x, t_y, b_x, b_y);
@@ -644,7 +637,7 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const int &windowsi
     }
 
     #ifdef PRINT
-    cout << "\n..............brute force | density = " << density <<"\n";
+    // cout << "\n..............brute force | density = " << density <<"\n";
     #endif
     int bl_y, bl_x, tr_x, tr_y;     
     int x = edge_x;
@@ -674,7 +667,7 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const int &windowsi
                 if(expand(x1, y1, x2, y2, edge_x, edge_y, windowsize, 5))
                 {
                     // if(tr_x-bl_x-2*get_gap()>=get_width()&&tr_y-bl_y-2*get_gap()>=get_width()){
-                    cout << "Wei Kai is __!!!" << endl;
+                    // cout << "Wei Kai is __!!!" << endl;
                     Polygon* T = new Polygon("filled",true);
                     T->set_xy(x1, y1, x2, y2);
                     insert_dummies(T, layer_id, density, edge_x, edge_y, windowsize, 3, output, fillnum);
@@ -697,7 +690,7 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const int &windowsi
             y2 += 10;
             y1 += 10;
         }
-        cout<<"QQ塞不滿 | den =" << density;
+        // cout<<"QQ塞不滿 | den =" << density;
         out = output.str();
         return;
     }

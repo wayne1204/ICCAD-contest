@@ -1,13 +1,13 @@
 CXX = g++
 CFLAGS = -g -std=c++11
-CFLAGS = -O2 -std=c++11
+CFLAGS = -O3 -std=c++11
 
-EXE = MainProgram
+EXE = cada045
 OBJ = main.o layout.o polygon.o chipMgr.o util.o
 
 # Executable
 all:$(OBJ)
-	$(CXX) -static -o $(EXE) $(CFLAGS) $(OBJ)
+	$(CXX) -o $(EXE) $(CFLAGS) $(OBJ)
 
 # Object file
 %.o:  %.cpp

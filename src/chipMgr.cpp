@@ -93,7 +93,7 @@ void chipManager::parseRuleFile(const string &fileName)
         // cout << "Layer#" << index << " "  << num1 << " " << num2 << " " << num3 << 
         // " " << d1 << " " << d2 <<endl;
     }
-    cout << "=== Finish parsing rule file \"" << fileName << "\" ===\n";
+    // cout << "=== Finish parsing rule file \"" << fileName << "\" ===\n";
 }
 
 // parse process file
@@ -130,12 +130,12 @@ void chipManager::parseProcessFile(const string &fileName)
             }
         }
     }
-    cout << "=== Finish parsing porcess file \"" << fileName << "\" ===\n";
-    cout << "    Area    |   Lateral  |   Fringe   |    Total   |\n";
-    cout << setw(7) << area_mapping.size() << setw(6) << "|";
-    cout << setw(7) << layer_num << setw(6) << "|";
-    cout << setw(7) << fringe_mapping.size() - layer_num << setw(6) << "|";
-    cout << setw(7) << total_Cap_List.size() << "     |\n";
+    // cout << "=== Finish parsing porcess file \"" << fileName << "\" ===\n";
+    // cout << "    Area    |   Lateral  |   Fringe   |    Total   |\n";
+    // cout << setw(7) << area_mapping.size() << setw(6) << "|";
+    // cout << setw(7) << layer_num << setw(6) << "|";
+    // cout << setw(7) << fringe_mapping.size() - layer_num << setw(6) << "|";
+    // cout << setw(7) << total_Cap_List.size() << "     |\n";
     ifs.close();
 }
 
@@ -249,7 +249,7 @@ double chipManager::calCapicitance(double area, int type, int layer1, int layer2
 
 void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
 {
-    cout<<"init poly..."<<endl;
+    // cout<<"init poly..."<<endl;
     ifstream ifs(filename);
     int filesize;
     ifs.seekg(0, ios::end);
@@ -283,7 +283,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             for (int i = 0; i < layer_num; ++i){
                 _LayerList[i].init_layer(_bl_bound_x, _bl_bound_y, _tr_bound_x, _tr_bound_y);
                 #ifdef DEBUG
-                cout<<"layer num = "<<bb<<endl;
+                cout<<"layer num = "<<bb<<endl;x
                 bb++;
                 #endif
 
@@ -293,7 +293,6 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             bool if_new=false;
             while ( (token = next_token(buff_beg, buff_end)) != ""){
                 if (token[0] == '\n') break;
-                if_new=false;
                 if (myStr2Int(token, num)){
                     tokens.push_back(num);
                 }
@@ -314,21 +313,21 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             }
             
             _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
-            cout<<"parse poly....number of poly = "<<setw(6)<<aa<<"...."<<"\r";
+            // cout<<"parse poly....number of poly = "<<setw(6)<<aa<<"...."<<"\r";
             #ifdef DEBUG
             //cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
             //cout<<".................finish poly....................."<<endl;
             #endif
             aa++;
-            /*
-            if(if_new){
-                delete poly;
-                poly=NULL;
-            }*/
+            
+            // if(if_new){
+            //     delete poly;
+            //     poly=NULL;
+            // }
             
         }
     }
-    cout << "===    Finish inserting "<< aa << " polygon    ===" << endl;
+    // cout << "===    Finish inserting "<< aa << " polygon    ===" << endl;
 }
 
 void chipManager::report_density(bool init_cnet){
@@ -349,17 +348,30 @@ void chipManager::report_density(bool init_cnet){
                 density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
                 if(init_cnet)
                     total_Cnet_List.emplace(wnd_num, critical_nets);
-                if(density >= _LayerList[i].get_min_density())
-                    count[i]+=1;
-                else
-                    cout << i+1 << " row " <<row/2 << " col "<<col/2 <<" pos " <<(row%2)*2 + (col%2) <<endl;
-                ++count2[i];
+                if(density >= _LayerList[i].get_min_density() && density < _LayerList[i].get_min_density()+0.01)
+                    count[0]+=1;
+                else if (density >= _LayerList[i].get_min_density()+0.01 && density < _LayerList[i].get_min_density()+0.04)
+                    count[1]+=1;
+                else if (density >= _LayerList[i].get_min_density()+0.04 && density < _LayerList[i].get_min_density()+0.07)
+                    count[2]+=1;
+                else if (density >= _LayerList[i].get_min_density()+0.07 && density < _LayerList[i].get_min_density()+0.1)
+                    count[3]+=1;
+                else if (density >= _LayerList[i].get_min_density()+0.1)
+                    count[4]+=1;
+                else{
+                    //cout << i+1 << " row " <<row/2 << " col "<<col/2 <<" pos " <<(row%2)*2 + (col%2) <<endl;
+                }
+                if (density >= _LayerList[i].get_min_density())
+                    ++count2[0];
             }
         }       
     }
     cout << "\n============[denity report]============\n";
-    for (int i = 0; i < 9; i++)
-        cout << "Layer #" << i + 1 << " | density:" << count[i] / count2[i] * 100 << "% \n";
+    for (int i = 0; i < 5; ++i){
+        cout<<"Density "<<0.4 + 0.01*i<<" - "<< 0.4 + 0.01*(i+1) <<" : "<<count[i]/count2[0]*100<<"% \n";
+    }
+    // for (int i = 0; i < 9; i++)
+    //     cout << "Layer #" << i + 1 << " | density:" << count[i] / count2[i] * 100 << "% \n";
 }
 
 void chipManager::insert_tile(string& output_fill){ 
@@ -391,8 +403,8 @@ void chipManager::insert_tile(string& output_fill){
                     
                     if(density < _LayerList[i].get_min_density()){  
                         double new_density = density;
-                        cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
-                            << horizontal_cnt * vertical_cnt << "]=========="<< endl;
+                        // cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
+                        //    << horizontal_cnt * vertical_cnt << "]=========="<< endl;
                         // cout << "\n=============[ Layer: " << i + 1 << " | Row: " << row/2 << "| Col:"
                         //     << col/2 << " | Pos:" << (row%2)*2+col%2 << "]=============" << endl;
                         string out = "";
@@ -405,14 +417,41 @@ void chipManager::insert_tile(string& output_fill){
             }       
         }
     }
-    cout << endl;
+    //cout << endl;
+    int horizontal_cnt = (_tr_bound_x - window_size - _bl_bound_x) * 2 / window_size + 1;
+    int vertical_cnt = (_tr_bound_y - window_size - _bl_bound_y) * 2 / window_size + 1;
+
+    int x, y, wnd_num;
+    double density = 0;
+    int half_wnd = window_size / 2;
+
+    for (int i = 0; i < layer_num; ++i){
+        for(int row = 0; row < vertical_cnt; ++row){
+            for (int col = 0; col < horizontal_cnt; ++col){
+                x = _bl_bound_x + col * window_size / 2;
+                y = _bl_bound_y + row * window_size / 2;
+                wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;                
+                density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
+                if(density < _LayerList[i].get_min_density()){  
+                    double new_density = density;
+                    cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
+                         << horizontal_cnt * vertical_cnt << "]==========" << endl;
+                    string out = "";
+                    //cout<<"insert dummy in Layer: "<<setw(1)<<i+1<<".......................\r";
+                    _LayerList[i].layer_fill(x, y, window_size, new_density, i + 1, out, fillnum);
+                    out_fill<<out;
+                    // cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
+                }
+            }
+        }       
+    }
+    ///cout << endl;
     output_fill = out_fill.str();
     //cout<<"///////////////"<<output_fill<<endl;
 }
 
 void chipManager::write_fill(string output, string output_fill){
     ofstream ofs(output);
-    cout<<"ddddddddddd...........             "<<output<<endl;
 
     //ofs.open(output.c_str());
     if(!ofs.is_open()){
@@ -421,5 +460,69 @@ void chipManager::write_fill(string output, string output_fill){
     }
     ofs<<output_fill;
     ofs.close();
+    cout<<"...........finish.............."<<output<<endl;
+}
+
+void chipManager::check_layer(string &filename)
+{
+    ifstream ifs(filename);
+    int filesize;
+    ifs.seekg(0, ios::end);
+    filesize = ifs.tellg();
+    ifs.seekg(0, ios::beg);
+    char* buff = new char[filesize+1];
+    ifs.read(buff, filesize);
+    char* buff_beg = buff;
+    char* buff_end = buff + filesize;
+    string token = "haha";
+    int num;
+    vector<int> tokens;
+
+    while (token != ""){
+        while ( (token = next_token(buff_beg, buff_end)) != "" ){
+            if (token[0] == '\n') { break; }
+            if (myStr2Int(token, num)){
+                tokens.push_back(num);
+            }
+            else{
+                int a = tokens[6]-1;
+                cout<<"layer id = "<<a<<endl;
+                int count = 0;
+                vector<Polygon*> query_list;
+                int gap = _LayerList[a].get_gap();
+                int y2 = tokens[4], y1 = tokens[2], x2 = tokens[1], x1 = tokens[3];
+                int bl_x, bl_y, tr_x, tr_y;
+                (x2 - _LayerList[a].get_gap() >= _LayerList[a].get_bl_boundary_x()) ? bl_x = x2 - _LayerList[a].get_gap()      : bl_x = _LayerList[a].get_bl_boundary_x();
+                (y2 - _LayerList[a].get_gap() >= _LayerList[a].get_bl_boundary_y()) ? bl_y = y2 - _LayerList[a].get_gap()      : bl_y = _LayerList[a].get_bl_boundary_y();
+                (x1 + _LayerList[a].get_gap() >  _LayerList[a].get_tr_boundary_x()) ? tr_x = _LayerList[a].get_tr_boundary_x() : tr_x = x1 + _LayerList[a].get_gap()     ;
+                (y1 + _LayerList[a].get_gap() >  _LayerList[a].get_tr_boundary_y()) ? tr_y = _LayerList[a].get_tr_boundary_y() : tr_y = y1 + _LayerList[a].get_gap()     ; 
+                       
+                _LayerList[a].region_query( _LayerList[a].get_dummy(), tr_x, tr_y, bl_x, bl_y, query_list);
+                for (int i = 0; i < query_list.size(); ++i){
+                    if (query_list[i]->is_solid())
+                    {
+                        int area = (query_list[i]->_top_right_x()-query_list[i]->_bottom_left_x())*(query_list[i]->_top_right_y()-query_list[i]->_bottom_left_y());
+                        cout<<"..............area = "<<area<<endl;
+                        cout<<"..............maxa = "<< _LayerList[a].get_max_width()*_LayerList[a].get_max_width()<<endl;
+                        assert(area < _LayerList[a].get_max_width()*_LayerList[a].get_max_width());
+                        cout<<"a "<<query_list[i]->_top_right_x() - query_list[i]->_bottom_left_x()<<endl;
+                        cout<<"b "<<_LayerList[a].get_max_width()<<endl;
+                        assert(query_list[i]->_top_right_x() - query_list[i]->_bottom_left_x() <= _LayerList[a].get_max_width());
+                        assert(query_list[i]->_top_right_y() - query_list[i]->_bottom_left_y() <= _LayerList[a].get_max_width());
+                        assert(query_list[i]->_top_right_x() - query_list[i]->_bottom_left_x() >= _LayerList[a].get_width());
+                        assert(query_list[i]->_top_right_y() - query_list[i]->_bottom_left_y() >= _LayerList[a].get_width());
+                        assert(area >= _LayerList[a].get_width()*_LayerList[a].get_width());
+                        count++;
+                        if (count > 1){
+                            cout<<".............gap error.....Layer id = "<<a<<"  ............."<<endl;
+                            print_Polygon(query_list[i]);
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
 }
 

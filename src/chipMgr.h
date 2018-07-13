@@ -58,6 +58,7 @@ public:
     void insert_tile(string&);
     void report_density(bool);
     void write_fill(string, string);
+    void check_layer(string &filename);
 
 private:
     double window_size;
