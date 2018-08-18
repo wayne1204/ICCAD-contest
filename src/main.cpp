@@ -7,10 +7,12 @@
 #include <vector>
 #include <string>
 #include <unordered_set>
+
 #include "chipMgr.h"
 #include "util.h"
 #include "usage.h"
 #include "polygon.h"
+#include "include/gurobi_c++.h"
 
 using namespace std;
 
@@ -34,6 +36,8 @@ int main(int argc, char** argv)
     ifs.read(buff, filesize);
     char* buff_beg = buff;
     char* buff_end = buff + filesize;
+
+    GRBEnv env = GRBEnv();
 
     chipManager *mgr = new chipManager();
     string token;
@@ -79,6 +83,8 @@ int main(int argc, char** argv)
     string output_fill = "";
     mgr->report_density(true);
     mgr->insert_tile(output_fill);
+    cout << "finish insert tile" << endl;
+    // mgr->insert_tile(output_fill);
     mgr->report_density(false);
     // mgr->insert_tile(output_fill);
     // mgr->report_density(false);
