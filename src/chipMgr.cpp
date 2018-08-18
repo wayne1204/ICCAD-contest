@@ -7,7 +7,7 @@
 #include <typeinfo>
 #include "chipMgr.h"
 #include "util.h"
-//#define DEBUG
+// #define DEBUG
 using namespace std;
 
 
@@ -246,6 +246,63 @@ double chipManager::calCapicitance(double area, int type, int layer1, int layer2
     Capacitance* c = total_Cap_List[key];
     return c->getCapacitance(area);
 }
+/*
+bool chipManager::check_VorH(string &filename){
+    ifstream ifs(filename);
+    int filesize;
+    ifs.seekg(0, ios::end);
+    filesize = ifs.tellg();
+    ifs.seekg(0, ios::beg);
+    char* buff = new char[filesize+1];
+    ifs.read(buff, filesize);
+    char* buff_beg = buff;
+    char* buff_end = buff + filesize;
+    string token="haha";
+    int num, line_num = 0;
+    bool first_line = true;
+    vector<int> tokens_layer;
+    vector<int> tokens_poly;
+    vector<int> 
+    Polygon* poly;
+    int x_len = 0;
+    int y_len = 0;
+    int x_len_big = 0;
+    int y_len_big = 0;
+    while (token != "" || line_num < 10){
+        if (first_line){
+            while ( (token = next_token(buff_beg, buff_end)) != ""){
+                if (token[0] == '\n') {first_line = false; break;}
+                if (myStr2Int(token, num)){
+                    tokens_layer.push_back(num);
+                }
+            }
+        }
+        else{
+            bool if_new=false;
+            while ( (token = next_token(buff_beg, buff_end)) != ""){
+                if (token[0] == '\n') break;
+                if (myStr2Int(token, num)){
+                    tokens_poly.push_back(num);
+                }
+                else{
+                    ++ line_num;
+                    x_len = tokens_poly[3]-tokens_poly[1];
+                    y_len = tokens_poly[4]-tokens_poly[2];
+                    if (x_len > y_len){
+                        x_len_big = x_len_big + 1;
+                    }
+                    else if (y_len > x_len){
+                        y_len_big = y_len_big + 1;
+                    }
+
+                }
+            }
+        }
+    }
+    if(x_len_big > y_len_big) return false;
+    else return true;
+}
+*/
 
 void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
 {
@@ -262,32 +319,38 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
     string token="haha";
     int num;
     bool first_line = true;
+    vector< vector< vector<int> > > insert_vec;
     vector<int> tokens;
+    vector<int> layer_bound;
+    for (int i = 0; i < layer_num; ++i){
+        vector< vector<int> > vec;
+        insert_vec.push_back(vec);
+    }
     Polygon* poly;
     int aa = 1;
     int bb = 1;
+    int x_len = 0, y_len = 0, x_len_big = 0, y_len_big = 0;
+    bool VorH[layer_num];
     while (token != ""){
-
         if (first_line){
             while ( (token = next_token(buff_beg, buff_end)) != ""){
                 if (token[0] == '\n') {first_line = false; break;}
                 if (myStr2Int(token, num)){
-                    tokens.push_back(num);
+                    layer_bound.push_back(num);
                 }
             }
-            _bl_bound_x = tokens[0];
-            _bl_bound_y = tokens[1];
-            _tr_bound_x = tokens[2];
-            _tr_bound_y = tokens[3];
-            tokens.clear();
-            for (int i = 0; i < layer_num; ++i){
-                _LayerList[i].init_layer(_bl_bound_x, _bl_bound_y, _tr_bound_x, _tr_bound_y);
-                #ifdef DEBUG
-                cout<<"layer num = "<<bb<<endl;x
-                bb++;
-                #endif
+            //     _bl_bound_y = tokens[0];
+            //     _bl_bound_x = tokens[1];
+            //     _tr_bound_y = tokens[2];
+            //     _tr_bound_x = tokens[3];
 
-            }
+            // for (int i = 0; i < layer_num; ++i){
+            //     _LayerList[i].init_layer(_bl_bound_x, _bl_bound_y, _tr_bound_x, _tr_bound_y);
+            //     #ifdef DEBUG
+            //     cout<<"layer num = "<<bb<<endl;
+            //     bb++;
+            //     #endif
+            // }
         }
         else {
             bool if_new=false;
@@ -300,23 +363,65 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
                     #ifdef DEBUG
                     //cout<<"start new.....tokens size = "<<tokens.size()<<endl;
                     #endif
-                    if_new=true;
-                    poly = new Polygon(token);
-                    poly->set_coordinate(tokens);
-                    poly->setToSolid();
-                    tokens.clear();
+                    if (insert_vec[tokens[6]-1].size() < 10){
+                        insert_vec[tokens[6]-1].push_back(tokens);
+                    }
+                    else if (insert_vec[tokens[6]-1].size() == 10){
+                        for (int i = 0; i < 10; ++i){
+                            x_len = insert_vec[tokens[6]-1][i][3]-insert_vec[tokens[6]-1][i][1];
+                            y_len = insert_vec[tokens[6]-1][i][4]-insert_vec[tokens[6]-1][i][2];
+                            if (x_len > y_len){
+                                x_len_big = x_len_big + 1;
+                            }
+                            else if (y_len > x_len){
+                                y_len_big = y_len_big + 1;
+                            }
+                        }
+                        //不用轉就是true
+                        if(x_len_big > y_len_big) VorH[tokens[6]-1] = false; 
+                        else VorH[tokens[6]-1] = true;
 
+                        if(VorH[tokens[6]-1]){
+                            _bl_bound_x = layer_bound[0];
+                            _bl_bound_y = layer_bound[1];
+                            _tr_bound_x = layer_bound[2];
+                            _tr_bound_y = layer_bound[3];
+                        }
+                        else{
+                            _bl_bound_y = layer_bound[0];
+                            _bl_bound_x = layer_bound[1];
+                            _tr_bound_y = layer_bound[2];
+                            _tr_bound_x = layer_bound[3];
+                        }
+                        _LayerList[tokens[6]-1].init_layer(_bl_bound_x, _bl_bound_y, _tr_bound_x, _tr_bound_y);
+                        for (int i = 0; i < 10; ++i){
+                            poly = new Polygon();
+                            poly->setToSolid();
+                            if (VorH[tokens[6]-1]) poly->set_coordinate_V(tokens);
+                            else poly->set_coordinate_H(tokens);
+                            if (cnet_set.count(tokens[5])) poly->setToCNet();
+                            _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
+                        }
+                    }
+                    else{
+                        poly = new Polygon();
+                        poly->setToSolid();
+                        if (VorH[tokens[6]-1]) poly->set_coordinate_V(tokens);
+                        else poly->set_coordinate_H(tokens);
+                        if (cnet_set.count(tokens[5])) poly->setToCNet();
+                        _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
+                    }
+                    tokens.clear();
                 }
             }
-            if (cnet_set.count(tokens[5])){
-                poly->setToCNet();
-            }
             
-            _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
+            
+            // _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
+            
             // cout<<"parse poly....number of poly = "<<setw(6)<<aa<<"...."<<"\r";
             #ifdef DEBUG
-            //cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
-            //cout<<".................finish poly....................."<<endl;
+            // cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
+                // cout<<".................finish poly....................."<<endl;
             #endif
             aa++;
             
@@ -324,7 +429,6 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             //     delete poly;
             //     poly=NULL;
             // }
-            
         }
     }
     // cout << "===    Finish inserting "<< aa << " polygon    ===" << endl;

@@ -13,7 +13,8 @@ class Polygon
     {
         _is_critical_net = false;
     }
-    void set_coordinate(vector<int> tokens);
+    void set_coordinate_H(vector<int> tokens);
+    void set_coordinate_V(vector<int> tokens);
     void set_layer_id(int a) { _layer_id = a; }
     void set_net_id(int a) { _net_id = a; }
     void set_polygon_id(int a) { _polygon_id = a; }
