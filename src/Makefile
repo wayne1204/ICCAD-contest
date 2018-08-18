@@ -1,6 +1,6 @@
 CXX = g++
 CFLAGS = -g -std=c++11
-CFLAGS = -O2 -std=c++11
+CFLAGS = -O3 -std=c++11
 
 EXE = MainProgram
 OBJ = layout.o polygon.o chipMgr.o util.o main.o

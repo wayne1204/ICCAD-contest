@@ -78,16 +78,16 @@ int main(int argc, char** argv)
     mgr->parseProcessFile(process_file);
     mgr->parseRuleFile(rule_file);
     mgr->init_polygon(design, cnets_set);
-    mu->report();
+    //mu->report();
 
     string output_fill = "";
-    mgr->report_density(true);
+    //mgr->report_density(true);
     mgr->insert_tile(output_fill);
     cout << "finish insert tile" << endl;
     // mgr->insert_tile(output_fill);
     mgr->report_density(false);
     // mgr->insert_tile(output_fill);
-    // mgr->report_density(false);
     mgr->write_fill(output, output_fill);
+    //mgr->check_layer(output);
     mu->report();
 }
