@@ -10,7 +10,6 @@
 // #define DEBUG
 using namespace std;
 
-
 // record the valid area range
 void Capacitance::setRange(const string& str)
 {
@@ -431,7 +430,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set)
             // }
         }
     }
-    // cout << "===    Finish inserting "<< aa << " polygon    ===" << endl;
+    cout << "===    Finish inserting "<< aa << " polygon    ===" << endl;
 }
 
 void chipManager::report_density(bool init_cnet){
@@ -477,7 +476,27 @@ void chipManager::report_density(bool init_cnet){
     // for (int i = 0; i < 9; i++)
     //     cout << "Layer #" << i + 1 << " | density:" << count[i] / count2[i] * 100 << "% \n";
 }
-
+void chipManager::preproccess(vector<bool> VorH){
+    // for(int i=0; i<query_list.size(); i++){
+    //     if(query_list[i]->getType() == "space"){
+    //         int w = query_list[i]->_top_right_x() - query_list[i]->_bottom_left_x();
+    //         int h = query_list[i]->_top_right_y() - query_list[i]->_bottom_left_y();
+    //         if(w >= get_width() && h >= get_width()){
+    //             這裡要call preprocessing 
+    //             塞剛剛算出來能塞的地方 type叫做slot
+    //             for(int j=0 ;j < vector_y.size(); j++){
+    //                 for(int k=0;k < vector_x.size();k++){
+    //                     int x1 = vector_x[k] + w_x/2 ;
+    //                     int y1 = vector_y[j] + w_y/2 ;
+    //                     int x2 = vector_x[k] - w_x/2 ;
+    //                     int y2 = vector_y[j] - w_y/2 ;
+    //                     insert()
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+}
 void chipManager::insert_tile(string& output_fill){ 
     vector<Polygon*> critical_nets;
     int fillnum = 1;
