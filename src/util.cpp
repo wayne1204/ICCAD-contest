@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <iostream>
+#include <math.h>
 #include "polygon.h"
 using namespace std;
 
@@ -188,4 +189,25 @@ void enumerate(Polygon* T,vector<Polygon*> &v,const int& max_x,const int& max_y,
         enumerate(neighbor[i],v,max_x,max_y,min_y);
     }
     return;
+}
+
+// return width 
+int find_optimal_width(const int& length, const int& min_space, const int& min_width, const int& max_width)
+{
+    // pair<int, vector<int> > answer;
+    int max_product = 0;
+    int optimal = 0;
+
+    int N_min = ceil((length - min_space) / (max_width + min_space));
+    int N_max = floor((length - min_space) / (min_width + min_space));
+    N_min = max(N_min, 1);
+
+    for(int i = N_min; i <= N_max; ++i){
+        int product = floor((length - min_space) / i - min_space) * i;
+        if(product > max_product){
+            max_product = product;
+            optimal = i;
+        }
+    }
+    return optimal;
 }

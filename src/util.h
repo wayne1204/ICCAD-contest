@@ -20,4 +20,5 @@ extern double classify(int xy1, int xy2, int query_xy1, int query_xy2);
 extern void print_Polygon(Polygon *T);
 extern void neighbor_find_own(Polygon*, vector<Polygon *> &, const int &, const int &);
 extern void enumerate(Polygon*, vector<Polygon *> &, const int &, const int &, const int &);
+extern int find_optimal_width(const int &length, const int &min_space, const int &min_width, const int &max_width);
 #endif // UTIL_H

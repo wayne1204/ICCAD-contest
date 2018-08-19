@@ -1,4 +1,4 @@
-
+#include <algorithm>
 #include "polygon.h"
 
 void Polygon::set_xy(int x1,int y1,int x2, int y2){
@@ -25,4 +25,11 @@ void Polygon::set_coordinate_H(vector<int> tokens){
     _b_left_x = tokens[2];
     _t_right_y = tokens[3];
     _t_right_x = tokens[4];
+}
+
+void Polygon::rotate(){
+    swap(_b_left_x, _b_left_y);
+    swap(_t_right_x, _t_right_y);
+    swap(tr, rt);
+    swap(bl, lb);
 }
