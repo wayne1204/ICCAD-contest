@@ -37,7 +37,7 @@ int main(int argc, char** argv)
     char* buff_beg = buff;
     char* buff_end = buff + filesize;
 
-    GRBEnv env = GRBEnv();
+    // GRBEnv env = GRBEnv();
 
     chipManager *mgr = new chipManager();
     string token;

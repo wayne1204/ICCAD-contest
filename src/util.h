@@ -4,6 +4,7 @@
 #include <istream>
 #include <vector>
 #include "polygon.h"
+#include "layout.h"
 
 using namespace std;
 
@@ -20,5 +21,6 @@ extern double classify(int xy1, int xy2, int query_xy1, int query_xy2);
 extern void print_Polygon(Polygon *T);
 extern void neighbor_find_own(Polygon*, vector<Polygon *> &, const int &, const int &);
 extern void enumerate(Polygon*, vector<Polygon *> &, const int &, const int &, const int &);
-extern int find_optimal_width(const int &length, const int &min_space, const int &min_width, const int &max_width);
+
+extern int find_optimal_width(Layer *layer, const int &boundary, const int &length, vector<int> &coordinates);
 #endif // UTIL_H

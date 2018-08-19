@@ -4,7 +4,9 @@
 #include <cassert>
 #include <iostream>
 #include <math.h>
+
 #include "polygon.h"
+#include "layout.h"
 using namespace std;
 
 // 1. strlen(s1) must >= n
@@ -191,23 +193,36 @@ void enumerate(Polygon* T,vector<Polygon*> &v,const int& max_x,const int& max_y,
     return;
 }
 
-// return width 
-int find_optimal_width(const int& length, const int& min_space, const int& min_width, const int& max_width)
+// retrun width and coordinates of a series of Y_ij
+// boundary: minimun x or minimun y
+// length: polygon width od height
+int find_optimal_width(Layer *layer, const int &boundary, const int &length, vector<int> &coordinates)
 {
-    // pair<int, vector<int> > answer;
-    int max_product = 0;
-    int optimal = 0;
+    int min_space = layer->get_gap();
+    int min_width = layer->get_width();
+    int max_width = layer->get_max_width();
 
-    int N_min = ceil((length - min_space) / (max_width + min_space));
-    int N_max = floor((length - min_space) / (min_width + min_space));
-    N_min = max(N_min, 1);
+    int optimal_N = 0;
+    int optimal_W = 0;
 
-    for(int i = N_min; i <= N_max; ++i){
-        int product = floor((length - min_space) / i - min_space) * i;
-        if(product > max_product){
-            max_product = product;
-            optimal = i;
+    int min_N = ceil((length - min_space) / (max_width + min_space));
+    int max_N = floor((length - min_space) / (min_width + min_space));
+
+    if (max_N <= 0) 
+        return 0;
+
+    for (int n = max(min_N, 1); n <= max_N; ++n)
+    {
+        int width = floor((length - min_space) / n - min_space);
+        if (n * width > optimal_N * optimal_W)
+        {
+            optimal_W = width;
+            optimal_N = n;
         }
     }
-    return optimal;
+
+    for(int i = 0; i < optimal_N; ++i){
+        coordinates.push_back(boundary + (i+1) * (optimal_W + min_space) - 0.5 *optimal_W);
+    }
+    return optimal_W;
 }
