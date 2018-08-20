@@ -33,3 +33,13 @@ void Polygon::rotate(){
     swap(tr, rt);
     swap(bl, lb);
 }
+void Polygon::swap_top_right(){
+    swap(tr, rt);
+}
+void Polygon::swap_bottom_left(){
+    swap(bl, lb);
+}
+void Polygon::swap_xy(){
+    swap(_b_left_x, _b_left_y);
+    swap(_t_right_x, _t_right_y);
+}

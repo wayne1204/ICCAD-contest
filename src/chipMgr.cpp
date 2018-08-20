@@ -10,228 +10,6 @@
 // #define DEBUG
 using namespace std;
 
-// record the valid area range
-void Capacitance::setRange(const string& str)
-{
-    int num;
-    string token;
-    int pos = 0;
-    while (myStrGetTok(str, token, pos) != string::npos)
-    {
-        pos = myStrGetTok(str, token, pos);
-        myStr2Int(token, num);
-        range.push_back(num);
-    }
-}
-
-// record the weights and bias in capacitance formula
-void Capacitance::setParameter(const string &str)
-{
-    double w, b;
-    int left = 0;
-    while (str.find('(', left) != string::npos)
-    {
-        left = str.find('(', left);
-        int comma = str.find(',', ++left);
-        w = stod(str.substr(left, comma - left));
-        int right = str.find(')', left);
-        ++comma;
-        b = stod(str.substr(comma, right - comma));
-        weights.push_back(w);
-        bias.push_back(b);
-        left = right;
-    }
-
-}
-
-// get capacitance from corresponding area
-double Capacitance::getCapacitance(double area)
-{
-    for(int i = 1; i < weights.size(); ++i)
-    {
-        if(i < range[i])
-            return area * weights[i] + bias[i];
-    }
-    // exceed maximun area
-    double ret = range.back() * weights.back() + bias.back();
-    return ret * area / range.back();
-}
-
-// parse rule file
-void chipManager::parseRuleFile(const string &fileName)
-{
-    string line, token;
-    int num1, num2, num3;
-    double d1, d2;
-    ifstream ifs(fileName.c_str(), ios::in);
-    if(!ifs.is_open()){
-        cout << "[Error] can't open rule file \"" << fileName << "\" !!\n";
-        return;
-    }
-    _LayerList = new Layer[layer_num];
-    while (getline(ifs, line))
-    {
-        if(line == "")
-            break;
-        size_t pos = 0;
-        pos = myStrGetTok(line, token, pos);
-        int index = stoi(token);
-        pos = myStrGetTok(line, token, pos);
-
-        pos = myStrGetTok(line, token, pos);
-        myStr2Int(token, num1);
-        pos = myStrGetTok(line, token, pos);
-        myStr2Int(token, num2);
-        pos = myStrGetTok(line, token, pos);
-        myStr2Int(token, num3);
-        pos = myStrGetTok(line, token, pos);
-        d1 = stod(token);
-        pos = myStrGetTok(line, token, pos);
-        d2 = stod(token);
-        _LayerList[index-1].init_rule(num1, num2, num3, d1, d2);
-        // cout << "Layer#" << index << " "  << num1 << " " << num2 << " " << num3 << 
-        // " " << d1 << " " << d2 <<endl;
-    }
-    // cout << "=== Finish parsing rule file \"" << fileName << "\" ===\n";
-}
-
-// parse process file
-void chipManager::parseProcessFile(const string &fileName)
-{
-    string line, header, token;
-    Capacitance *c;
-    ifstream ifs(fileName.c_str(), ios::in);
-    if(!ifs.is_open()){
-        cout << "[Error] can't open process file \"" << fileName << "\" !!\n";
-        return;
-    }
-    while(getline(ifs, line))
-    {
-        if(line != "") {
-            int pos = line.find(' ', 0);          
-            header = line.substr(0, pos);
-            if (header == "window:"){
-                token = line.substr(pos +1, 5);
-                int size = stoi(token);
-                setWindow(size);
-            }
-            else if (line == "; table matrix header"){
-                parseTable(ifs);
-            }
-            else if (line == "; area cap tables"){
-                parseCapRules(ifs, AREA);
-            }
-            else if (line == "; lateral cap tables"){
-                parseCapRules(ifs, LATERAL);
-            }
-            else if (line == ";fringe cap tables"){
-                parseCapRules(ifs, FRINGE);
-            }
-        }
-    }
-    // cout << "=== Finish parsing porcess file \"" << fileName << "\" ===\n";
-    // cout << "    Area    |   Lateral  |   Fringe   |    Total   |\n";
-    // cout << setw(7) << area_mapping.size() << setw(6) << "|";
-    // cout << setw(7) << layer_num << setw(6) << "|";
-    // cout << setw(7) << fringe_mapping.size() - layer_num << setw(6) << "|";
-    // cout << setw(7) << total_Cap_List.size() << "     |\n";
-    ifs.close();
-}
-
-// parse table mapping rules
-void chipManager::parseTable(ifstream &ifs)
-{
-    int layer_n;
-    int left, right, comma, pos = 0;
-    string line, token;
-    vector<int> index;
-
-    // table matrix index
-    getline(ifs, line);
-    getline(ifs, line);
-    while (pos != string::npos)
-    {
-        pos = myStrGetTok(line, token, pos);
-        myStr2Int(token, layer_n);
-        index.push_back(layer_n);
-    }
-    layer_num = index.size();
-    
-    while (getline(ifs, line))
-    {
-        int other_layer = 0;
-        if (line == "")
-            break;
-        pos = myStrGetTok(line, token, 0);
-        myStr2Int(token, layer_n);
-
-        while (line.find('(', pos) != string::npos)
-        {        
-            left = line.find('(', pos);
-            comma = line.find(',', ++left);
-            string s1 = line.substr(left, comma - left);
-            right = line.find(')', comma);
-            comma += 2;
-            string s2 = line.substr(comma, right - comma);
-            if (s1 != "*")
-            {
-                pair<int, int> p(layer_n, index[other_layer]);
-                area_mapping.emplace(s1, p);
-                // cout << s1 << " " << layer_n << index[other_layer] << endl;
-            }
-            if (s2 != "*")
-            {
-                pair<int, int> p(layer_n, index[other_layer]);
-                fringe_mapping.emplace(s2, p);
-                // cout << s2 << " " << layer_n << index[other_layer] << endl;
-            }
-            pos = right;
-            ++other_layer;
-        }    
-    }
-}
-
-// parse the line into different types of capacitance (area, lateral, fringe)
-void chipManager::parseCapRules(ifstream &ifs, int type)
-{
-    int layer_1, layer_2, count = 0;
-    string line, token;
-    Capacitance *c;
-    unordered_map<string, pair <int, int> >map;
-    map = (type == AREA) ? area_mapping : fringe_mapping ;
-    int thresold = map.size();
-    if (type == LATERAL)
-        thresold = layer_num;
-
-    while (getline(ifs, line) && count < thresold)
-    {
-        if(line == "" || line == ";")
-            continue;
-        int pos = line.find(' ');
-        token = line.substr(pos+1);
-
-        if (map.find(token) != map.end()) {
-            layer_1 = map[token].first;
-            layer_2 = map[token].second;
-            c = new Capacitance(type, layer_1, layer_2);
-            // cout << "parsed " << type << " " << layer_1<< " " << layer_2 << " " << endl;
-            int key = (type * 100) + (layer_1 * 10) + layer_2 ;
-            if (total_Cap_List.find(key) != total_Cap_List.end())
-                cout <<"[Error] collision happens!!"<<endl;
-            total_Cap_List.emplace(key, c);
-        }
-        else{
-            cout <<"[Error] can't find cap rule "<< token <<endl;
-        }
-        getline(ifs, line);
-        getline(ifs, line);
-        c->setRange(line);
-        getline(ifs, line);
-        c->setParameter(line);
-        ++count;
-    }
-}
-
 // find the corrseponding type of capacitance by using a hashmap
 double chipManager::calCapicitance(double area, int type, int layer1, int layer2)
 {
@@ -245,63 +23,6 @@ double chipManager::calCapicitance(double area, int type, int layer1, int layer2
     Capacitance* c = total_Cap_List[key];
     return c->getCapacitance(area);
 }
-/*
-bool chipManager::check_VorH(string &filename){
-    ifstream ifs(filename);
-    int filesize;
-    ifs.seekg(0, ios::end);
-    filesize = ifs.tellg();
-    ifs.seekg(0, ios::beg);
-    char* buff = new char[filesize+1];
-    ifs.read(buff, filesize);
-    char* buff_beg = buff;
-    char* buff_end = buff + filesize;
-    string token="haha";
-    int num, line_num = 0;
-    bool first_line = true;
-    vector<int> tokens_layer;
-    vector<int> tokens_poly;
-    vector<int> 
-    Polygon* poly;
-    int x_len = 0;
-    int y_len = 0;
-    int x_len_big = 0;
-    int y_len_big = 0;
-    while (token != "" || line_num < 10){
-        if (first_line){
-            while ( (token = next_token(buff_beg, buff_end)) != ""){
-                if (token[0] == '\n') {first_line = false; break;}
-                if (myStr2Int(token, num)){
-                    tokens_layer.push_back(num);
-                }
-            }
-        }
-        else{
-            bool if_new=false;
-            while ( (token = next_token(buff_beg, buff_end)) != ""){
-                if (token[0] == '\n') break;
-                if (myStr2Int(token, num)){
-                    tokens_poly.push_back(num);
-                }
-                else{
-                    ++ line_num;
-                    x_len = tokens_poly[3]-tokens_poly[1];
-                    y_len = tokens_poly[4]-tokens_poly[2];
-                    if (x_len > y_len){
-                        x_len_big = x_len_big + 1;
-                    }
-                    else if (y_len > x_len){
-                        y_len_big = y_len_big + 1;
-                    }
-
-                }
-            }
-        }
-    }
-    if(x_len_big > y_len_big) return false;
-    else return true;
-}
-*/
 
 void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, vector<bool>&VorH_v)
 {
@@ -338,18 +59,6 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                     layer_bound.push_back(num);
                 }
             }
-            //     _bl_bound_y = tokens[0];
-            //     _bl_bound_x = tokens[1];
-            //     _tr_bound_y = tokens[2];
-            //     _tr_bound_x = tokens[3];
-
-            // for (int i = 0; i < layer_num; ++i){
-            //     _LayerList[i].init_layer(_bl_bound_x, _bl_bound_y, _tr_bound_x, _tr_bound_y);
-            //     #ifdef DEBUG
-            //     cout<<"layer num = "<<bb<<endl;
-            //     bb++;
-            //     #endif
-            // }
         }
         else {
             bool if_new=false;
@@ -431,10 +140,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                     tokens.clear();
                 }
             }
-            
-            
             // _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
-            
             // cout<<"parse poly....number of poly = "<<setw(6)<<aa<<"...."<<"\r";
             #ifdef DEBUG
                 //aa++;
@@ -442,20 +148,90 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                 cout<<"..............layer id = "<<poly->get_layer_id()<<" .................."<<endl;
                 cout<<".................finish poly....................."<<endl;
             #endif
-            
-            
-            
-            
-            // if(if_new){
-            //     delete poly;
-            //     poly=NULL;
-            // }
         }
     }
     cout << "===    Finish inserting "<< aa << " polygon    ===" << endl;
     for (int i = 0; i < layer_num; ++i){
         VorH_v.push_back(VorH[i]);
     }
+}
+void chipManager::rotate_dummy(Layer layer)
+{
+/*              _________
+before:     __7_|___8___|_1__          
+            |   |       |   |
+            | 6 |       | 2 |    
+            |___|_______|___|
+              5 |___4___| 3
+                _________
+after:      __3_|___2___|_1__         
+            |   |       |   |
+            | 4 |       | 8 |    
+            |___|_______|___|
+              5 |___6___| 7
+*/
+    Polygon* d4 = layer.get_dummy(); Polygon* d5 = d4->get_bl(); Polygon* d6 = d5->get_rt(); Polygon* d7 = d6->get_rt();
+    Polygon* d8 = d7->get_tr(); Polygon* d1 = d8->get_tr(); Polygon* d2 = d1->get_lb(); Polygon* d3 = d2->get_lb();
+    /* dummy botttom swap(4) */
+    d4->swap_xy(); d4->swap_top_right(); d4->set_lb(d5); d4->set_bl(0);
+    /* dummy botttom left(5) swap */
+    d5->swap_xy(); d5->swap_top_right(); d5->set_lb(0); d5->set_bl(0);
+    /* dummy botttom right(3) swap */
+    d3->swap_xy(); d3->set_tr(d2); d3->set_lb(d4); d3->set_rt(0); d3->set_bl(0); 
+    /* dummy right swap(2) */
+    d2->swap_xy(); d2->swap_bottom_left(); d2->set_tr(d1); d2->set_rt(0);
+    /* dummy right top(1) swap */
+    d1->swap_xy(); d1->swap_top_right(); d2->set_tr(0); d2->set_rt(0);
+    /* dummy top swap(8) */
+    d8->swap_xy(); d8->swap_bottom_left(); d8->set_rt(d1); d8->set_tr(0);
+    /* dummy top left swap(7) */
+    d7->swap_xy(); d7->set_rt(d8); d7->set_bl(d6); d7->set_tr(0); d7->set_tr(0);
+    /* dummy left swap(6) */
+    d6->swap_xy(); d6->swap_top_right(); d6->set_bl(d5); d6->set_lb(0);
+}
+
+void chipManager::preproccess(vector<bool> VorH){
+    for(int i=0;i < layer_num ;i++){
+        
+        vector<Polygon*> temp;
+        cout<<i+1<<endl;
+        print_Polygon(_LayerList[i].get_dummy()->get_bl());
+        _LayerList[i].region_query(_LayerList[i].get_dummy()->get_bl(),_LayerList[i].get_tr_boundary_x(),
+            _LayerList[i].get_tr_boundary_y(),_LayerList[i].get_bl_boundary_x(),
+            _LayerList[i].get_bl_boundary_y(), temp);
+        if(VorH[i] == false){
+            rotate_dummy(_LayerList[i]);
+            for (int j = 0; j < temp.size(); ++j){
+                temp[j]->rotate();
+            }
+        }
+        
+        // for(int ii=0; ii<temp.size(); ii++){
+        //     if(temp[ii]->getType() == "space"){
+        //         int w = temp[ii]->_top_right_x() - temp[ii]->_bottom_left_x();
+        //         int h = temp[ii]->_top_right_y() - temp[ii]->_bottom_left_y();
+        //         if(w >= _LayerList[i].get_width() && h >= _LayerList[i].get_width()){
+        //             vector<int> coordinate_y;
+        //             vector<int> coordinate_x;
+        //             int w_y = find_optimal_width(_LayerList[i],temp[ii]->_bottom_left_y() , h, coordinate_y);
+        //             int w_x = find_optimal_width(_LayerList[i],temp[ii]->_bottom_left_x() , w, coordinate_x);
+        //             for(int j=0 ;j < coordinate_y.size(); j++){
+        //                 for(int k=0;k < coordinate_x.size();k++){
+        //                     int x1 = coordinate_x[k] + w_x/2 ;
+        //                     int y1 = coordinate_y[j] + w_y/2 ;
+        //                     int x2 = coordinate_x[k] - w_x/2 ;
+        //                     int y2 = coordinate_y[j] - w_y/2 ;
+        //                     Polygon* T = new Polygon("slot");
+        //                     T -> set_layer_id(i+1);
+        //                     T -> set_xy(x1,y1,x2,y2);
+        //                     _LayerList[i].insert(T, true, _LayerList[i].get_dummy());
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+    }
+    
 }
 
 void chipManager::report_density(bool init_cnet){
@@ -501,48 +277,7 @@ void chipManager::report_density(bool init_cnet){
     // for (int i = 0; i < 9; i++)
     //     cout << "Layer #" << i + 1 << " | density:" << count[i] / count2[i] * 100 << "% \n";
 }
-void chipManager::preproccess(vector<bool> VorH){
-    for(int i=0;i < layer_num ;i++){
-        
-        vector<Polygon*> temp;
-        cout<<i+1<<endl;
-        print_Polygon(_LayerList[i].get_dummy()->get_bl());
-         _LayerList[i].region_query(_LayerList[i].get_dummy()->get_bl(),_LayerList[i].get_tr_boundary_x(),
-             _LayerList[i].get_tr_boundary_y(),_LayerList[i].get_bl_boundary_x(),
-             _LayerList[i].get_bl_boundary_y(), temp);
-        if(VorH[i] == false){
-            for (int j = 0; j < temp.size(); ++j){
-                temp[j]->rotate();
-            }
-        }
-        
-        // for(int ii=0; ii<temp.size(); ii++){
-        //     if(temp[ii]->getType() == "space"){
-        //         int w = temp[ii]->_top_right_x() - temp[ii]->_bottom_left_x();
-        //         int h = temp[ii]->_top_right_y() - temp[ii]->_bottom_left_y();
-        //         if(w >= _LayerList[i].get_width() && h >= _LayerList[i].get_width()){
-        //             vector<int> coordinate_y;
-        //             vector<int> coordinate_x;
-        //             int w_y = find_optimal_width(_LayerList[i],temp[ii]->_bottom_left_y() , h, coordinate_y);
-        //             int w_x = find_optimal_width(_LayerList[i],temp[ii]->_bottom_left_x() , w, coordinate_x);
-        //             for(int j=0 ;j < coordinate_y.size(); j++){
-        //                 for(int k=0;k < coordinate_x.size();k++){
-        //                     int x1 = coordinate_x[k] + w_x/2 ;
-        //                     int y1 = coordinate_y[j] + w_y/2 ;
-        //                     int x2 = coordinate_x[k] - w_x/2 ;
-        //                     int y2 = coordinate_y[j] - w_y/2 ;
-        //                     Polygon* T = new Polygon("slot");
-        //                     T -> set_layer_id(i+1);
-        //                     T -> set_xy(x1,y1,x2,y2);
-        //                     _LayerList[i].insert(T, true, _LayerList[i].get_dummy());
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-    }
-    
-}
+
 void chipManager::insert_tile(string& output_fill){ 
     vector<Polygon*> critical_nets;
     int fillnum = 1;

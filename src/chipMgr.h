@@ -60,6 +60,7 @@ public:
     void preproccess(vector<bool>);
     void write_fill(string, string);
     void check_layer(string &filename);
+    void rotate_dummy(Layer layer);
 
 private:
     double window_size;

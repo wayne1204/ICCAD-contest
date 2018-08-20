@@ -43,7 +43,15 @@ class Polygon
     bool isglobalref() { return ref == global_ref; }
     bool is_solid() { return _is_solid; }
     bool is_critical() { return _is_critical_net; }
+
+    /*
+    preprocessing member functions
+    */
     void rotate();
+    void swap_top_right();
+    void swap_xy();
+    void swap_bottom_left();
+
 
   private:
     int _b_left_x;
