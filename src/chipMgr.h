@@ -54,9 +54,10 @@ public:
     void parseCapRules(ifstream &, int);
     void setWindow(int num){ window_size = num;   }
     double calCapicitance(double, int, int, int = -1);
-    void init_polygon(string &filename, unordered_set<int> &cnet_set);
+    void init_polygon(string &filename, unordered_set<int> &cnet_set, vector<bool>&VorH_v);
     void insert_tile(string&);
     void report_density(bool);
+    void preproccess(vector<bool>);
     void write_fill(string, string);
     void check_layer(string &filename);
 

@@ -22,5 +22,5 @@ extern void print_Polygon(Polygon *T);
 extern void neighbor_find_own(Polygon*, vector<Polygon *> &, const int &, const int &);
 extern void enumerate(Polygon*, vector<Polygon *> &, const int &, const int &, const int &);
 
-extern int find_optimal_width(Layer *layer, const int &boundary, const int &length, vector<int> &coordinates);
+extern int find_optimal_width(Layer layer, const int &boundary, const int &length, vector<int> &coordinates);
 #endif // UTIL_H

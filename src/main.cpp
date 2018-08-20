@@ -12,7 +12,7 @@
 #include "util.h"
 #include "usage.h"
 #include "polygon.h"
-#include "include/gurobi_c++.h"
+// #include "include/gurobi_c++.h"
 
 using namespace std;
 
@@ -77,17 +77,20 @@ int main(int argc, char** argv)
     }
     mgr->parseProcessFile(process_file);
     mgr->parseRuleFile(rule_file);
-    mgr->init_polygon(design, cnets_set);
+    vector<bool>VorH;
+    mgr->init_polygon(design, cnets_set, VorH);
+    cerr<<"start preproccess......"<<endl;
+    mgr->preproccess(VorH);
     //mu->report();
 
     string output_fill = "";
-    //mgr->report_density(true);
-    mgr->insert_tile(output_fill);
-    cout << "finish insert tile" << endl;
+    // //mgr->report_density(true);
     // mgr->insert_tile(output_fill);
-    mgr->report_density(false);
-    // mgr->insert_tile(output_fill);
-    mgr->write_fill(output, output_fill);
-    //mgr->check_layer(output);
-    mu->report();
+    // cout << "finish insert tile" << endl;
+    // // mgr->insert_tile(output_fill);
+    // mgr->report_density(false);
+    // // mgr->insert_tile(output_fill);
+    // mgr->write_fill(output, output_fill);
+    // //mgr->check_layer(output);
+    // mu->report();
 }

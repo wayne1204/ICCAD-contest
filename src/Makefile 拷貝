@@ -3,7 +3,7 @@ CFLAGS = -g -std=c++11
 #CFLAGS = -O3 -std=c++11
 
 EXE = MainProgram
-OBJ = main.o layout.o chipMgr.o util.o polygon.o prelayout.o
+OBJ = main.o layout.o chipMgr.o util.o polygon.o
 
 # Executable
 all:$(OBJ)
