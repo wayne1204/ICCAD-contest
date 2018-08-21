@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_set>
 #include "polygon.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -41,6 +42,10 @@ public:
     inline int get_tr_boundary_y() { return _tr_boundary_y; }
     inline int get_max_width() {return max_fill_width;}
     inline double get_min_density() { return min_density; }
+    void rotate() {
+        swap(_bl_boundary_x, _bl_boundary_y);
+        swap(_tr_boundary_x, _tr_boundary_y);
+        }
 private:
     int _bl_boundary_x;
     int _bl_boundary_y;

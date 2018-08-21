@@ -194,42 +194,52 @@ void chipManager::preproccess(vector<bool> VorH){
     for(int i=0;i < layer_num ;i++){
         
         vector<Polygon*> temp;
-        cout<<i+1<<endl;
-        print_Polygon(_LayerList[i].get_dummy()->get_bl());
         _LayerList[i].region_query(_LayerList[i].get_dummy()->get_bl(),_LayerList[i].get_tr_boundary_x(),
             _LayerList[i].get_tr_boundary_y(),_LayerList[i].get_bl_boundary_x(),
             _LayerList[i].get_bl_boundary_y(), temp);
         if(VorH[i] == false){
             rotate_dummy(_LayerList[i]);
+            _LayerList[i].rotate();
             for (int j = 0; j < temp.size(); ++j){
                 temp[j]->rotate();
             }
         }
-        
-        // for(int ii=0; ii<temp.size(); ii++){
-        //     if(temp[ii]->getType() == "space"){
-        //         int w = temp[ii]->_top_right_x() - temp[ii]->_bottom_left_x();
-        //         int h = temp[ii]->_top_right_y() - temp[ii]->_bottom_left_y();
-        //         if(w >= _LayerList[i].get_width() && h >= _LayerList[i].get_width()){
-        //             vector<int> coordinate_y;
-        //             vector<int> coordinate_x;
-        //             int w_y = find_optimal_width(_LayerList[i],temp[ii]->_bottom_left_y() , h, coordinate_y);
-        //             int w_x = find_optimal_width(_LayerList[i],temp[ii]->_bottom_left_x() , w, coordinate_x);
-        //             for(int j=0 ;j < coordinate_y.size(); j++){
-        //                 for(int k=0;k < coordinate_x.size();k++){
-        //                     int x1 = coordinate_x[k] + w_x/2 ;
-        //                     int y1 = coordinate_y[j] + w_y/2 ;
-        //                     int x2 = coordinate_x[k] - w_x/2 ;
-        //                     int y2 = coordinate_y[j] - w_y/2 ;
-        //                     Polygon* T = new Polygon("slot");
-        //                     T -> set_layer_id(i+1);
-        //                     T -> set_xy(x1,y1,x2,y2);
-        //                     _LayerList[i].insert(T, true, _LayerList[i].get_dummy());
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        cout<<"start slot split in layer "<<i+1<<endl;
+        for(int ii=0; ii<temp.size(); ii++){
+            if(temp[ii]->getType() == "space"){
+                int w = temp[ii]->_top_right_x() - temp[ii]->_bottom_left_x();
+                int h = temp[ii]->_top_right_y() - temp[ii]->_bottom_left_y();
+                if(w >= _LayerList[i].get_width() && h >= _LayerList[i].get_width()){
+                    vector<int> coordinate_y;
+                    vector<int> coordinate_x;
+                    int w_y = find_optimal_width(_LayerList[i],temp[ii]->_bottom_left_y() , h, coordinate_y);
+                    int w_x = find_optimal_width(_LayerList[i],temp[ii]->_bottom_left_x() , w, coordinate_x);
+                    for(int j=0 ;j < coordinate_y.size(); j++){
+                        for(int k=0;k < coordinate_x.size();k++){
+                            int x1 = coordinate_x[k] + w_x/2 ;
+                            int y1 = coordinate_y[j] + w_y/2 ;
+                            int x2 = coordinate_x[k] - w_x/2 ;
+                            int y2 = coordinate_y[j] - w_y/2 ;
+                            Polygon* T = new Polygon("slot");
+                            T -> set_layer_id(i+1);
+                            T -> set_xy(x1,y1,x2,y2);
+                            //_LayerList[i].insert(T, true, _LayerList[i].get_dummy());
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for(int i=0;i<layer_num;i++){
+        vector<Polygon*> tmp;
+        _LayerList[i].region_query(_LayerList[i].get_dummy()->get_bl(),_LayerList[i].get_tr_boundary_x(),
+            _LayerList[i].get_tr_boundary_y(),_LayerList[i].get_bl_boundary_x(),
+            _LayerList[i].get_bl_boundary_y(), tmp);
+           
+        for(int ii=0 ;ii<tmp.size();ii++){
+            if(tmp[ii]->getType() == "slot")
+                print_Polygon(tmp[ii]);
+        }
     }
     
 }
