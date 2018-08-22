@@ -198,15 +198,19 @@ void chipManager::preproccess(vector<bool> VorH){
             _LayerList[i].get_tr_boundary_y(),_LayerList[i].get_bl_boundary_x(),
             _LayerList[i].get_bl_boundary_y(), temp);
         if(VorH[i] == false){
+            //print_Polygon(_LayerList[i].get_dummy());
             rotate_dummy(_LayerList[i]);
-            _LayerList[i].rotate();
+            _LayerList[i].layer_rotate();
+            //print_Polygon(_LayerList[i].get_dummy());
             for (int j = 0; j < temp.size(); ++j){
                 temp[j]->rotate();
             }
         }
+        int space_count = 0;
         cout<<"start slot split in layer "<<i+1<<endl;
         for(int ii=0; ii<temp.size(); ii++){
             if(temp[ii]->getType() == "space"){
+                space_count++;
                 int w = temp[ii]->_top_right_x() - temp[ii]->_bottom_left_x();
                 int h = temp[ii]->_top_right_y() - temp[ii]->_bottom_left_y();
                 if(w >= _LayerList[i].get_width() && h >= _LayerList[i].get_width()){
@@ -223,23 +227,25 @@ void chipManager::preproccess(vector<bool> VorH){
                             Polygon* T = new Polygon("slot");
                             T -> set_layer_id(i+1);
                             T -> set_xy(x1,y1,x2,y2);
-                            //_LayerList[i].insert(T, true, _LayerList[i].get_dummy());
+                            _LayerList[i].insert(T, true, _LayerList[i].get_dummy());
                         }
                     }
                 }
             }
         }
+        cout << "space_count = "<<space_count<<endl;
     }
     for(int i=0;i<layer_num;i++){
         vector<Polygon*> tmp;
         _LayerList[i].region_query(_LayerList[i].get_dummy()->get_bl(),_LayerList[i].get_tr_boundary_x(),
             _LayerList[i].get_tr_boundary_y(),_LayerList[i].get_bl_boundary_x(),
             _LayerList[i].get_bl_boundary_y(), tmp);
-           
+        int count = 0;
         for(int ii=0 ;ii<tmp.size();ii++){
             if(tmp[ii]->getType() == "slot")
-                print_Polygon(tmp[ii]);
+                count++;
         }
+        cout << "total slot count = "<<count << endl;
     }
     
 }
