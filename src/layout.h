@@ -38,19 +38,24 @@ public:
     inline int get_gap() { return min_space; }
     inline int get_width() { return min_width; }
     inline Polygon* get_dummy() { return dummy_bottom; }
+    inline void set_dummy(Polygon* T) { dummy_bottom = T; }
     inline int get_bl_boundary_x() { return _bl_boundary_x; }
     inline int get_bl_boundary_y() { return _bl_boundary_y; }
     inline int get_tr_boundary_x() { return _tr_boundary_x; }
     inline int get_tr_boundary_y() { return _tr_boundary_y; }
     inline int get_max_width() {return max_fill_width;}
     inline double get_min_density() { return min_density; }
-    void rotate() {
+    void layer_rotate() {
         swap(_bl_boundary_x, _bl_boundary_y);
         swap(_tr_boundary_x, _tr_boundary_y);
+        swap(dummy_bottom, dummy_left);
+        swap(dummy_top, dummy_right);
+        swap(dummy_bottom_right, dummy_top_left);
     }
     void insert_slots(Polygon* p, const int &poly_w, const int &poly_h, int &slot_id);
     int find_optimal_width( const int &boundary, const int &length, vector<int> &coordinates);
-private: 
+
+private:
     int _bl_boundary_x;
     int _bl_boundary_y;
     int _tr_boundary_x;

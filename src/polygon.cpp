@@ -1,6 +1,9 @@
 #include <cassert>
 #include <algorithm>
 #include "polygon.h"
+#include <iostream>
+#include "util.h"
+using namespace std;
 
 void Polygon::set_xy(int x1,int y1,int x2, int y2){
     //先右上再左下
@@ -29,10 +32,22 @@ void Polygon::set_coordinate_H(vector<int> tokens){
 }
 
 void Polygon::rotate(){
+    // cout<<"before rotate"<<_b_left_x<<" "<<_b_left_y<<endl;
+    // print_Polygon(tr);
+    // print_Polygon(rt);
     swap(_b_left_x, _b_left_y);
     swap(_t_right_x, _t_right_y);
     swap(tr, rt);
     swap(bl, lb);
+    // cout<<"after rotate"<<_b_left_x<<" "<<_b_left_y<<endl;
+    // print_Polygon(tr);
+    // print_Polygon(rt);
+    // Polygon* a = tr;
+    // tr = rt;
+    // rt = a;
+    // a  = lb;
+    // lb = bl;
+    // bl = a;
 }
 void Polygon::swap_top_right(){
     swap(tr, rt);

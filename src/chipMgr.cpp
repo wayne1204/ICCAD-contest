@@ -206,15 +206,17 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
     if (VorH[layer] == false)
     {
         rotate_dummy(_LayerList[layer]);
-        _LayerList[layer].rotate();
+        _LayerList[layer].layer_rotate();
         for (int j = 0; j < polygon_list.size(); ++j){
             polygon_list[j]->rotate();
         }
     }
 
+    int space_count = 0;
     cout<<"start slot split in layer "<<layer+1<<endl;
     for(int i=0; i < polygon_list.size(); i++){
         if(polygon_list[i]->getType() == "space"){
+            space_count++;
             int poly_w = polygon_list[i]->_top_right_x() - polygon_list[i]->_bottom_left_x();
             int poly_h = polygon_list[i]->_top_right_y() - polygon_list[i]->_bottom_left_y();
             if(poly_w >= _LayerList[layer].get_width() && poly_h >= _LayerList[layer].get_width()){
@@ -222,18 +224,20 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
                 _LayerList[layer].insert_slots(polygon_list[i], poly_w, poly_h, slot_id);
             }
         }
+        cout << "space_count = "<<space_count<<endl;
     }
     
     for(int i=0;i<layer_num;i++){
         vector<Polygon*> tmp;
-        _LayerList[layer].region_query(_LayerList[layer].get_dummy()->get_bl(),_LayerList[layer].get_tr_boundary_x(),
-            _LayerList[layer].get_tr_boundary_y(),_LayerList[layer].get_bl_boundary_x(),
-            _LayerList[layer].get_bl_boundary_y(), tmp);
-           
-        for(int i=0 ;i<tmp.size();i++){
-            if(tmp[i]->getType() == "slot")
-                print_Polygon(tmp[i]);
+        _LayerList[i].region_query(_LayerList[i].get_dummy()->get_bl(),_LayerList[i].get_tr_boundary_x(),
+            _LayerList[i].get_tr_boundary_y(),_LayerList[i].get_bl_boundary_x(),
+            _LayerList[i].get_bl_boundary_y(), tmp);
+        int count = 0;
+        for(int ii=0 ;ii<tmp.size();ii++){
+            if(tmp[ii]->getType() == "slot")
+                count++;
         }
+        cout << "total slot count = "<<count << endl;
     }
     
 }
