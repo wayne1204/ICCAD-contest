@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     try{
         GRBEnv env = GRBEnv();
         GRBModel model = GRBModel(env);
-
+        
         GRBVar x = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "x");
         GRBVar y = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "y");
         GRBVar z = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "z");
@@ -107,7 +107,11 @@ int main(int argc, char** argv)
     vector<bool>VorH;
     mgr->init_polygon(design, cnets_set, VorH);
     cerr<<"start preproccess......"<<endl;
-    mgr->preproccess(VorH);
+    GRBEnv env = GRBEnv();
+    GRBModel* model = new GRBModel(env);
+    for (int i = 0; i < 9; ++i){
+        mgr->preprocess(model, i, VorH);
+    }
     //mu->report();
 
     string output_fill = "";

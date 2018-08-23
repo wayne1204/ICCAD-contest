@@ -290,8 +290,55 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const int &windowsi
     // return;
 }
 
+void Layer::insert_slots(Polygon* p, const int &poly_w, const int &poly_h, int &slot_id)
+{
+    vector<int> coordinate_y;
+    vector<int> coordinate_x;
+    int w_y = find_optimal_width(p->_bottom_left_y(), poly_h, coordinate_y);
+    int w_x = find_optimal_width(p->_bottom_left_x(), poly_w, coordinate_x);
+    for (int j = 0; j < coordinate_y.size(); j++)
+    {
+        for (int k = 0; k < coordinate_x.size(); k++)
+        {
+            int x1 = coordinate_x[k] + w_x / 2;
+            int y1 = coordinate_y[j] + w_y / 2;
+            int x2 = coordinate_x[k] - w_x / 2;
+            int y2 = coordinate_y[j] - w_y / 2;
+            
+            // Polygon *T = new Polygon("slot");
+            Slot *S = new Slot(++slot_id, w_y, w_x, coordinate_y[j], coordinate_x[k]);
+            S->set_layer_id(layer_id);
+            S->set_xy(x1, y1, x2, y2);
+            insert(S, true, dummy_bottom);
+            slot_list.push_back(S);
+        }
+    }
+}
 
+int Layer::find_optimal_width(const int &boundary, const int &length, vector<int> &coordinates)
+{
+    //boundary 是下面的y或左邊的x
+    int optimal_N = 0;
+    int optimal_W = 0;
 
+    int min_N = ceil((length - min_space) / (max_fill_width + min_space));
+    int max_N = floor((length - min_space) / (min_width + min_space));
 
+    if (max_N <= 0) 
+        return 0;
 
+    for (int n = max(min_N, 1); n <= max_N; ++n)
+    {
+        int width = floor((length - min_space) / n - min_space);
+        if (n * width > optimal_N * optimal_W)
+        {
+            optimal_W = width;
+            optimal_N = n;
+        }
+    }
+    for(int i = 0; i < optimal_N; ++i){
+        coordinates.push_back(boundary + (i+1) * (optimal_W + min_space) - 0.5 *optimal_W);
+    }
+    return optimal_W;
+}
 

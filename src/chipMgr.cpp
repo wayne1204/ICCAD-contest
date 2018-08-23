@@ -5,8 +5,11 @@
 #include <cassert>
 #include <iomanip>
 #include <typeinfo>
+#include <algorithm>
 #include "chipMgr.h"
 #include "util.h"
+#include "include/gurobi_c++.h"
+
 // #define DEBUG
 using namespace std;
 
@@ -190,55 +193,46 @@ after:      __3_|___2___|_1__
     d6->swap_xy(); d6->swap_top_right(); d6->set_bl(d5); d6->set_lb(0);
 }
 
-void chipManager::preproccess(vector<bool> VorH){
-    for(int i=0;i < layer_num ;i++){
-        
-        vector<Polygon*> temp;
-        _LayerList[i].region_query(_LayerList[i].get_dummy()->get_bl(),_LayerList[i].get_tr_boundary_x(),
-            _LayerList[i].get_tr_boundary_y(),_LayerList[i].get_bl_boundary_x(),
-            _LayerList[i].get_bl_boundary_y(), temp);
-        if(VorH[i] == false){
-            rotate_dummy(_LayerList[i]);
-            _LayerList[i].rotate();
-            for (int j = 0; j < temp.size(); ++j){
-                temp[j]->rotate();
-            }
+
+void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
+{
+    vector<Polygon*> polygon_list;
+    int slot_id = 0;
+    _LayerList[layer].region_query(
+        _LayerList[layer].get_dummy()->get_bl(),_LayerList[layer].get_tr_boundary_x(),
+        _LayerList[layer].get_tr_boundary_y(),_LayerList[layer].get_bl_boundary_x(),
+        _LayerList[layer].get_bl_boundary_y(), polygon_list);
+
+    if (VorH[layer] == false)
+    {
+        rotate_dummy(_LayerList[layer]);
+        _LayerList[layer].rotate();
+        for (int j = 0; j < polygon_list.size(); ++j){
+            polygon_list[j]->rotate();
         }
-        cout<<"start slot split in layer "<<i+1<<endl;
-        for(int ii=0; ii<temp.size(); ii++){
-            if(temp[ii]->getType() == "space"){
-                int w = temp[ii]->_top_right_x() - temp[ii]->_bottom_left_x();
-                int h = temp[ii]->_top_right_y() - temp[ii]->_bottom_left_y();
-                if(w >= _LayerList[i].get_width() && h >= _LayerList[i].get_width()){
-                    vector<int> coordinate_y;
-                    vector<int> coordinate_x;
-                    int w_y = find_optimal_width(_LayerList[i],temp[ii]->_bottom_left_y() , h, coordinate_y);
-                    int w_x = find_optimal_width(_LayerList[i],temp[ii]->_bottom_left_x() , w, coordinate_x);
-                    for(int j=0 ;j < coordinate_y.size(); j++){
-                        for(int k=0;k < coordinate_x.size();k++){
-                            int x1 = coordinate_x[k] + w_x/2 ;
-                            int y1 = coordinate_y[j] + w_y/2 ;
-                            int x2 = coordinate_x[k] - w_x/2 ;
-                            int y2 = coordinate_y[j] - w_y/2 ;
-                            Polygon* T = new Polygon("slot");
-                            T -> set_layer_id(i+1);
-                            T -> set_xy(x1,y1,x2,y2);
-                            //_LayerList[i].insert(T, true, _LayerList[i].get_dummy());
-                        }
-                    }
-                }
+    }
+
+    cout<<"start slot split in layer "<<layer+1<<endl;
+    for(int i=0; i < polygon_list.size(); i++){
+        if(polygon_list[i]->getType() == "space"){
+            int poly_w = polygon_list[i]->_top_right_x() - polygon_list[i]->_bottom_left_x();
+            int poly_h = polygon_list[i]->_top_right_y() - polygon_list[i]->_bottom_left_y();
+            if(poly_w >= _LayerList[layer].get_width() && poly_h >= _LayerList[layer].get_width()){
+                //TODO fix this !!
+                _LayerList[layer].insert_slots(polygon_list[i], poly_w, poly_h, slot_id);
             }
         }
     }
+    
     for(int i=0;i<layer_num;i++){
         vector<Polygon*> tmp;
-        _LayerList[i].region_query(_LayerList[i].get_dummy()->get_bl(),_LayerList[i].get_tr_boundary_x(),
-            _LayerList[i].get_tr_boundary_y(),_LayerList[i].get_bl_boundary_x(),
-            _LayerList[i].get_bl_boundary_y(), tmp);
+        _LayerList[layer].region_query(_LayerList[layer].get_dummy()->get_bl(),_LayerList[layer].get_tr_boundary_x(),
+            _LayerList[layer].get_tr_boundary_y(),_LayerList[layer].get_bl_boundary_x(),
+            _LayerList[layer].get_bl_boundary_y(), tmp);
            
-        for(int ii=0 ;ii<tmp.size();ii++){
-            if(tmp[ii]->getType() == "slot")
-                print_Polygon(tmp[ii]);
+        for(int i=0 ;i<tmp.size();i++){
+            if(tmp[i]->getType() == "slot")
+                print_Polygon(tmp[i]);
         }
     }
     
@@ -440,3 +434,59 @@ void chipManager::check_layer(string &filename)
 
 }
 
+void chipManager::window_constraint(GRBModel* model){
+    int x, y, wnd_num;
+    double count[9] = {0}, count2[9] = {0};
+    int half_wnd = window_size / 2;
+    int horizontal_cnt = (_tr_bound_x - _bl_bound_x) / half_wnd - 1;
+    int vertical_cnt = (_tr_bound_y - _bl_bound_y) / half_wnd - 1;
+    vector<Polygon *> slots;
+
+    for (int i = 0; i < layer_num; ++i)
+    {
+        for (int row = 0; row < vertical_cnt; ++row)
+        {
+            for (int col = 0; col < horizontal_cnt; ++col)
+            {
+                x = _bl_bound_x + col * half_wnd;
+                y = _bl_bound_y + row * half_wnd;
+                wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;
+                int area = _LayerList[i].slot_area(x, y, window_size, slots);
+                int min_area = _LayerList[i].get_min_density() * window_size * window_size;
+                GRBQuadExpr slot_exp = slot_constraint(model, x, y, slots);
+                string name =  to_string(i) + '_' + to_string(row) + '_' + to_string(col);
+                model->addConstr(slot_exp + area  >= min_area, name);
+            }
+        }
+    }
+}
+
+GRBQuadExpr chipManager::slot_constraint(GRBModel *model, const int &x, const int &y, vector<Polygon *> &slots)
+{
+    GRBQuadExpr slot_exp;
+    for (int i = 0; i < slots.size(); ++i)
+    {
+        vector<int> W_ij_coordinate;
+        GRBQuadExpr express;
+        GRBLinExpr height, up, down;
+
+        int middle = min(slots[i]->get_Yij(), int(y + window_size));
+        int width = min(int(y + window_size), slots[i]->_top_right_x()) - max(y, slots[i]->_bottom_left_x());
+        assert(width > 0);
+
+        middle = max(middle, y);
+        for (int j = 0; j < 8; ++j)
+        {
+            int w = min(slots[i]->get_Wi(j), int(y + window_size));
+            w = max(w, y);
+            height += abs(w - middle) * slots[i]->getVariable(j);
+            if (j < 4)
+                up += slots[i]->getVariable(j);
+            else
+                down += slots[i]->getVariable(j);
+        }
+        express = (up * down) * slots[i]->get_Wi(-1);
+        slot_exp += express;
+    }
+    return slot_exp;
+}

@@ -18,37 +18,67 @@ using namespace std;
 unsigned Polygon::global_ref=0;
 
 
-
-
-double Layer::density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *> &vec)
-{   
+double Layer::slot_area(const int &x, const int &y, const double &windowsize, vector<Polygon *> &slot_vec)
+{
     //region 右上/左下
-    vector<Polygon*> query_list;
-    region_query(dummy_bottom,x+windowsize,y+windowsize,x,y, query_list);
-    vec.clear();
-    double area=0,x_area=0,y_area=0;
-    for(int i=0;i<query_list.size();i++){
-        if(query_list[i]->is_solid()){
-            x_area=classify(query_list[i]->_top_right_x(),query_list[i]->_bottom_left_x(),x+windowsize,x);
-            y_area=classify(query_list[i]->_top_right_y(),query_list[i]->_bottom_left_y(),y+windowsize,y);
-            if(x_area<0||y_area<0); //cout<<query_list[i]->_top_right_x()<<" "<<query_list[i]->_top_right_y()<<"in window"<<x<<","<<y<<"有問題\n";
-            else area+=x_area*y_area;
-        }
-        if (query_list[i]->is_critical())
+    vector<Polygon *> query_list;
+    region_query(dummy_bottom, x + windowsize, y + windowsize, x, y, query_list);
+    slot_vec.clear();
+
+    double area = 0, x_area = 0, y_area = 0;
+    for (int i = 0; i < query_list.size(); i++)
+    {
+        if (query_list[i]->is_solid())
         {
-            vec.push_back(query_list[i]);
+            x_area = classify(query_list[i]->_top_right_x(), query_list[i]->_bottom_left_x(), x + windowsize, x);
+            y_area = classify(query_list[i]->_top_right_y(), query_list[i]->_bottom_left_y(), y + windowsize, y);
+            if (x_area < 0 || y_area < 0)
+                ; //cout<<query_list[i]->_top_right_x()<<" "<<query_list[i]->_top_right_y()<<"in window"<<x<<","<<y<<"有問題\n";
+            else
+                area += x_area * y_area;
         }
+        if (query_list[i]->is_slot())
+            slot_vec.push_back(query_list[i]);
     }
-    return area/(windowsize*windowsize);
+    return area;
 }
 
-void Layer::init_rule(int n1, int n2, int n3, double min, double max)
+
+// calculate density in a window
+// return: density, critical nets and slots in window
+double Layer::density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *> &critical_vec)
+{   
+    //region 右上/左下
+    vector<Polygon *> query_list;
+    region_query(dummy_bottom, x + windowsize, y + windowsize, x, y, query_list);
+    critical_vec.clear();
+
+    double area = 0, x_area = 0, y_area = 0;
+    for (int i = 0; i < query_list.size(); i++)
+    {
+        if (query_list[i]->is_solid())
+        {
+            x_area = classify(query_list[i]->_top_right_x(), query_list[i]->_bottom_left_x(), x + windowsize, x);
+            y_area = classify(query_list[i]->_top_right_y(), query_list[i]->_bottom_left_y(), y + windowsize, y);
+            if (x_area < 0 || y_area < 0)
+                ; //cout<<query_list[i]->_top_right_x()<<" "<<query_list[i]->_top_right_y()<<"in window"<<x<<","<<y<<"有問題\n";
+            else
+                area += x_area * y_area;
+        }
+        if (query_list[i]->is_critical())
+            critical_vec.push_back(query_list[i]);
+    }
+    return area / (windowsize * windowsize);
+}
+
+void Layer::init_rule(int n1, int n2, int n3, double min, double max, int index)
 {
     min_width = n1;
     min_space = n2;
     max_fill_width = n3;
     min_density = min;
     max_density = max;
+    layer_id = index;
 }
 
 void Layer::init_layer(int x_bl, int y_bl, int x_tr, int y_tr)

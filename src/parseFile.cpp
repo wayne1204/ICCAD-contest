@@ -88,7 +88,7 @@ void chipManager::parseRuleFile(const string &fileName)
         d1 = stod(token);
         pos = myStrGetTok(line, token, pos);
         d2 = stod(token);
-        _LayerList[index-1].init_rule(num1, num2, num3, d1, d2);
+        _LayerList[index-1].init_rule(num1, num2, num3, d1, d2, index);
         // cout << "Layer#" << index << " "  << num1 << " " << num2 << " " << num3 << 
         // " " << d1 << " " << d2 <<endl;
     }

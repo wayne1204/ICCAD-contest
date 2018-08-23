@@ -19,7 +19,7 @@ class Layer
 {
 public:
     void init_layer(int x_bl, int y_bl, int x_tr, int y_tr);
-    void init_rule(int, int, int, double, double);
+    void init_rule(int, int, int, double, double, int);
     void region_query(Polygon *start, int x1, int y1, int x2, int y2, vector<Polygon *>& query_Polygon);
     void region_query(Polygon *start, Polygon *T, vector<Polygon *> &query_Polygon);
     bool expand( int& x1,  int& y1,int& x2,  int& y2, const int& edge_x, const int& edge_y, const int& windowsize, int num);
@@ -28,7 +28,9 @@ public:
     void insert_dummies(Polygon* T, const int &, double &, const int &, const int &, const double &, int, stringstream&, int&);
     void layer_fill(const int& x, const int& y,const int& windowsize, double& density,const int& layer_id, string& out, int& fillnum);
     bool insert(Polygon *T, bool is_myinset, Polygon *start);
-    double density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *>& vec);
+    double slot_area(const int &, const int &, const double &, vector<Polygon *> &);
+    double density_calculate(const int &, const int &, const double &, vector<Polygon *> &);
+
     Polygon *point_search(Polygon *start, int x, int y);
     Polygon *split_Y(Polygon *bigGG, int y, bool is_top);
     Polygon *split_X_left(Polygon *bigGG, int x_left, int x_right);
@@ -45,8 +47,10 @@ public:
     void rotate() {
         swap(_bl_boundary_x, _bl_boundary_y);
         swap(_tr_boundary_x, _tr_boundary_y);
-        }
-private:
+    }
+    void insert_slots(Polygon* p, const int &poly_w, const int &poly_h, int &slot_id);
+    int find_optimal_width( const int &boundary, const int &length, vector<int> &coordinates);
+private: 
     int _bl_boundary_x;
     int _bl_boundary_y;
     int _tr_boundary_x;
@@ -60,12 +64,14 @@ private:
     Polygon* dummy_bottom_left;
     Polygon* dummy_top_left;
 
+    int layer_id;
     int min_width;
     int min_space;
     int max_fill_width;
     double min_density;
     double max_density;
-    vector<Polygon*> _polygonlist;
+    // vector<Polygon*> _polygonlist;
+    vector<Slot*> slot_list;
 
 };
 

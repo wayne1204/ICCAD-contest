@@ -48,28 +48,33 @@ public:
       window_size = 0;
       layer_num = 0;
     }
+    // parseFile.cpp
     void parseRuleFile(const string& fileName);
     void parseProcessFile(const string &fileName);
     void parseTable(ifstream& );
     void parseCapRules(ifstream &, int);
-    void setWindow(int num){ window_size = num;   }
+    void setWindow(int num){ window_size = num; }
+
+    // chipMgr.cpp
     double calCapicitance(double, int, int, int = -1);
     void init_polygon(string &filename, unordered_set<int> &cnet_set, vector<bool>&VorH_v);
     void insert_tile(string&);
     void report_density(bool);
-    void preproccess(vector<bool>);
     void write_fill(string, string);
     void check_layer(string &filename);
     void rotate_dummy(Layer layer);
+    void preprocess(GRBModel* model, int layer, vector<bool> VorH);
+    void window_constraint(GRBModel *model);
+    GRBQuadExpr slot_constraint(GRBModel *model, const int &x, const int &y, vector<Polygon *> &slots);
 
-private:
+  private:
     double window_size;
     int layer_num;
-    unordered_map<string, pair<int, int> > area_mapping;
-    unordered_map<string, pair<int, int> > fringe_mapping;
-    unordered_map<int, Capacitance*> total_Cap_List;
-    unordered_map<int, vector<Polygon*> > total_Cnet_List;
-    Layer* _LayerList;
+    unordered_map<string, pair<int, int>> area_mapping;
+    unordered_map<string, pair<int, int>> fringe_mapping;
+    unordered_map<int, Capacitance *> total_Cap_List;
+    unordered_map<int, vector<Polygon *>> total_Cnet_List;
+    Layer *_LayerList;
     int _bl_bound_x;
     int _bl_bound_y;
     int _tr_bound_x;

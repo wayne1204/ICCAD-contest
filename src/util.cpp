@@ -196,33 +196,4 @@ void enumerate(Polygon* T,vector<Polygon*> &v,const int& max_x,const int& max_y,
 // retrun width and coordinates of a series of Y_ij
 // boundary: minimun x or minimun y
 // length: polygon width od height
-int find_optimal_width(Layer layer, const int &boundary, const int &length, vector<int> &coordinates)
-{
-    //boundary 是下面的y或左邊的x
-    int min_space = layer.get_gap();
-    int min_width = layer.get_width();
-    int max_width = layer.get_max_width();
 
-    int optimal_N = 0;
-    int optimal_W = 0;
-
-    int min_N = ceil((length - min_space) / (max_width + min_space));
-    int max_N = floor((length - min_space) / (min_width + min_space));
-
-    if (max_N <= 0) 
-        return 0;
-
-    for (int n = max(min_N, 1); n <= max_N; ++n)
-    {
-        int width = floor((length - min_space) / n - min_space);
-        if (n * width > optimal_N * optimal_W)
-        {
-            optimal_W = width;
-            optimal_N = n;
-        }
-    }
-    for(int i = 0; i < optimal_N; ++i){
-        coordinates.push_back(boundary + (i+1) * (optimal_W + min_space) - 0.5 *optimal_W);
-    }
-    return optimal_W;
-}

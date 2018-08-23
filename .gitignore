@@ -1,4 +1,7 @@
 visualize/*
+.vscode
+bug.py
+src/.vscode
 
 src/gurobi801
 *.o
