@@ -30,6 +30,16 @@ struct Compare {
     }
     int x,y,windowsize;
 };
+
+void Layer::layer_rotate()
+{
+    swap(_bl_boundary_x, _bl_boundary_y);
+    swap(_tr_boundary_x, _tr_boundary_y);
+    swap(dummy_bottom, dummy_left);
+    swap(dummy_top, dummy_right);
+    swap(dummy_bottom_right, dummy_top_left);
+}
+
 bool Layer::expand( int& x1, int& y1, int& x2, int& y2, const int& edge_x, const int& edge_y, 
                     const int& windowsize, int num){
     vector<Polygon *> query_list;
@@ -290,7 +300,7 @@ void Layer::layer_fill(const int &edge_x, const int &edge_y, const int &windowsi
     // return;
 }
 
-void Layer::insert_slots(Polygon* p, const int &poly_w, const int &poly_h, int &slot_id)
+void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const int &poly_h, int &slot_id)
 {
     vector<int> coordinate_y;
     vector<int> coordinate_x;
@@ -306,7 +316,7 @@ void Layer::insert_slots(Polygon* p, const int &poly_w, const int &poly_h, int &
             int y2 = coordinate_y[j] - w_y / 2;
             
             // Polygon *T = new Polygon("slot");
-            Slot *S = new Slot(++slot_id, w_y, w_x, coordinate_y[j], coordinate_x[k]);
+            Slot *S = new Slot(++slot_id, w_y, w_x, coordinate_y[j], coordinate_x[k], model);
             S->set_layer_id(layer_id);
             S->set_xy(x1, y1, x2, y2);
             insert(S, true, dummy_bottom);
@@ -342,3 +352,59 @@ int Layer::find_optimal_width(const int &boundary, const int &length, vector<int
     return optimal_W;
 }
 
+
+void Layer::critical_find_lr(Polygon *critical, vector<Polygon *> & neighbor_list)
+{
+    assert(critical->is_critical());
+    neighbor_list.clear();
+
+    int x_start = critical->_top_right_x() + min_space;
+    int y_start = critical->_top_right_y();
+    Polygon *current = point_search(dummy_bottom, x_start, y_start);
+
+    while(current->_top_right_y() > critical->_bottom_left_y()){
+        if(current->is_slot())
+            neighbor_list.push_back(current);
+        current = point_search(current, x_start, current->_bottom_left_y() - min_space);
+    }
+
+    x_start = critical->_bottom_left_x() - min_space;
+    y_start = critical->_top_right_y();
+    current = point_search(dummy_bottom, x_start, y_start);
+
+    while(current->_top_right_y() > critical->_bottom_left_y()){
+        if(current->is_slot())
+            neighbor_list.push_back(current);
+        current = point_search(current, x_start, current->_bottom_left_y() - min_space);
+    }
+}
+
+void Layer::critical_find_top(Polygon *critical, vector<Polygon *> &neighbor_list)
+{
+    assert(critical->is_critical());
+    int x_start = critical->_bottom_left_x();
+    int y_start = critical->_top_right_y() + min_space + 1 ;
+    Polygon *current = point_search(dummy_bottom, x_start, y_start);
+    neighbor_list.clear();
+
+    while(current->_bottom_left_x() < critical->_top_right_x()){
+        if(current->is_slot())
+            neighbor_list.push_back(current);
+        current = point_search(current, current->_top_right_x() + min_space, y_start);
+    }
+}
+
+void Layer::critical_find_bottom(Polygon *critical, vector<Polygon *> &neighbor_list)
+{
+    assert(critical->is_critical());
+    int x_start = critical->_bottom_left_x();
+    int y_start = critical->_bottom_left_y() - min_space;
+    Polygon *current = point_search(dummy_bottom, x_start, y_start);
+    neighbor_list.clear();
+
+    while(current->_bottom_left_x() < critical->_top_right_x()){
+        if(current->is_slot())
+            neighbor_list.push_back(current);
+        current = point_search(current, current->_top_right_x() + min_space, y_start);
+    }
+}

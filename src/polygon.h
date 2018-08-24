@@ -49,8 +49,12 @@ class Polygon
 
 		virtual void setVariable(GRBModel *model) {};
 		virtual GRBVar &getVariable(int i) {};
+		virtual GRBLinExpr getPortion() {};
+		virtual GRBLinExpr get_top_portion(int){};
+		virtual GRBLinExpr get_down_portion(int){};
 		virtual const int get_Yij() {};
-		virtual const int get_Wi(int i) {};
+		virtual const int get_Wi_coord(int i) {};
+
 		/*
 		preprocessing member functions
 		*/
@@ -82,21 +86,25 @@ class Polygon
 class Slot:public Polygon
 {
 	public:
-		Slot(int id, int h, int w, int m_y, int m_x): Polygon("slot", false) 
-		{
-			slot_id = id;
-			height = h;
-			w_height = h / 8;
-			width = w;
-			middle_y = m_y;
-			middle_x = m_x;
+	  Slot(int id, int h, int w, int m_y, int m_x, GRBModel *model) : Polygon("slot", false)
+	  {
+		  slot_id = id;
+		  height = h;
+		  w_height = h / 8;
+		  width = w;
+		  middle_y = m_y;
+		  middle_x = m_x;
+		  setVariable(model);
 		}
 		~Slot(){
 		}
 		void setVariable(GRBModel *model);
 		GRBVar& getVariable(int i);
+		GRBLinExpr getPortion();
+		GRBLinExpr get_top_portion(int critical_top);
+		GRBLinExpr get_down_portion(int critical_down);
 		const int get_Yij(){ return middle_y; }
-		const int get_Wi(int i){
+		const int get_Wi_coord(int i){
 			if(i < 4)
 				return middle_y + (4 - i) * w_height;
 			else 

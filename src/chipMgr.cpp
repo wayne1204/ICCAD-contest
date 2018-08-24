@@ -13,6 +13,7 @@
 // #define DEBUG
 using namespace std;
 
+// area fringe
 // find the corrseponding type of capacitance by using a hashmap
 double chipManager::calCapicitance(double area, int type, int layer1, int layer2)
 {
@@ -25,6 +26,21 @@ double chipManager::calCapicitance(double area, int type, int layer1, int layer2
     }
     Capacitance* c = total_Cap_List[key];
     return c->getCapacitance(area);
+}
+
+// lateral
+double chipManager::calCapicitance(int overlap, int space, int layer)
+{
+    int type = LATERAL;
+    int key = (type * 100) + (layer * 10) + layer;
+
+    if (total_Cap_List.find(key) == total_Cap_List.end())
+    {
+        cout << "[Error] can't find correspond cap rule\n";
+        return 0;
+    }
+    Capacitance *c = total_Cap_List[key];
+    return c->getCapacitance(overlap, space);
 }
 
 void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, vector<bool>&VorH_v)
@@ -120,7 +136,10 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                                 poly->setToSolid();
                                 if (VorH[tokens[6]-1]) poly->set_coordinate_V(insert_vec[tokens[6]-1][i]);
                                 else poly->set_coordinate_H(insert_vec[tokens[6]-1][i]);
-                                if (cnet_set.count(insert_vec[tokens[6]-1][i][5])) poly->setToCNet();
+                                if (cnet_set.count(insert_vec[tokens[6]-1][i][5])) {
+                                    total_Cnet_List[tokens[6]-1].push_back(poly);
+                                    poly->setToCNet();
+                                }
                                 // cout<<"10 : insert..........."<<endl;
                                 _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
                                 ++aa;
@@ -134,7 +153,10 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                         poly->setToSolid();
                         if (VorH[tokens[6]-1]) poly->set_coordinate_V(tokens);
                         else poly->set_coordinate_H(tokens);
-                        if (cnet_set.count(tokens[5])) poly->setToCNet();
+                        if (cnet_set.count(tokens[5])){
+                            total_Cnet_List[tokens[6] - 1].push_back(poly);
+                            poly->setToCNet();
+                        }
                         // cout<<"out : insert............."<<endl;
                         _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
                         ++aa;
@@ -198,6 +220,9 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
 {
     vector<Polygon*> polygon_list;
     int slot_id = 0;
+    int space_count = 0;
+    int threshold = _LayerList[layer].get_width() + 2 * _LayerList[layer].get_gap();
+    
     _LayerList[layer].region_query(
         _LayerList[layer].get_dummy()->get_bl(),_LayerList[layer].get_tr_boundary_x(),
         _LayerList[layer].get_tr_boundary_y(),_LayerList[layer].get_bl_boundary_x(),
@@ -212,21 +237,24 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
         }
     }
 
-    int space_count = 0;
     cout<<"start slot split in layer "<<layer+1<<endl;
     for(int i=0; i < polygon_list.size(); i++){
         if(polygon_list[i]->getType() == "space"){
             space_count++;
             int poly_w = polygon_list[i]->_top_right_x() - polygon_list[i]->_bottom_left_x();
             int poly_h = polygon_list[i]->_top_right_y() - polygon_list[i]->_bottom_left_y();
-            if(poly_w >= _LayerList[layer].get_width() && poly_h >= _LayerList[layer].get_width()){
-                //TODO fix this !!
-                _LayerList[layer].insert_slots(polygon_list[i], poly_w, poly_h, slot_id);
+            if (poly_w >= threshold && poly_h >= threshold)
+            {
+                _LayerList[layer].insert_slots(model, polygon_list[i], poly_w, poly_h, slot_id);
             }
+        }
+        else if (polygon_list[i]->is_critical()){
+
         }
         cout << "space_count = "<<space_count<<endl;
     }
-    
+    // total_Cnet_List.emplace(layer, critical_nets);
+
     for(int i=0;i<layer_num;i++){
         vector<Polygon*> tmp;
         _LayerList[i].region_query(_LayerList[i].get_dummy()->get_bl(),_LayerList[i].get_tr_boundary_x(),
@@ -237,7 +265,7 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
             if(tmp[ii]->getType() == "slot")
                 count++;
         }
-        cout << "total slot count = "<<count << endl;
+        // cout << "total slot count = "<<count << endl;
     }
     
 }
@@ -259,7 +287,7 @@ void chipManager::report_density(bool init_cnet){
                 wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;
                 density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
                 if(init_cnet)
-                    total_Cnet_List.emplace(wnd_num, critical_nets);
+                    // total_Cnet_List[].pus(critical_nets);
                 if(density >= _LayerList[i].get_min_density() && density < _LayerList[i].get_min_density()+0.01)
                     count[0]+=1;
                 else if (density >= _LayerList[i].get_min_density()+0.01 && density < _LayerList[i].get_min_density()+0.04)
@@ -438,29 +466,25 @@ void chipManager::check_layer(string &filename)
 
 }
 
-void chipManager::window_constraint(GRBModel* model){
-    int x, y, wnd_num;
-    double count[9] = {0}, count2[9] = {0};
+void chipManager::layer_constraint(GRBModel* model, int layer_id){
+    int x, y;
     int half_wnd = window_size / 2;
     int horizontal_cnt = (_tr_bound_x - _bl_bound_x) / half_wnd - 1;
     int vertical_cnt = (_tr_bound_y - _bl_bound_y) / half_wnd - 1;
     vector<Polygon *> slots;
 
-    for (int i = 0; i < layer_num; ++i)
+    for (int row = 0; row < vertical_cnt; ++row)
     {
-        for (int row = 0; row < vertical_cnt; ++row)
+        for (int col = 0; col < horizontal_cnt; ++col)
         {
-            for (int col = 0; col < horizontal_cnt; ++col)
-            {
-                x = _bl_bound_x + col * half_wnd;
-                y = _bl_bound_y + row * half_wnd;
-                wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;
-                int area = _LayerList[i].slot_area(x, y, window_size, slots);
-                int min_area = _LayerList[i].get_min_density() * window_size * window_size;
-                GRBQuadExpr slot_exp = slot_constraint(model, x, y, slots);
-                string name =  to_string(i) + '_' + to_string(row) + '_' + to_string(col);
-                model->addConstr(slot_exp + area  >= min_area, name);
-            }
+            x = _bl_bound_x + col * half_wnd;
+            y = _bl_bound_y + row * half_wnd;
+            int area = _LayerList[layer_id].slot_area(x, y, window_size, slots);
+            int min_area = _LayerList[layer_id].get_min_density() * window_size * window_size;
+            GRBQuadExpr slot_exp = slot_constraint(model, x, y, slots);
+            // density constraint
+            string name = to_string(layer_id) + '_' + to_string(row) + '_' + to_string(col);
+            model->addConstr(slot_exp + area  >= min_area, name);
         }
     }
 }
@@ -481,16 +505,60 @@ GRBQuadExpr chipManager::slot_constraint(GRBModel *model, const int &x, const in
         middle = max(middle, y);
         for (int j = 0; j < 8; ++j)
         {
-            int w = min(slots[i]->get_Wi(j), int(y + window_size));
+            int w = min(slots[i]->get_Wi_coord(j), int(y + window_size));
             w = max(w, y);
             height += abs(w - middle) * slots[i]->getVariable(j);
-            if (j < 4)
-                up += slots[i]->getVariable(j);
-            else
-                down += slots[i]->getVariable(j);
         }
-        express = (up * down) * slots[i]->get_Wi(-1);
+        express = slots[i]->get_Wi_coord(-1) * height * width;
         slot_exp += express;
     }
     return slot_exp;
+}
+
+void chipManager::minimize_cap(GRBModel *model, int layer_id){
+    GRBQuadExpr cap_expression;
+    for(int i = 0; i < total_Cnet_List[layer_id].size(); ++i){
+        Polygon* C = total_Cnet_List[layer_id][i];
+        vector<Polygon*> poly_list;
+
+        _LayerList[layer_id].critical_find_lr(C, poly_list);
+        int min_space = _LayerList[layer_id].get_gap();
+
+        for (int j = 0; j < poly_list.size(); ++j)
+        {
+            int overlap = min(C->_top_right_y(), poly_list[j]->_top_right_y()) - 
+                          max(C->_bottom_left_y(), poly_list[j]->_bottom_left_y());
+            double cap = calCapicitance(overlap, min_space, layer_id);
+            cap_expression += poly_list[j]->getPortion() * cap * poly_list[j]->getVariable(-1);
+        }
+
+        _LayerList[layer_id].critical_find_top(C, poly_list);
+        for (int j = 0; j < poly_list.size(); ++j)
+        {
+            int overlap = min(C->_top_right_x(), poly_list[j]->_top_right_x()) - 
+                          max(C->_bottom_left_x(), poly_list[j]->_bottom_left_x());
+            GRBLinExpr single_cap;
+            for (int k = 4; k < 8; ++k){
+                int space = poly_list[j]->get_Wi_coord(k) - C->_top_right_y();
+                double cap = calCapicitance(overlap, space, layer_id);
+                single_cap += cap * poly_list[j]->getVariable(k);
+            }
+            cap_expression += single_cap * poly_list[j]->getVariable(-1);
+        }
+
+        _LayerList[layer_id].critical_find_bottom(C, poly_list);
+        for (int j = 0; j < poly_list.size(); ++j)
+        {
+            int overlap = min(C->_top_right_x(), poly_list[j]->_top_right_x()) -
+                          max(C->_bottom_left_x(), poly_list[j]->_bottom_left_x());
+            GRBLinExpr single_cap;
+            for (int k = 0; k < 4; ++k){
+                int space = C->_bottom_left_y() - poly_list[j]->get_Wi_coord(k);
+                double cap = calCapicitance(overlap, space, layer_id);
+                single_cap += cap * poly_list[j]->getVariable(k);
+            }
+            cap_expression += single_cap * poly_list[j]->getVariable(-1);
+        }
+    }
+    model->setObjective(cap_expression, GRB_MINIMIZE);
 }

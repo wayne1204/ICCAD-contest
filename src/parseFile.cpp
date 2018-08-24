@@ -44,18 +44,38 @@ void Capacitance::setParameter(const string &str)
 
 }
 
+// case Area & Fringe
 // get capacitance from corresponding area
-double Capacitance::getCapacitance(double area)
+double Capacitance::getCapacitance(int area)
 {
     for(int i = 1; i < weights.size(); ++i)
     {
-        if(i < range[i])
+        if (area < range[i])
             return area * weights[i] + bias[i];
     }
     // exceed maximun area
     double ret = range.back() * weights.back() + bias.back();
     return ret * area / range.back();
 }
+
+double Capacitance::getCapacitance(int overlap, int space)
+{
+    // lateral capacitance per unit kength
+    double lateral_cap = 0.0;
+    for (int i = 1; i < weights.size(); ++i)
+    {
+        if (space < range[i]){
+            lateral_cap = space * weights[i] + bias[i];
+            break;
+        }
+    }
+    // exceed maximun area
+    if (space > range.back())
+        lateral_cap = (range.back() * weights.back() + bias.back()) * space / range.back();
+    assert(lateral_cap == 0);
+    return lateral_cap * overlap;
+}
+
 
 // parse rule file
 void chipManager::parseRuleFile(const string &fileName)
@@ -89,6 +109,8 @@ void chipManager::parseRuleFile(const string &fileName)
         pos = myStrGetTok(line, token, pos);
         d2 = stod(token);
         _LayerList[index-1].init_rule(num1, num2, num3, d1, d2, index);
+        vector<Polygon*> cnet_list;
+        total_Cnet_List.push_back(cnet_list);
         // cout << "Layer#" << index << " "  << num1 << " " << num2 << " " << num3 << 
         // " " << d1 << " " << d2 <<endl;
     }

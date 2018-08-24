@@ -28,7 +28,8 @@ public:
 
     void setRange(const string&);
     void setParameter(const string&);
-    double getCapacitance(double area);
+    double getCapacitance(int area);
+    double getCapacitance(int overylap, int space);
 
 private:
     int cap_type;
@@ -56,16 +57,18 @@ public:
     void setWindow(int num){ window_size = num; }
 
     // chipMgr.cpp
-    double calCapicitance(double, int, int, int = -1);
-    void init_polygon(string &filename, unordered_set<int> &cnet_set, vector<bool>&VorH_v);
+    double calCapicitance(double area, int type, int layer1, int layer2);
+    double calCapicitance(int overlap, int space, int layer);
+    void init_polygon(string &filename, unordered_set<int> &cnet_set, vector<bool> &VorH_v);
     void insert_tile(string&);
     void report_density(bool);
     void write_fill(string, string);
     void check_layer(string &filename);
     void rotate_dummy(Layer layer);
     void preprocess(GRBModel* model, int layer, vector<bool> VorH);
-    void window_constraint(GRBModel *model);
+    void layer_constraint(GRBModel *model, int layer_id);
     GRBQuadExpr slot_constraint(GRBModel *model, const int &x, const int &y, vector<Polygon *> &slots);
+    void minimize_cap(GRBModel *model, int layer_id);
 
   private:
     double window_size;
@@ -73,7 +76,7 @@ public:
     unordered_map<string, pair<int, int>> area_mapping;
     unordered_map<string, pair<int, int>> fringe_mapping;
     unordered_map<int, Capacitance *> total_Cap_List;
-    unordered_map<int, vector<Polygon *>> total_Cnet_List;
+    vector< vector<Polygon *>> total_Cnet_List;
     Layer *_LayerList;
     int _bl_bound_x;
     int _bl_bound_y;

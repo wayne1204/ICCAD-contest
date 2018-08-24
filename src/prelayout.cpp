@@ -65,8 +65,8 @@ double Layer::density_calculate(const int &x, const int &y, const double &window
             else
                 area += x_area * y_area;
         }
-        if (query_list[i]->is_critical())
-            critical_vec.push_back(query_list[i]);
+        // if (query_list[i]->is_critical())
+        //     critical_vec.push_back(query_list[i]);
     }
     return area / (windowsize * windowsize);
 }

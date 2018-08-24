@@ -77,7 +77,7 @@ void Slot::setVariable(GRBModel *model)
     string name = 'Y' + to_string(slot_id);
     Y_ij = model->addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
 
-    model->addConstr(up * down == Y_ij, name);
+    model->addQConstr(up * down == Y_ij, name);
     // model->addConstr(Y_ij )
 }
 
@@ -88,4 +88,35 @@ GRBVar &Slot::getVariable(int i)
     if(i == -1)
         return Y_ij;
     return var_list[i];
+}
+
+
+// A_i - B_i / 8
+GRBLinExpr Slot::getPortion(){
+    GRBLinExpr lateral_portion;
+    for(int i = 0; i < 4; ++i)
+        lateral_portion += (8 - i) * var_list[i];
+    for(int i = 4; i < 8; ++i)
+        lateral_portion -= (8 - i) * var_list[i];
+    lateral_portion /= 8;
+    return lateral_portion;
+}
+
+GRBLinExpr Slot::get_top_portion(int critical_top){
+    GRBLinExpr total;
+    for (int i = 4; i < 8; ++i){
+        int y = middle_y - (i - 3) * w_height - critical_top;
+        total += var_list[i] * y;
+    }
+    return total;
+}
+
+GRBLinExpr Slot::get_down_portion(int critical_down)
+{
+    GRBLinExpr total;
+    for (int i = 0; i < 4; ++i){
+        int y = critical_down - middle_y + (4 - i) *  w_height;
+        total += (8 - i) * var_list[i];
+    }
+    return total;
 }
