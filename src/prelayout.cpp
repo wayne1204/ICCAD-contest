@@ -22,6 +22,10 @@ double Layer::slot_area(const int &x, const int &y, const double &windowsize, ve
 {
     //region 右上/左下
     vector<Polygon *> query_list;
+    // cout<<"(slot area) start query..."<<endl;
+    // cout<<"window size = "<<windowsize<<endl; 
+    // cout<<"X = "<<x<<" Y = "<<y<<" Xr = "<<x+windowsize<<" Yr = "<<y+windowsize<<endl;
+    // print_Polygon(dummy_bottom);
     region_query(dummy_bottom, x + windowsize, y + windowsize, x, y, query_list);
     slot_vec.clear();
 

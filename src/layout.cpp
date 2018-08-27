@@ -306,6 +306,7 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
     vector<int> coordinate_x;
     int w_y = find_optimal_width(p->_bottom_left_y(), poly_h, coordinate_y);
     int w_x = find_optimal_width(p->_bottom_left_x(), poly_w, coordinate_x);
+    // cout<<"w_y = "<<w_y<<" w_x = "<<w_x<<endl;
     for (int j = 0; j < coordinate_y.size(); j++)
     {
         for (int k = 0; k < coordinate_x.size(); k++)
@@ -361,21 +362,29 @@ void Layer::critical_find_lr(Polygon *critical, vector<Polygon *> & neighbor_lis
     int x_start = critical->_top_right_x() + min_space;
     int y_start = critical->_top_right_y();
     Polygon *current = point_search(dummy_bottom, x_start, y_start);
-
-    while(current->_top_right_y() > critical->_bottom_left_y()){
-        if(current->is_slot())
-            neighbor_list.push_back(current);
-        current = point_search(current, x_start, current->_bottom_left_y() - min_space);
+    if (x_start > _bl_boundary_x && x_start < _tr_boundary_y && y_start > _bl_boundary_y && y_start <_tr_boundary_y){
+        while(current->_top_right_y() > critical->_bottom_left_y()){
+            if(current->is_slot())
+                neighbor_list.push_back(current);
+            if(current->_bottom_left_y() - min_space > _bl_boundary_y){
+                current = point_search(current, x_start, current->_bottom_left_y() - min_space);
+            }
+            else break;
+        }
     }
 
     x_start = critical->_bottom_left_x() - min_space;
     y_start = critical->_top_right_y();
-    current = point_search(dummy_bottom, x_start, y_start);
-
-    while(current->_top_right_y() > critical->_bottom_left_y()){
-        if(current->is_slot())
-            neighbor_list.push_back(current);
-        current = point_search(current, x_start, current->_bottom_left_y() - min_space);
+    if (x_start > _bl_boundary_x && x_start < _tr_boundary_y && y_start > _bl_boundary_y && y_start <_tr_boundary_y){
+        current = point_search(dummy_bottom, x_start, y_start);
+        while(current->_top_right_y() > critical->_bottom_left_y()){
+            if(current->is_slot())
+                neighbor_list.push_back(current);
+            if(current->_bottom_left_y() - min_space > _bl_boundary_y){
+                current = point_search(current, x_start, current->_bottom_left_y() - min_space);
+            }
+            else break;
+        }
     }
 }
 

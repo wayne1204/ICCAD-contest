@@ -127,6 +127,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                             else cout<<"rotated coordinate ============"<<endl;
 
                             cout<<"y_big = "<<y_len_big<<", x_big = "<<x_len_big<<endl;
+                            cout<<"1 = "<<layer_bound[0]<<" 2 = "<<layer_bound[1]<<endl;
                             y_len_big = 0;
                             x_len_big = 0;
                             
@@ -137,7 +138,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                                 if (VorH[tokens[6]-1]) poly->set_coordinate_V(insert_vec[tokens[6]-1][i]);
                                 else poly->set_coordinate_H(insert_vec[tokens[6]-1][i]);
                                 if (cnet_set.count(insert_vec[tokens[6]-1][i][5])) {
-                                    total_Cnet_List[tokens[6]-1].push_back(poly);
+                                    // total_Cnet_List[tokens[6]-1].push_back(poly);
                                     poly->setToCNet();
                                 }
                                 // cout<<"10 : insert..........."<<endl;
@@ -154,7 +155,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                         if (VorH[tokens[6]-1]) poly->set_coordinate_V(tokens);
                         else poly->set_coordinate_H(tokens);
                         if (cnet_set.count(tokens[5])){
-                            total_Cnet_List[tokens[6] - 1].push_back(poly);
+                            // total_Cnet_List[tokens[6] - 1].push_back(poly);
                             poly->setToCNet();
                         }
                         // cout<<"out : insert............."<<endl;
@@ -227,14 +228,17 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
         _LayerList[layer].get_dummy()->get_bl(),_LayerList[layer].get_tr_boundary_x(),
         _LayerList[layer].get_tr_boundary_y(),_LayerList[layer].get_bl_boundary_x(),
         _LayerList[layer].get_bl_boundary_y(), polygon_list);
-
     if (VorH[layer] == false)
     {
         rotate_dummy(_LayerList[layer]);
         _LayerList[layer].layer_rotate();
-        for (int j = 0; j < polygon_list.size(); ++j){
+    }
+
+    for (int j = 0; j < polygon_list.size(); ++j){
+        if (VorH[layer] == false)   
             polygon_list[j]->rotate();
-        }
+        if (polygon_list[j]->is_critical())
+            total_Cnet_List[layer].push_back(polygon_list[j]);
     }
 
     cout<<"start slot split in layer "<<layer+1<<endl;
@@ -245,28 +249,33 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
             int poly_h = polygon_list[i]->_top_right_y() - polygon_list[i]->_bottom_left_y();
             if (poly_w >= threshold && poly_h >= threshold)
             {
+                // print_Polygon(polygon_list[i]);
                 _LayerList[layer].insert_slots(model, polygon_list[i], poly_w, poly_h, slot_id);
             }
+            // cout << "space_count = "<<space_count<<endl;
         }
         else if (polygon_list[i]->is_critical()){
 
         }
-        cout << "space_count = "<<space_count<<endl;
     }
     // total_Cnet_List.emplace(layer, critical_nets);
-
-    for(int i=0;i<layer_num;i++){
-        vector<Polygon*> tmp;
-        _LayerList[i].region_query(_LayerList[i].get_dummy()->get_bl(),_LayerList[i].get_tr_boundary_x(),
-            _LayerList[i].get_tr_boundary_y(),_LayerList[i].get_bl_boundary_x(),
-            _LayerList[i].get_bl_boundary_y(), tmp);
-        int count = 0;
-        for(int ii=0 ;ii<tmp.size();ii++){
-            if(tmp[ii]->getType() == "slot")
-                count++;
-        }
-        // cout << "total slot count = "<<count << endl;
+    cout<<"end insert slots"<<endl;
+    vector<Polygon*> tmp;
+    _LayerList[layer].region_query(_LayerList[layer].get_dummy(),
+        _LayerList[layer].get_bl_boundary_x()+window_size,
+        _LayerList[layer].get_bl_boundary_y()+window_size, 
+        _LayerList[layer].get_bl_boundary_x(),
+        _LayerList[layer].get_bl_boundary_y(), 
+        tmp);
+    // cout<<"X = "<<_LayerList[layer].get_bl_boundary_x()<<" Y = "<<_LayerList[layer].get_bl_boundary_y()<<" Xr = "<<_LayerList[layer].get_bl_boundary_x()+window_size
+    //     <<" Yr = "<<_LayerList[layer].get_bl_boundary_y()+window_size<<endl;
+    cout<<"(preprocess) end query"<<endl;
+    int count = 0;
+    for(int ii=0 ;ii<tmp.size();ii++){
+        if(tmp[ii]->getType() == "slot")
+            count++;
     }
+    cout << "total slot count = "<<count << endl;
     
 }
 
@@ -469,16 +478,15 @@ void chipManager::check_layer(string &filename)
 void chipManager::layer_constraint(GRBModel* model, int layer_id){
     int x, y;
     int half_wnd = window_size / 2;
-    int horizontal_cnt = (_tr_bound_x - _bl_bound_x) / half_wnd - 1;
-    int vertical_cnt = (_tr_bound_y - _bl_bound_y) / half_wnd - 1;
+    int horizontal_cnt = (_LayerList[layer_id].get_tr_boundary_x() - _LayerList[layer_id].get_bl_boundary_x()) / half_wnd - 1;
+    int vertical_cnt = (_LayerList[layer_id].get_tr_boundary_y() - _LayerList[layer_id].get_bl_boundary_y()) / half_wnd - 1;
     vector<Polygon *> slots;
-
     for (int row = 0; row < vertical_cnt; ++row)
     {
         for (int col = 0; col < horizontal_cnt; ++col)
         {
-            x = _bl_bound_x + col * half_wnd;
-            y = _bl_bound_y + row * half_wnd;
+            x = _LayerList[layer_id].get_bl_boundary_x() + col * half_wnd;
+            y = _LayerList[layer_id].get_bl_boundary_y() + row * half_wnd;
             int area = _LayerList[layer_id].slot_area(x, y, window_size, slots);
             int min_area = _LayerList[layer_id].get_min_density() * window_size * window_size;
             GRBQuadExpr slot_exp = slot_constraint(model, x, y, slots);
@@ -499,7 +507,7 @@ GRBQuadExpr chipManager::slot_constraint(GRBModel *model, const int &x, const in
         GRBLinExpr height, up, down;
 
         int middle = min(slots[i]->get_Yij(), int(y + window_size));
-        int width = min(int(y + window_size), slots[i]->_top_right_x()) - max(y, slots[i]->_bottom_left_x());
+        int width = min(int(x + window_size), slots[i]->_top_right_x()) - max(x, slots[i]->_bottom_left_x());
         assert(width > 0);
 
         middle = max(middle, y);
@@ -517,10 +525,13 @@ GRBQuadExpr chipManager::slot_constraint(GRBModel *model, const int &x, const in
 
 void chipManager::minimize_cap(GRBModel *model, int layer_id){
     GRBQuadExpr cap_expression;
+    // cout<<"num of C = "<<total_Cnet_List[layer_id].size()<<endl;
     for(int i = 0; i < total_Cnet_List[layer_id].size(); ++i){
         Polygon* C = total_Cnet_List[layer_id][i];
         vector<Polygon*> poly_list;
-
+    
+        cout<<"start lr...."<<endl;
+        // print_Polygon(C);
         _LayerList[layer_id].critical_find_lr(C, poly_list);
         int min_space = _LayerList[layer_id].get_gap();
 
@@ -532,6 +543,7 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
             cap_expression += poly_list[j]->getPortion() * cap * poly_list[j]->getVariable(-1);
         }
 
+        cout<<"start top...."<<endl;
         _LayerList[layer_id].critical_find_top(C, poly_list);
         for (int j = 0; j < poly_list.size(); ++j)
         {
@@ -546,6 +558,7 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
             cap_expression += single_cap * poly_list[j]->getVariable(-1);
         }
 
+        cout<<"start bo...."<<endl;
         _LayerList[layer_id].critical_find_bottom(C, poly_list);
         for (int j = 0; j < poly_list.size(); ++j)
         {
@@ -560,5 +573,6 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
             cap_expression += single_cap * poly_list[j]->getVariable(-1);
         }
     }
+    cout<<"add obj"<<endl;
     model->setObjective(cap_expression, GRB_MINIMIZE);
 }

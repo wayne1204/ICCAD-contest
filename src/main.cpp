@@ -115,8 +115,10 @@ int main(int argc, char** argv)
         {
             mgr->preprocess(model, i, VorH);
             mgr->layer_constraint(model, i);
-            model->optimize();
-            cout << "Obj: " << model->get(GRB_DoubleAttr_ObjVal) << endl;
+            mgr->minimize_cap(model, i);
+            cout<<"aa"<<endl;
+            // model->optimize();
+            // cout << "Obj: " << model->get(GRB_DoubleAttr_ObjVal) << endl;
         }
     }
     catch (GRBException e)
