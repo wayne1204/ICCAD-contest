@@ -66,8 +66,8 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
         insert_vec.push_back(vec);
     }
     Polygon* poly;
-    int aa = 0;
-    int bb = 1;
+    int aa = 0, bb = 1;
+    int _bl_bound_x1, _bl_bound_y1, _tr_bound_x1, _tr_bound_y1; 
     int x_len = 0, y_len = 0, x_len_big = 0, y_len_big = 0;
     bool VorH[layer_num];
     while (token != ""){
@@ -77,23 +77,23 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                 if (myStr2Int(token, num)){
                     layer_bound.push_back(num);
                 }
+                else{
+                    _bl_bound_x = layer_bound[0];
+                    _bl_bound_y = layer_bound[1];
+                    _tr_bound_x = layer_bound[2];
+                    _tr_bound_y = layer_bound[3];
+                }
             }
         }
         else {
-            bool if_new=false;
             while ( (token = next_token(buff_beg, buff_end)) != ""){
                 if (token[0] == '\n') break;
                 if (myStr2Int(token, num)){
                     tokens.push_back(num);
                 }
                 else {
-                    #ifdef DEBUG
-                    //cout<<"start new.....tokens size = "<<tokens.size()<<endl;
-                    #endif
-
                     if (insert_vec[tokens[6]-1].size() < 100){
                         insert_vec[tokens[6]-1].push_back(tokens);
-                        // cout<<"vec"<<endl;
                         if(insert_vec[tokens[6]-1].size() == 100)
                         {
                             for (int i = 0; i < 100; ++i){
@@ -107,45 +107,37 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                                 }
                             }
                             //不用轉就是true
-                            if(x_len_big > y_len_big) VorH[tokens[6]-1] = false; 
-                            else VorH[tokens[6]-1] = true;
-
-                            if(VorH[tokens[6]-1]){
-                                _bl_bound_x = layer_bound[0];
-                                _bl_bound_y = layer_bound[1];
-                                _tr_bound_x = layer_bound[2];
-                                _tr_bound_y = layer_bound[3];
-                            }
-                            else{
-                                _bl_bound_y = layer_bound[0];
-                                _bl_bound_x = layer_bound[1];
-                                _tr_bound_y = layer_bound[2];
-                                _tr_bound_x = layer_bound[3];
+                            if(x_len_big > y_len_big) {
+                                VorH[tokens[6]-1] = false;
+                                _bl_bound_y1 = layer_bound[0];
+                                _bl_bound_x1 = layer_bound[1];
+                                _tr_bound_y1 = layer_bound[2];
+                                _tr_bound_x1 = layer_bound[3];
+                            } 
+                            else {
+                                VorH[tokens[6]-1] = true;
+                                _bl_bound_x1 = layer_bound[0];
+                                _bl_bound_y1 = layer_bound[1];
+                                _tr_bound_x1 = layer_bound[2];
+                                _tr_bound_y1 = layer_bound[3];
                             }
                             cout<<"================= layer id = "<<tokens[6]-1<<"---";
                             if (VorH[tokens[6]-1]) cout<<"same coordinate ==============="<<endl;
                             else cout<<"rotated coordinate ============"<<endl;
-
                             cout<<"y_big = "<<y_len_big<<", x_big = "<<x_len_big<<endl;
                             cout<<"1 = "<<layer_bound[0]<<" 2 = "<<layer_bound[1]<<endl;
-                            y_len_big = 0;
-                            x_len_big = 0;
-                            
-                            _LayerList[tokens[6]-1].init_layer(_bl_bound_x, _bl_bound_y, _tr_bound_x, _tr_bound_y);
+                            y_len_big = 0, x_len_big = 0;
+                            _LayerList[tokens[6]-1].init_layer(_bl_bound_x1, _bl_bound_y1, _tr_bound_x1, _tr_bound_y1);
                             for (int i = 0; i < 100; ++i){
                                 poly = new Polygon();
                                 poly->setToSolid();
                                 if (VorH[tokens[6]-1]) poly->set_coordinate_V(insert_vec[tokens[6]-1][i]);
                                 else poly->set_coordinate_H(insert_vec[tokens[6]-1][i]);
                                 if (cnet_set.count(insert_vec[tokens[6]-1][i][5])) {
-                                    // total_Cnet_List[tokens[6]-1].push_back(poly);
                                     poly->setToCNet();
                                 }
-                                // cout<<"10 : insert..........."<<endl;
                                 _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
                                 ++aa;
-                                // cout<<"10 : insert...........back"<<endl;
-                                
                             }
                         }
                     }
@@ -155,19 +147,14 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                         if (VorH[tokens[6]-1]) poly->set_coordinate_V(tokens);
                         else poly->set_coordinate_H(tokens);
                         if (cnet_set.count(tokens[5])){
-                            // total_Cnet_List[tokens[6] - 1].push_back(poly);
                             poly->setToCNet();
                         }
-                        // cout<<"out : insert............."<<endl;
                         _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
                         ++aa;
-                        // cout<<"out : insert.............back"<<endl;
-                        }
+                    }
                     tokens.clear();
                 }
             }
-            // _LayerList[poly->get_layer_id()-1].insert(poly, true, _LayerList[poly->get_layer_id()-1].get_dummy());
-            // cout<<"parse poly....number of poly = "<<setw(6)<<aa<<"...."<<"\r";
             #ifdef DEBUG
                 //aa++;
                 //cout<<"insert num = "<<aa<<endl;
