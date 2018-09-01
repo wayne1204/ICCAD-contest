@@ -60,15 +60,15 @@ double Layer::density_calculate(const int &x, const int &y, const double &window
     double area = 0, x_area = 0, y_area = 0;
     for (int i = 0; i < query_list.size(); i++)
     {
-        //if (query_list[i]->is_solid())
-        //{
+        if (query_list[i]->is_solid())
+        {
             x_area = classify(query_list[i]->_top_right_x(), query_list[i]->_bottom_left_x(), x + windowsize, x);
             y_area = classify(query_list[i]->_top_right_y(), query_list[i]->_bottom_left_y(), y + windowsize, y);
             if (x_area < 0 || y_area < 0)
                 ; //cout<<query_list[i]->_top_right_x()<<" "<<query_list[i]->_top_right_y()<<"in window"<<x<<","<<y<<"有問題\n";
             else
                 area += x_area * y_area;
-        //}
+        }
         // if (query_list[i]->is_critical())
         //     critical_vec.push_back(query_list[i]);
     }

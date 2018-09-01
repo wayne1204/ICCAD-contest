@@ -82,14 +82,13 @@ int main(int argc, char** argv)
     try{
         GRBEnv env = GRBEnv();
         GRBModel *model = new GRBModel(env);
-        for (int i = 0; i < 1; ++i)
+        for (int i = 0; i < 9; ++i)
         {
             mgr->preprocess(model, i, VorH);
-            // mgr->layer_constraint(model, i);
-            // mgr->minimize_cap(model, i);
-            cout<<"aa"<<endl;
-            // model->optimize();
-            // cout << "Obj: " << model->get(GRB_DoubleAttr_ObjVal) << endl;
+            mgr->layer_constraint(model, i);
+            //mgr->minimize_cap(model, i);
+            //model->optimize();
+            //cout << "Obj: " << model->get(GRB_DoubleAttr_ObjVal) << endl;
         }
     }
     catch (GRBException e)
@@ -98,12 +97,12 @@ int main(int argc, char** argv)
         cout << e.getMessage() << endl;
     }
 
-    mu->report();
+    // mu->report();
 
-    string output_fill = "";
-    mgr->report_density(true);
-    mgr->insert_tile(output_fill);
-    cout << "finish insert tile" << endl;
+    // string output_fill = "";
+    // mgr->report_density(true);
+    // mgr->insert_tile(output_fill);
+    // cout << "finish insert tile" << endl;
     // // mgr->insert_tile(output_fill);
     // mgr->report_density(false);
     // // mgr->insert_tile(output_fill);

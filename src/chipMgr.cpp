@@ -122,10 +122,10 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                                 _tr_bound_y1 = layer_bound[3];
                             }
                             cout<<"================= layer id = "<<tokens[6]-1<<"---";
-                            if (VorH[tokens[6]-1]) cout<<"same coordinate ==============="<<endl;
-                            else cout<<"rotated coordinate ============"<<endl;
-                            cout<<"y_big = "<<y_len_big<<", x_big = "<<x_len_big<<endl;
-                            cout<<"1 = "<<layer_bound[0]<<" 2 = "<<layer_bound[1]<<endl;
+                            // if (VorH[tokens[6]-1]) cout<<"same coordinate ==============="<<endl;
+                            // else cout<<"rotated coordinate ============"<<endl;
+                            // cout<<"y_big = "<<y_len_big<<", x_big = "<<x_len_big<<endl;
+                            // cout<<"1 = "<<layer_bound[0]<<" 2 = "<<layer_bound[1]<<endl;
                             y_len_big = 0, x_len_big = 0;
                             _LayerList[tokens[6]-1].init_layer(_bl_bound_x1, _bl_bound_y1, _tr_bound_x1, _tr_bound_y1);
                             for (int i = 0; i < 100; ++i){
@@ -445,22 +445,23 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
     }
     // total_Cnet_List.emplace(layer, critical_nets);
     cout<<"end insert slots"<<endl;
-    vector<Polygon*> tmp;
-    _LayerList[layer].region_query(_LayerList[layer].get_dummy(),
-        _LayerList[layer].get_bl_boundary_x()+window_size,
-        _LayerList[layer].get_bl_boundary_y()+window_size, 
-        _LayerList[layer].get_bl_boundary_x(),
-        _LayerList[layer].get_bl_boundary_y(), 
-        tmp);
+    // vector<Polygon*> tmp;
+    // _LayerList[layer].region_query(_LayerList[layer].get_dummy(),
+    //     _LayerList[layer].get_tr_boundary_x(),
+    //     _LayerList[layer].get_tr_boundary_y(), 
+    //     _LayerList[layer].get_bl_boundary_x(),
+    //     _LayerList[layer].get_bl_boundary_y(), 
+    //     tmp);
+    // cout<<"(preprocess) end query"<<endl;
+    // int count = 0;
+    // for(int ii=0 ;ii<tmp.size();ii++){
+    //     if(tmp[ii]->getType() == "slot")
+    //         count++;
+    // }
+    // cout << "total slot count = "<<count << endl;
     // cout<<"X = "<<_LayerList[layer].get_bl_boundary_x()<<" Y = "<<_LayerList[layer].get_bl_boundary_y()<<" Xr = "<<_LayerList[layer].get_bl_boundary_x()+window_size
     //     <<" Yr = "<<_LayerList[layer].get_bl_boundary_y()+window_size<<endl;
-    cout<<"(preprocess) end query"<<endl;
-    int count = 0;
-    for(int ii=0 ;ii<tmp.size();ii++){
-        if(tmp[ii]->getType() == "slot")
-            count++;
-    }
-    cout << "total slot count = "<<count << endl;
+    
     
 }
 
