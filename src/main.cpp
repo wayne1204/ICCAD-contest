@@ -12,7 +12,7 @@
 #include "util.h"
 #include "usage.h"
 #include "polygon.h"
-//#include "include/gurobi_c++.h"
+#include "include/gurobi_c++.h"
 
 using namespace std;
 
