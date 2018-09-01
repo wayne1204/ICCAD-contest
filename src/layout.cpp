@@ -320,6 +320,7 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
             Slot *S = new Slot(++slot_id, w_y, w_x, coordinate_y[j], coordinate_x[k], model);
             S->set_layer_id(layer_id);
             S->set_xy(x1, y1, x2, y2);
+            //cout<<"S type"<<S->getType()<<endl;
             insert(S, true, dummy_bottom);
             slot_list.push_back(S);
         }
