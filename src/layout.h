@@ -55,6 +55,7 @@ public:
     void critical_find_lr(Polygon* critical, vector<Polygon *> &);
     void critical_find_top(Polygon *critical, vector<Polygon *> &);
     void critical_find_bottom(Polygon *critical, vector<Polygon *> &);
+    vector<Slot*> getSlots() {return slot_list; }
 
   private:
     int _bl_boundary_x;

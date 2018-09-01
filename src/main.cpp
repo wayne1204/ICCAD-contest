@@ -36,35 +36,6 @@ int main(int argc, char** argv)
     ifs.read(buff, filesize);
     char* buff_beg = buff;
     char* buff_end = buff + filesize;
-    try{
-        GRBEnv env = GRBEnv();
-        GRBModel model = GRBModel(env);
-
-        GRBVar x = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "x");
-        GRBVar y = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "y");
-        GRBVar z = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "z");
-
-        model.setObjective(x + y + 2 * z, GRB_MAXIMIZE);
-        model.addConstr(x + 2 * y + 3 * z <= 4, "c0");
-        model.addConstr(x + y >= 1, "c1");
-
-        // Optimize model
-        model.optimize();
-
-        cout << x.get(GRB_StringAttr_VarName) << " "
-             << x.get(GRB_DoubleAttr_X) << endl;
-        cout << y.get(GRB_StringAttr_VarName) << " "
-             << y.get(GRB_DoubleAttr_X) << endl;
-        cout << z.get(GRB_StringAttr_VarName) << " "
-             << z.get(GRB_DoubleAttr_X) << endl;
-
-        cout << "Obj: " << model.get(GRB_DoubleAttr_ObjVal) << endl;
-    }
-    catch (GRBException e)
-    {
-        cout << "Error code = " << e.getErrorCode() << endl;
-        cout << e.getMessage() << endl;
-    }
 
     chipManager *mgr = new chipManager();
     string token;
@@ -114,8 +85,8 @@ int main(int argc, char** argv)
         for (int i = 0; i < 1; ++i)
         {
             mgr->preprocess(model, i, VorH);
-            mgr->layer_constraint(model, i);
-            mgr->minimize_cap(model, i);
+            // mgr->layer_constraint(model, i);
+            // mgr->minimize_cap(model, i);
             cout<<"aa"<<endl;
             // model->optimize();
             // cout << "Obj: " << model->get(GRB_DoubleAttr_ObjVal) << endl;
@@ -130,13 +101,43 @@ int main(int argc, char** argv)
     mu->report();
 
     string output_fill = "";
-    // //mgr->report_density(true);
-    // mgr->insert_tile(output_fill);
-    // cout << "finish insert tile" << endl;
+    mgr->report_density(true);
+    mgr->insert_tile(output_fill);
+    cout << "finish insert tile" << endl;
     // // mgr->insert_tile(output_fill);
     // mgr->report_density(false);
     // // mgr->insert_tile(output_fill);
     // mgr->write_fill(output, output_fill);
     // //mgr->check_layer(output);
     // mu->report();
+    // try{
+    //     GRBEnv env = GRBEnv();
+    //     GRBModel model = GRBModel(env);
+
+    //     GRBVar x = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "x");
+    //     // cout<<"gurobi sucks" << x.get(GRB_StringAttr_VarName) <<endl;
+    //     GRBVar y = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "y");
+    //     GRBVar z = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "z");
+
+    //     model.setObjective(x + y + 2 * z, GRB_MAXIMIZE);
+    //     model.addConstr(x + 2 * y + 3 * z <= 4, "c0");
+    //     model.addConstr(x + y >= 1, "c1");
+
+    //     // Optimize model
+    //     model.optimize();
+
+    //     cout << x.get(GRB_StringAttr_VarName) << " "
+    //          << x.get(GRB_DoubleAttr_X) << endl;
+    //     cout << y.get(GRB_StringAttr_VarName) << " "
+    //          << y.get(GRB_DoubleAttr_X) << endl;
+    //     cout << z.get(GRB_StringAttr_VarName) << " "
+    //          << z.get(GRB_DoubleAttr_X) << endl;
+
+    //     cout << "Obj: " << model.get(GRB_DoubleAttr_ObjVal) << endl;
+    // }
+    // catch (GRBException e)
+    // {
+    //     cout << "Error code = " << e.getErrorCode() << endl;
+    //     cout << e.getMessage() << endl;
+    // }
 }

@@ -72,7 +72,7 @@ double Capacitance::getCapacitance(int overlap, int space)
     // exceed maximun area
     if (space > range.back())
         lateral_cap = (range.back() * weights.back() + bias.back()) * space / range.back();
-    assert(lateral_cap == 0);
+    assert(lateral_cap != 0);
     return lateral_cap * overlap;
 }
 

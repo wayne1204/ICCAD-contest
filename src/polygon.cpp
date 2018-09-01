@@ -77,7 +77,7 @@ void Slot::setVariable(GRBModel *model)
     string name = 'Y' + to_string(slot_id);
     Y_ij = model->addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
 
-    model->addQConstr(up * down == Y_ij, name);
+    model->addQConstr(Y_ij == up * down, name);
     // model->addConstr(Y_ij )
 }
 

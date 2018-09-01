@@ -86,7 +86,8 @@ class Polygon
 class Slot:public Polygon
 {
 	public:
-	  Slot(int id, int h, int w, int m_y, int m_x, GRBModel *model) : Polygon("slot", false)
+	// todo fix this
+	  Slot(int id, int h, int w, int m_y, int m_x, GRBModel *model) : Polygon("fill", true)
 	  {
 		  slot_id = id;
 		  height = h;
