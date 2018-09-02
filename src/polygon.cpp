@@ -60,12 +60,12 @@ void Polygon::swap_xy(){
     swap(_t_right_x, _t_right_y);
 }
 
-void Slot::setVariable(GRBModel *model)
+void Polygon::setVariable(GRBModel *model)
 {
     GRBLinExpr up, down;
     for (int i = 0; i < 8; ++i)
     {
-        string name = "slot" + to_string(slot_id) + "_w" + to_string(i + 1);
+        string name = "slot" + to_string(_slot_id) + "_w" + to_string(i + 1);
         GRBVar var = model->addVar(0.0, 1.0, 1.0, GRB_BINARY, name);
         var_list.push_back(var);
         if (i < 4)
@@ -74,25 +74,28 @@ void Slot::setVariable(GRBModel *model)
             down += var;
     }
 
-    string name = "slot" + to_string(slot_id) + "_yij";
+    string name = "slot" + to_string(_slot_id) + "_yij";
     Y_ij = model->addVar(0.0, 1.0, 1.0, GRB_BINARY, name);
-
     model->addQConstr(Y_ij == up * down, name);
-    // model->addConstr(Y_ij )
+
 }
 
 
-GRBVar &Slot::getVariable(int i)
+GRBVar &Polygon::getVariable(int i)
 {
+    cout << _slot_id << " /" << var_list.size() << endl;
+    
     assert(var_list.size() == 8);
-    if(i == -1)
+    if(i == -1){
+        cout <<"return Y_ij\n";
         return Y_ij;
+    }
     return var_list[i];
 }
 
 
 // A_i - B_i / 8
-GRBLinExpr Slot::getPortion(){
+GRBLinExpr Polygon::getPortion(){
     GRBLinExpr lateral_portion;
     for(int i = 0; i < 4; ++i)
         lateral_portion += (8 - i) * var_list[i];
@@ -102,21 +105,13 @@ GRBLinExpr Slot::getPortion(){
     return lateral_portion;
 }
 
-GRBLinExpr Slot::get_top_portion(int critical_top){
-    GRBLinExpr total;
-    for (int i = 4; i < 8; ++i){
-        int y = middle_y - (i - 3) * w_height - critical_top;
-        total += var_list[i] * y;
-    }
-    return total;
-}
-
-GRBLinExpr Slot::get_down_portion(int critical_down)
+const int Polygon::get_Wi_coord(int i)
 {
-    GRBLinExpr total;
-    for (int i = 0; i < 4; ++i){
-        int y = critical_down - middle_y + (4 - i) *  w_height;
-        total += (8 - i) * var_list[i];
-    }
-    return total;
+    int w_height = (_t_right_y - _b_left_y)/8;
+    if(i == -1)
+        return middle_y;
+    else if (i < 4) 
+        return middle_y + (4 - i) * w_height;
+    else
+        return middle_y - (i - 3) * w_height;
 }

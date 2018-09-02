@@ -55,7 +55,7 @@ public:
     void critical_find_lr(Polygon* critical, vector<Polygon *> &);
     void critical_find_top(Polygon *critical, vector<Polygon *> &);
     void critical_find_bottom(Polygon *critical, vector<Polygon *> &);
-    vector<Slot*> getSlots() {return slot_list; }
+    vector<Polygon*> getSlots() { return slot_list; }
 
   private:
     int _bl_boundary_x;
@@ -78,8 +78,7 @@ public:
     double min_density;
     double max_density;
     // vector<Polygon*> _polygonlist;
-    vector<Slot*> slot_list;
-
+    vector<Polygon*> slot_list;
 };
 
 #endif

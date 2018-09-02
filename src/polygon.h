@@ -9,12 +9,19 @@ using namespace std;
 class Polygon
 {
 	public:
-		// Polygon(string s = "normal", bool solid_ornot = false) : _type(s), _is_solid(solid_ornot)
 		Polygon(string s = "normal", bool solid_ornot = false) : _type(s), _is_solid(solid_ornot)
 		{
-				_is_critical_net = false;
+			assert(s != "slot");
+			_is_critical_net = false;
+			_slot_id = -1;
+			middle_y = 0;
 		}
-		~Polygon(){}
+		Polygon(int m_y, GRBModel *model, int id=-10) : _type("slot"), _is_solid(false), _slot_id(id)
+		{
+			middle_y = m_y;
+			_is_critical_net = false;
+			setVariable(model);
+		}
 		void set_coordinate_H(vector<int> tokens);
 		void set_coordinate_V(vector<int> tokens);
 		void set_layer_id(int a) { _layer_id = a; }
@@ -37,6 +44,7 @@ class Polygon
 		inline void setType(string type) { _type = type; }
 		inline int get_layer_id() { return _layer_id; }
 		inline int get_net_id() { return _net_id; }
+		inline int get_slot_id() { return _slot_id; }
 		inline int get_polygon_id() { return _polygon_id; }
 		inline int _bottom_left_x() const { return _b_left_x; }
 		inline int _bottom_left_y() const { return _b_left_y; }
@@ -47,29 +55,25 @@ class Polygon
 		bool is_slot() { return (_type == "slot"); }
 		bool is_critical() { return _is_critical_net; }
 
-		virtual void setVariable(GRBModel *model) {};
-		virtual GRBVar &getVariable(int i) {};
-		virtual GRBLinExpr getPortion() {};
-		virtual GRBLinExpr get_top_portion(int){};
-		virtual GRBLinExpr get_down_portion(int){};
-		virtual const int get_Yij() {};
-		virtual const int get_Wi_coord(int i) {};
+		// slot variable
+		void setVariable(GRBModel *model);
+		GRBVar &getVariable(int i);
+		GRBLinExpr getPortion();
+		const int get_Wi_coord(int i);
 
-		/*
-		preprocessing member functions
-		*/
+		// preprocessing member functions
 		void rotate();
 		void swap_top_right();
 		void swap_xy();
 		void swap_bottom_left();
-
-
 	private:
 		int _b_left_x;
 		int _b_left_y;
 		int _t_right_x;
 		int _t_right_y;
+		int middle_y;
 		int _polygon_id;
+		int _slot_id;
 		int _net_id;
 		int _layer_id;
 		Polygon *tr;
@@ -81,44 +85,6 @@ class Polygon
 		bool _is_solid;
 		unsigned ref;
 		static unsigned global_ref;
-};
-
-class Slot:public Polygon
-{
-	public:
-	// todo fix this
-	  Slot(int id, int h, int w, int m_y, int m_x, GRBModel *model) : Polygon("slot", false)
-	  {
-		  slot_id = id;
-		  height = h;
-		  w_height = h / 8;
-		  width = w;
-		  middle_y = m_y;
-		  middle_x = m_x;
-		  setVariable(model);
-		}
-		~Slot(){
-		}
-		void setVariable(GRBModel *model);
-		GRBVar& getVariable(int i);
-		GRBLinExpr getPortion();
-		GRBLinExpr get_top_portion(int critical_top);
-		GRBLinExpr get_down_portion(int critical_down);
-		const int get_Yij(){ return middle_y; }
-		const int get_Wi_coord(int i){
-			if(i < 4)
-				return middle_y + (4 - i) * w_height;
-			else 
-                return middle_y - (i - 3) * w_height;
-		}
-
-	private: 
-		int slot_id;
-		int height;
-		int w_height;
-		int width;
-		int middle_y;
-		int middle_x;
 		vector<GRBVar> var_list;
 		GRBVar Y_ij;
 };

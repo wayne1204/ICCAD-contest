@@ -306,7 +306,6 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
     vector<int> coordinate_x;
     int w_y = find_optimal_width(p->_bottom_left_y(), poly_h, coordinate_y);
     int w_x = find_optimal_width(p->_bottom_left_x(), poly_w, coordinate_x);
-    // cout<<"w_y = "<<w_y<<" w_x = "<<w_x<<endl;
     for (int j = 0; j < coordinate_y.size(); j++)
     {
         for (int k = 0; k < coordinate_x.size(); k++)
@@ -315,13 +314,17 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
             int y1 = coordinate_y[j] + w_y / 2;
             int x2 = coordinate_x[k] - w_x / 2;
             int y2 = coordinate_y[j] - w_y / 2;
-            
-            // Polygon *T = new Polygon("slot");
-            Slot *S = new Slot(++slot_id, w_y, w_x, coordinate_y[j], coordinate_x[k], model);
+
+            Polygon *S = new Polygon(coordinate_y[j], model, ++slot_id);
             S->set_layer_id(layer_id);
             S->set_xy(x1, y1, x2, y2);
-            //cout<<"S type"<<S->getType()<<endl;
             insert(S, true, dummy_bottom);
+            cout << S->get_slot_id() << endl;
+            vector<Polygon*> pp ;
+            region_query(dummy_bottom, x1, y1, x2, y2, pp);
+            for(int i = 0; i< pp.size(); ++i)
+                cout << pp[i]->getType() << " id:" << pp[i]->get_slot_id()
+                 << " Y_ij "<< pp[i]->get_Wi_coord(-1) << endl;
             slot_list.push_back(S);
         }
     }

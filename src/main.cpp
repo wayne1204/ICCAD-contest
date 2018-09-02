@@ -86,8 +86,8 @@ int main(int argc, char** argv)
         {
             mgr->preprocess(model, i, VorH);
             mgr->layer_constraint(model, i);
-            mgr->minimize_cap(model, i);
-            model->optimize();
+            //mgr->minimize_cap(model, i);
+            //model->optimize();
         }
     }
     catch (GRBException e)
