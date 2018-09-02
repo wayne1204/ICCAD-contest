@@ -34,9 +34,11 @@ void Capacitance::setParameter(const string &str)
         left = str.find('(', left);
         int comma = str.find(',', ++left);
         w = stod(str.substr(left, comma - left));
+        // cout << str.substr(left, comma - left) <<endl;
         int right = str.find(')', left);
         ++comma;
         b = stod(str.substr(comma, right - comma));
+        // cout << str.substr(comma, right - comma) << endl;
         weights.push_back(w);
         bias.push_back(b);
         left = right;

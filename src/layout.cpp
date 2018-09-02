@@ -363,7 +363,7 @@ void Layer::critical_find_lr(Polygon *critical, vector<Polygon *> & neighbor_lis
     int x_start = critical->_top_right_x() + min_space;
     int y_start = critical->_top_right_y();
     Polygon *current = point_search(dummy_bottom, x_start, y_start);
-    if (x_start > _bl_boundary_x && x_start < _tr_boundary_y && y_start > _bl_boundary_y && y_start <_tr_boundary_y){
+    if (x_start > _bl_boundary_x && x_start < _tr_boundary_x && y_start > _bl_boundary_y && y_start <_tr_boundary_y){
         while(current->_top_right_y() > critical->_bottom_left_y()){
             if(current->is_slot())
                 neighbor_list.push_back(current);
@@ -376,7 +376,7 @@ void Layer::critical_find_lr(Polygon *critical, vector<Polygon *> & neighbor_lis
 
     x_start = critical->_bottom_left_x() - min_space;
     y_start = critical->_top_right_y();
-    if (x_start > _bl_boundary_x && x_start < _tr_boundary_y && y_start > _bl_boundary_y && y_start <_tr_boundary_y){
+    if (x_start > _bl_boundary_x && x_start < _tr_boundary_x && y_start > _bl_boundary_y && y_start <_tr_boundary_y){
         current = point_search(dummy_bottom, x_start, y_start);
         while(current->_top_right_y() > critical->_bottom_left_y()){
             if(current->is_slot())

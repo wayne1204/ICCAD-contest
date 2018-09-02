@@ -65,8 +65,8 @@ void Slot::setVariable(GRBModel *model)
     GRBLinExpr up, down;
     for (int i = 0; i < 8; ++i)
     {
-        string name = 'w' + to_string(slot_id) + to_string(i + 1);
-        GRBVar var = model->addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
+        string name = "slot" + to_string(slot_id) + "_w" + to_string(i + 1);
+        GRBVar var = model->addVar(0.0, 1.0, 1.0, GRB_BINARY, name);
         var_list.push_back(var);
         if (i < 4)
             up += var;
@@ -74,8 +74,8 @@ void Slot::setVariable(GRBModel *model)
             down += var;
     }
 
-    string name = 'Y' + to_string(slot_id);
-    Y_ij = model->addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
+    string name = "slot" + to_string(slot_id) + "_yij";
+    Y_ij = model->addVar(0.0, 1.0, 1.0, GRB_BINARY, name);
 
     model->addQConstr(Y_ij == up * down, name);
     // model->addConstr(Y_ij )

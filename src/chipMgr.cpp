@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <typeinfo>
 #include <algorithm>
+#include <math.h>
 #include "chipMgr.h"
 #include "util.h"
 #include "include/gurobi_c++.h"
@@ -13,11 +14,11 @@
 // #define DEBUG
 using namespace std;
 
-// area fringe
-// find the corrseponding type of capacitance by using a hashmap
+
+// find the area/fringe capacitance by using a hashmap
 double chipManager::calCapicitance(double area, int type, int layer1, int layer2)
 {
-    int key = (type * 100) + (layer1 * 10) + layer2;
+    int key = type * (layer_num + 1) * (layer_num + 1) + layer1 * (layer_num + 1) + layer2;
 
     if (total_Cap_List.find(key) == total_Cap_List.end())
     {
@@ -25,14 +26,14 @@ double chipManager::calCapicitance(double area, int type, int layer1, int layer2
         return 0;
     }
     Capacitance* c = total_Cap_List[key];
-    return c->getCapacitance(area);
+    return c->getCapacitance(area) * pow(10, 10);
 }
 
-// lateral
+// find the lateral capacitance by using a hashmap
 double chipManager::calCapicitance(int overlap, int space, int layer)
 {
     int type = LATERAL;
-    int key = (type * 100) + (layer * 10) + layer;
+    int key = type * (layer_num+1) * (layer_num+1) + layer * (layer_num+1) + layer;
 
     if (total_Cap_List.find(key) == total_Cap_List.end())
     {
@@ -40,7 +41,7 @@ double chipManager::calCapicitance(int overlap, int space, int layer)
         return 0;
     }
     Capacitance *c = total_Cap_List[key];
-    return c->getCapacitance(overlap, space);
+    return c->getCapacitance(overlap, space) * pow(10, 10);
 }
 
 void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, vector<bool>&VorH_v)
@@ -324,7 +325,6 @@ void chipManager::insert_tile(string& output_fill){
     }
     ///cout << endl;
     output_fill = out_fill.str();
-    //cout<<"///////////////"<<output_fill<<endl;
 }
 
 void chipManager::write_fill(string output, string output_fill){
@@ -465,6 +465,7 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
     
 }
 
+// specify constraints in every window 
 void chipManager::layer_constraint(GRBModel* model, int layer_id){
     int x, y;
     int half_wnd = window_size / 2;
@@ -480,16 +481,17 @@ void chipManager::layer_constraint(GRBModel* model, int layer_id){
             int area = _LayerList[layer_id].slot_area(x, y, window_size, slots);
             int min_area = _LayerList[layer_id].get_min_density() * window_size * window_size;
             GRBQuadExpr slot_exp = slot_constraint(model, x, y, slots);
-            cout << "x: " << x << "y: " << y << " slot size: " << slots.size() <<endl;
-            cout << "window slot expression size: " << slot_exp.size() <<endl;
+            // cout << "x: " << x/1000.0 << "k y: " << y/1000.0 << "k slot size: " << slots.size() <<endl;
+            // cout << "window slot expression size: " << slot_exp.size() <<endl;
             // density constraint
             string name = to_string(layer_id) + '_' + to_string(row) + '_' + to_string(col);
             model->addQConstr(slot_exp + area  >= min_area, name);
         }
     }
-    cout << "===== finish adding layer constraint ( slot + metal >= 0.4 )" << endl;
+    cout << "===== finish adding layer constraints  ( slot + metal >= 0.4 ) " << endl;
 }
 
+// 
 GRBQuadExpr chipManager::slot_constraint(GRBModel *model, const int &x, const int &y, vector<Polygon *> &slots)
 {
     GRBQuadExpr slot_exp;
@@ -512,16 +514,15 @@ GRBQuadExpr chipManager::slot_constraint(GRBModel *model, const int &x, const in
         }
         express = slots[i]->getVariable(-1) * height * width;
         slot_exp += express;
-        // cout << "Y_ij " << slots[i]->getVariable(-1).get(GRB_StringAttr_VarName) << endl;
-        // cout << "single slot express size " << width << "  " << height.size() <<endl;
     }
     return slot_exp;
 }
 
+// minimize slot coupleing cap with critical net
 void chipManager::minimize_cap(GRBModel *model, int layer_id){
-    GRBLinExpr cap_expression;
-    // cout<<"num of C = "<<total_Cnet_List[layer_id].size()<<endl;
-    for(int i = 0; i < total_Cnet_List[layer_id].size(); ++i){
+    GRBQuadExpr cap_expression;
+    for (int i = 0; i < total_Cnet_List[layer_id].size(); ++i)
+    {
         Polygon* C = total_Cnet_List[layer_id][i];
         vector<Polygon*> poly_list;
     
@@ -529,15 +530,14 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
         _LayerList[layer_id].critical_find_lr(C, poly_list);
         int min_space = _LayerList[layer_id].get_gap();
 
-        for (int j = 0; j < poly_list.size(); ++j)
-        {
-            int overlap = min(C->_top_right_y(), poly_list[j]->_top_right_y()) - 
-                          max(C->_bottom_left_y(), poly_list[j]->_bottom_left_y());
-            double cap = calCapicitance(overlap, min_space, layer_id+1);
-            assert(cap != 0);
-            // cap_expression += poly_list[j]->getPortion() * cap * poly_list[j]->getVariable(-1);
-            cap_expression += poly_list[j]->getPortion() * cap;
-        }
+        // for (int j = 0; j < poly_list.size(); ++j)
+        // {
+        //     int overlap = min(C->_top_right_y(), poly_list[j]->_top_right_y()) - 
+        //                   max(C->_bottom_left_y(), poly_list[j]->_bottom_left_y());
+        //     GRBLinExpr single_cap = calCapicitance(overlap, min_space, layer_id + 1) * poly_list[j]->getPortion();
+        //     cap_expression += single_cap * poly_list[j]->getVariable(-1);
+        // }
+        // cout << i << ' ' << poly_list.size() << ' ' << cap_expression.size() << endl;
 
         // cout<<"start top...."<<endl;
         _LayerList[layer_id].critical_find_top(C, poly_list);
@@ -552,8 +552,7 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
                 assert(cap != 0);
                 single_cap += cap * poly_list[j]->getVariable(k);
             }
-            // cap_expression += single_cap * poly_list[j]->getVariable(-1);
-            cap_expression += single_cap;
+            cap_expression += single_cap * poly_list[j]->getVariable(1);
         }
 
         // cout<<"start bo...."<<endl;
@@ -569,18 +568,17 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
                 assert(cap != 0);
                 single_cap += cap * poly_list[j]->getVariable(k);
             }
-            // cap_expression += single_cap * poly_list[j]->getVariable(-1);
-            cap_expression += single_cap ;
+            cap_expression += single_cap * poly_list[j]->getVariable(1);
         }
     }
 
-    for(int i = 0; i < cap_expression.size(); ++i){
-        
-        cout << cap_expression.getCoeff(i) << " \n";
+    // for(int i = 0; i < cap_expression.size(); ++i){
+    //     cout << cap_expression.getCoeff(i) << " \n";
     //     cout << cap_expression.getVar1(i).get(GRB_StringAttr_QCName) << ' ';
     //     cout << cap_expression.getVar2(i).get(GRB_StringAttr_QCName) << ' ' << endl;
-    }
-    cout << "===== finish adding objective function (minimize capacitance)" << endl;
+    // }
+
+    cout << "===== finish adding objective function (minimize capacitance) exp size = " << cap_expression.size() << endl;
     model->setObjective(cap_expression, GRB_MINIMIZE);
     // vector<Slot*> slot_list = _LayerList[0].getSlots();
     // model->setObjective(slot_list[0]->getVariable(0) * 1 + slot_list[0]->getVariable(2), GRB_MAXIMIZE);
