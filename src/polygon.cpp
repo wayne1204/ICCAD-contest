@@ -83,11 +83,11 @@ void Polygon::setVariable(GRBModel *model)
 
 GRBVar &Polygon::getVariable(int i)
 {
-    cout << _slot_id << " /" << var_list.size() << endl;
+    // cout << _slot_id << " /" << var_list.size() << endl;
     
     assert(var_list.size() == 8);
     if(i == -1){
-        cout <<"return Y_ij\n";
+        // cout <<"return Y_ij\n";
         return Y_ij;
     }
     return var_list[i];

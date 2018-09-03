@@ -82,12 +82,12 @@ int main(int argc, char** argv)
     try{
         GRBEnv env = GRBEnv();
         GRBModel *model = new GRBModel(env);
-        for (int i = 0; i < 9; ++i)
+        for (int i = 0; i < 1; ++i)
         {
             mgr->preprocess(model, i, VorH);
             mgr->layer_constraint(model, i);
-            //mgr->minimize_cap(model, i);
-            //model->optimize();
+            mgr->minimize_cap(model, i);
+            model->optimize();
         }
     }
     catch (GRBException e)

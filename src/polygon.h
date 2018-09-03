@@ -11,7 +11,7 @@ class Polygon
 	public:
 		Polygon(string s = "normal", bool solid_ornot = false) : _type(s), _is_solid(solid_ornot)
 		{
-			assert(s != "slot");
+			//assert(s != "slot");
 			_is_critical_net = false;
 			_slot_id = -1;
 			middle_y = 0;
@@ -20,7 +20,16 @@ class Polygon
 		{
 			middle_y = m_y;
 			_is_critical_net = false;
+			G_model = model;
+		}
+		void setALL(int m_y, GRBModel *model, int id){
+			_type = "slot";
+			_is_solid = false;
+			_slot_id = id ;
+			middle_y = m_y;
+			_is_critical_net = false;
 			setVariable(model);
+			// cout<<"ALL"<<middle_y<<endl;
 		}
 		void set_coordinate_H(vector<int> tokens);
 		void set_coordinate_V(vector<int> tokens);
@@ -46,6 +55,7 @@ class Polygon
 		inline int get_net_id() { return _net_id; }
 		inline int get_slot_id() { return _slot_id; }
 		inline int get_polygon_id() { return _polygon_id; }
+		inline GRBModel* get_model(){return G_model;}
 		inline int _bottom_left_x() const { return _b_left_x; }
 		inline int _bottom_left_y() const { return _b_left_y; }
 		inline int _top_right_x() const { return _t_right_x; }
@@ -87,6 +97,7 @@ class Polygon
 		static unsigned global_ref;
 		vector<GRBVar> var_list;
 		GRBVar Y_ij;
+		GRBModel* G_model;
 };
 
 #endif

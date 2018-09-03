@@ -314,17 +314,17 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
             int y1 = coordinate_y[j] + w_y / 2;
             int x2 = coordinate_x[k] - w_x / 2;
             int y2 = coordinate_y[j] - w_y / 2;
-
             Polygon *S = new Polygon(coordinate_y[j], model, ++slot_id);
             S->set_layer_id(layer_id);
             S->set_xy(x1, y1, x2, y2);
+            // S->setALL(coordinate_y[j], model, ++slot_id);
             insert(S, true, dummy_bottom);
-            cout << S->get_slot_id() << endl;
-            vector<Polygon*> pp ;
-            region_query(dummy_bottom, x1, y1, x2, y2, pp);
-            for(int i = 0; i< pp.size(); ++i)
-                cout << pp[i]->getType() << " id:" << pp[i]->get_slot_id()
-                 << " Y_ij "<< pp[i]->get_Wi_coord(-1) << endl;
+            // cout << S->get_slot_id() << endl;
+            // vector<Polygon*> pp ;
+            // region_query(dummy_bottom, x1, y1, x2, y2, pp);
+            // for(int i = 0; i< pp.size(); ++i)
+            //     cout << pp[i]->getType() << " id:" << pp[i]->get_slot_id()
+            //      << " Y_ij "<< pp[i]->get_Wi_coord(-1) << endl;
             slot_list.push_back(S);
         }
     }

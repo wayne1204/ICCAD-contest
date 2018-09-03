@@ -531,15 +531,15 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
         int min_space = _LayerList[layer_id].get_gap();
     
         // cout<<"start left right...."<<endl;
-        // _LayerList[layer_id].critical_find_lr(C, poly_list);
+        _LayerList[layer_id].critical_find_lr(C, poly_list);
 
-        // for (int j = 0; j < poly_list.size(); ++j)
-        // {
-        //     int overlap = min(C->_top_right_y(), poly_list[j]->_top_right_y()) - 
-        //                   max(C->_bottom_left_y(), poly_list[j]->_bottom_left_y());
-        //     GRBLinExpr single_cap = calCapicitance(overlap, min_space, layer_id + 1) * poly_list[j]->getPortion();
-        //     cap_expression += single_cap * poly_list[j]->getVariable(-1);
-        // }
+        for (int j = 0; j < poly_list.size(); ++j)
+        {
+            int overlap = min(C->_top_right_y(), poly_list[j]->_top_right_y()) - 
+                          max(C->_bottom_left_y(), poly_list[j]->_bottom_left_y());
+            GRBLinExpr single_cap = calCapicitance(overlap, min_space, layer_id + 1) * poly_list[j]->getPortion();
+            cap_expression += single_cap * poly_list[j]->getVariable(-1);
+        }
 
         // cout<<"start top...."<<endl;
         _LayerList[layer_id].critical_find_top(C, poly_list);
@@ -555,27 +555,27 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
                 single_cap += cap * poly_list[j]->getVariable(k);
             }
             cap_expression += single_cap * poly_list[j]->getVariable(-1);
-            cap_expression += single_cap;
-            cout << cap_expression.size() << endl;
+            // cap_expression += single_cap;
+            // cout << cap_expression.size() << endl;
         }
 
         // cout<<"start bo...."<<endl;
-        // _LayerList[layer_id].critical_find_bottom(C, poly_list);
-        // for (int j = 0; j < poly_list.size(); ++j)
-        // {
-        //     int overlap = min(C->_top_right_x(), poly_list[j]->_top_right_x()) -
-        //                   max(C->_bottom_left_x(), poly_list[j]->_bottom_left_x());
-        //     GRBLinExpr single_cap = 0;
-        //     for (int k = 0; k < 4; ++k){
-        //         int space = C->_bottom_left_y() - poly_list[j]->get_Wi_coord(k);
-        //         double cap = calCapicitance(overlap, space, layer_id+1);
-        //         assert(cap != 0);
-        //         single_cap += cap * poly_list[j]->getVariable(k);
-        //     }
-        //     // cap_expression += single_cap * poly_list[j]->getVariable(-1);
-        //     cout << single_cap.size() << endl;
-        //     cap_expression += single_cap;
-        // }
+        _LayerList[layer_id].critical_find_bottom(C, poly_list);
+        for (int j = 0; j < poly_list.size(); ++j)
+        {
+            int overlap = min(C->_top_right_x(), poly_list[j]->_top_right_x()) -
+                          max(C->_bottom_left_x(), poly_list[j]->_bottom_left_x());
+            GRBLinExpr single_cap = 0;
+            for (int k = 0; k < 8; ++k){
+                int space = C->_bottom_left_y() - poly_list[j]->get_Wi_coord(k);
+                double cap = calCapicitance(overlap, space, layer_id+1);
+                assert(cap != 0);
+                single_cap += cap * poly_list[j]->getVariable(k);
+            }
+            cap_expression += single_cap * poly_list[j]->getVariable(-1);
+            // cout << single_cap.size() << endl;
+            // cap_expression += single_cap;
+        }
     }
 
     // for(int i = 0; i < cap_expression.size(); ++i){
