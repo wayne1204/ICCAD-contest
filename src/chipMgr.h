@@ -69,6 +69,7 @@ public:
     void layer_constraint(GRBModel *model, int layer_id);
     GRBQuadExpr slot_constraint(GRBModel *model, const int &x, const int &y, vector<Polygon *> &slots);
     void minimize_cap(GRBModel *model, int layer_id);
+    void write_output(GRBModel* g, int layer);
 
   private:
     double window_size;

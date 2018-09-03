@@ -88,6 +88,7 @@ int main(int argc, char** argv)
             mgr->layer_constraint(model, i);
             mgr->minimize_cap(model, i);
             model->optimize();
+            mgr->write_output(model,i);
         }
     }
     catch (GRBException e)
@@ -96,7 +97,7 @@ int main(int argc, char** argv)
         cout << e.getMessage() << endl;
     }
 
-    // mu->report();
+    mu->report();
 
     // string output_fill = "";
     // mgr->report_density(true);
@@ -123,11 +124,13 @@ int main(int argc, char** argv)
 
     //     // Optimize model
     //     model.optimize();
-
+    //     if(x.get(GRB_DoubleAttr_X) > 0)
     //     cout << x.get(GRB_StringAttr_VarName) << " "
     //          << x.get(GRB_DoubleAttr_X) << endl;
+    //     if(y.get(GRB_DoubleAttr_X) > 0)
     //     cout << y.get(GRB_StringAttr_VarName) << " "
     //          << y.get(GRB_DoubleAttr_X) << endl;
+    //     if(z.get(GRB_DoubleAttr_X) > 0)
     //     cout << z.get(GRB_StringAttr_VarName) << " "
     //          << z.get(GRB_DoubleAttr_X) << endl;
 

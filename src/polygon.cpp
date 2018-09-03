@@ -66,7 +66,7 @@ void Polygon::setVariable(GRBModel *model)
     for (int i = 0; i < 8; ++i)
     {
         string name = "slot" + to_string(_slot_id) + "_w" + to_string(i + 1);
-        GRBVar var = model->addVar(0.0, 1.0, 1.0, GRB_BINARY, name);
+        GRBVar var = model->addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
         var_list.push_back(var);
         if (i < 4)
             up += var;
@@ -84,7 +84,6 @@ void Polygon::setVariable(GRBModel *model)
 GRBVar &Polygon::getVariable(int i)
 {
     // cout << _slot_id << " /" << var_list.size() << endl;
-    
     assert(var_list.size() == 8);
     if(i == -1){
         // cout <<"return Y_ij\n";

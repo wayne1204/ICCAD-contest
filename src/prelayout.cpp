@@ -552,7 +552,6 @@ bool Layer::insert(Polygon* T, bool first_inset, Polygon* start){
     }
     /*
     after splitting we join 
-
     */
     for(int i=query_list.size()-1;i>=1;i--)
         join(query_list[i-1],query_list[i]);
@@ -564,19 +563,23 @@ bool Layer::insert(Polygon* T, bool first_inset, Polygon* start){
         cout<<"query_list num= "<<query_list.size()<<endl;
         print_Polygon(query_list[0]);
     #endif
+
+    //set somthing
     if(T->is_critical())
         query_list[0]->setToCNet();
     if(T->getType()=="slot"){
         query_list[0]->setALL(T->get_Wi_coord(-1),T->get_model(),T->get_slot_id());
+        slot_list.push_back(query_list[0]);
     }
-    //set somthing
+    else{ 
         query_list[0]->setToSolid();
-        query_list[0]->setType(T->getType());
-        query_list[0]->set_layer_id(T->get_layer_id());
-        if(first_inset){
-            query_list[0]->set_net_id(T->get_net_id());
-            query_list[0]->set_polygon_id(T-> get_polygon_id());
-        }
+    }
+    query_list[0]->setType(T->getType());
+    query_list[0]->set_layer_id(T->get_layer_id());
+    if(first_inset){
+        query_list[0]->set_net_id(T->get_net_id());
+        query_list[0]->set_polygon_id(T-> get_polygon_id());
+    }
     #ifdef DEBUG
     if(T->_top_right_y()!=query_list[0]->_top_right_y()||T->_top_right_x()!=query_list[0]->_top_right_x()
         ||T->_bottom_left_y()!=query_list[0]->_bottom_left_y()||T->_bottom_left_x()!=query_list[0]->_bottom_left_x()){

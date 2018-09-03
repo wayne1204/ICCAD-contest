@@ -204,8 +204,6 @@ after:      __3_|___2___|_1__
     d6->swap_xy(); d6->swap_top_right(); d6->set_bl(d5); d6->set_lb(0);
 }
 
-
-
 void chipManager::report_density(bool init_cnet){
     int x, y, wnd_num;
     double density = 0;
@@ -480,6 +478,7 @@ void chipManager::layer_constraint(GRBModel* model, int layer_id){
             x = _LayerList[layer_id].get_bl_boundary_x() + col * half_wnd;
             y = _LayerList[layer_id].get_bl_boundary_y() + row * half_wnd;
             int area = _LayerList[layer_id].slot_area(x, y, window_size, slots);
+            cout<< "(layer cons) pre density = "<< double(area)/(window_size * window_size) <<endl;
             int min_area = _LayerList[layer_id].get_min_density() * window_size * window_size;
             GRBQuadExpr slot_exp = slot_constraint(model, x, y, slots);
             // cout << "x: " << x/1000.0 << "k y: " << y/1000.0 << "k slot size: " << slots.size() <<endl;
@@ -576,6 +575,7 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
             // cout << single_cap.size() << endl;
             // cap_expression += single_cap;
         }
+        
     }
 
     // for(int i = 0; i < cap_expression.size(); ++i){
@@ -585,7 +585,50 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
     // }
 
     cout << "===== finish adding objective function (minimize capacitance) exp size = " << cap_expression.size() << endl;
-    model->setObjective(cap_expression, GRB_MINIMIZE);
-    // vector<Slot*> slot_list = _LayerList[0].getSlots();
-    // model->setObjective(slot_list[0]->getVariable(0) + slot_list[0]->getVariable(5), GRB_MAXIMIZE);
+    // cap_expression = 0;
+    // model->setObjective(cap_expression, GRB_MINIMIZE);
+    vector<Polygon*> slot_list = _LayerList[0].getSlots();
+    cout<<slot_list.size()<<endl;
+    model->setObjective(slot_list[1]->getVariable(0) + slot_list[1]->getVariable(5), GRB_MAXIMIZE);
 }
+
+
+void chipManager::write_output(GRBModel* g, int layer){
+    vector<Polygon*> polygon_list;
+    int slot_id = 0;
+    int space_count = 0;
+    int threshold = _LayerList[layer].get_width() + 2 * _LayerList[layer].get_gap();
+    
+    _LayerList[layer].region_query(
+        _LayerList[layer].get_dummy()->get_bl(),_LayerList[layer].get_tr_boundary_x(),
+        _LayerList[layer].get_tr_boundary_y(),_LayerList[layer].get_bl_boundary_x(),
+        _LayerList[layer].get_bl_boundary_y(), polygon_list);
+    for(int i=0; i <polygon_list.size();i++){
+        if(polygon_list[i]->getType()=="slot"){
+            int y_top = INT_MAX, y_bottom = INT_MAX;
+            for (int j=0;j<8;j++){
+                GRBVar x = polygon_list[i]->getVariable(j);
+                if(x.get(GRB_DoubleAttr_X) > 0){
+                    // cout<<"gurobi sucks  " << x.get(GRB_StringAttr_VarName) << " ,value = "<< x.get(GRB_DoubleAttr_X)<<endl;
+                    // if (j < 4){
+                    //     y_top = polygon_list[i]->get_Wi_coord(j);
+                    // }
+                    // else{
+                    //     y_bottom = polygon_list[i]->get_Wi_coord(j);
+                    // }
+                }
+            }
+            // if (y_top != INT_MAX && y_bottom != INT_MAX){
+            //     Polygon* T = new Polygon("fill", true);
+            //     T->set_xy(polygon_list[i]->_top_right_x(), y_top, polygon_list[i]->_bottom_left_x(), y_bottom);
+            //     T->set_layer_id(layer);
+            //     _LayerList[layer].insert(T, true, _LayerList[layer].get_dummy());
+
+            //     delete T;
+            //     T = NULL;
+            // }
+        }
+    }
+}
+
+

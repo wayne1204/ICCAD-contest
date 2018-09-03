@@ -325,7 +325,9 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
             // for(int i = 0; i< pp.size(); ++i)
             //     cout << pp[i]->getType() << " id:" << pp[i]->get_slot_id()
             //      << " Y_ij "<< pp[i]->get_Wi_coord(-1) << endl;
-            slot_list.push_back(S);
+            // slot_list.push_back(S);
+            delete S;
+            S = NULL;
         }
     }
 }
