@@ -62,6 +62,7 @@ void Polygon::swap_xy(){
 
 void Polygon::setVariable(GRBModel *model)
 {
+    var_list.clear();
     GRBLinExpr up, down;
     for (int i = 0; i < 8; ++i)
     {
@@ -73,9 +74,11 @@ void Polygon::setVariable(GRBModel *model)
         else
             down += var;
     }
-
+    is_set= true;
     string name = "slot" + to_string(_slot_id) + "_yij";
-    Y_ij = model->addVar(0.0, 1.0, 1.0, GRB_BINARY, name);
+    Y_ij = model->addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
+    // model->addQConstr(up <= 1.0);
+    // model->addQConstr(down <= 1.0);
     model->addQConstr(Y_ij == up * down, name);
 
 }

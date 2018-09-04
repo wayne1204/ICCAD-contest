@@ -306,12 +306,18 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
     vector<int> coordinate_x;
     int w_y = find_optimal_width(p->_bottom_left_y(), poly_h, coordinate_y);
     int w_x = find_optimal_width(p->_bottom_left_x(), poly_w, coordinate_x);
+    // cout<<"w_y = "<<w_y<<endl;
+    //cout<<"w_x = "<<w_x<<endl;
+    //if (w_x > get_max_width()) cout<<"======== fuck ========="<<endl;
     for (int j = 0; j < coordinate_y.size(); j++)
     {
         for (int k = 0; k < coordinate_x.size(); k++)
         {
             int x1 = coordinate_x[k] + w_x / 2;
+            if( w_x%2 != 0) x1++;
             int y1 = coordinate_y[j] + w_y / 2;
+            if( w_y%2 != 0) y1++;
+            
             int x2 = coordinate_x[k] - w_x / 2;
             int y2 = coordinate_y[j] - w_y / 2;
             Polygon *S = new Polygon(coordinate_y[j], model, ++slot_id);
@@ -338,29 +344,37 @@ int Layer::find_optimal_width(const int &boundary, const int &length, vector<int
     int optimal_N = 0;
     int optimal_W = 0;
 
-    int min_N = ceil((length - min_space) / (max_fill_width + min_space));
-    int max_N = floor((length - min_space) / (min_width + min_space));
-
+    int min_N = ((length - min_space) / (max_fill_width + min_space));
+    int max_N = ((length - min_space) / (min_width + min_space));
+    //cout<<"len= "<<length<<" min_N "<<min_N<<" max_N "<<max_N<<endl;
     if (max_N <= 0) 
         return 0;
 
     for (int n = max(min_N, 1); n <= max_N; ++n)
     {
         int width = floor((length - min_space) / n - min_space);
+        if(width > max_fill_width )width = max_fill_width;
+        if(width < min_width ){
+            cout<<"-----------------error-------------------\n";
+            width = min_width;}
         if (n * width > optimal_N * optimal_W)
         {
             optimal_W = width;
+            //cout<<"opt w = " << optimal_W <<endl;
             optimal_N = n;
         }
     }
     for(int i = 0; i < optimal_N; ++i){
         coordinates.push_back(boundary + (i+1) * (optimal_W + min_space) - 0.5 *optimal_W);
     }
+    if(optimal_W < min_width ){
+            cout<<"-----------------error-------------------\n";
+            optimal_W = min_width;}
     return optimal_W;
 }
 
 
-void Layer::critical_find_lr(Polygon *critical, vector<Polygon *> & neighbor_list)
+void Layer::critical_find_lr(Polygon *critical, vector<Polygon *> & neighbor_list, int x, int y, int windowsize)
 {
     assert(critical->is_critical());
     neighbor_list.clear();
@@ -370,8 +384,11 @@ void Layer::critical_find_lr(Polygon *critical, vector<Polygon *> & neighbor_lis
     Polygon *current = point_search(dummy_bottom, x_start, y_start);
     if (x_start > _bl_boundary_x && x_start < _tr_boundary_x && y_start > _bl_boundary_y && y_start <_tr_boundary_y){
         while(current->_top_right_y() > critical->_bottom_left_y()){
-            if(current->is_slot())
-                neighbor_list.push_back(current);
+            if(current->getType() == "slot"){
+                if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 2 * windowsize, x) 
+                    * classify(current->_top_right_y(), current->_bottom_left_y(), y + 2 * windowsize, y) != 0)
+                    neighbor_list.push_back(current);
+            }
             if(current->_bottom_left_y() - min_space > _bl_boundary_y){
                 current = point_search(current, x_start, current->_bottom_left_y() - min_space);
             }
@@ -384,8 +401,11 @@ void Layer::critical_find_lr(Polygon *critical, vector<Polygon *> & neighbor_lis
     if (x_start > _bl_boundary_x && x_start < _tr_boundary_x && y_start > _bl_boundary_y && y_start <_tr_boundary_y){
         current = point_search(dummy_bottom, x_start, y_start);
         while(current->_top_right_y() > critical->_bottom_left_y()){
-            if(current->is_slot())
-                neighbor_list.push_back(current);
+            if(current->is_slot()){
+                if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 2*windowsize, x) 
+                    * classify(current->_top_right_y(), current->_bottom_left_y(), y + 2 * windowsize, y) != 0)
+                    neighbor_list.push_back(current);
+            }
             if(current->_bottom_left_y() - min_space > _bl_boundary_y){
                 current = point_search(current, x_start, current->_bottom_left_y() - min_space);
             }
@@ -394,7 +414,7 @@ void Layer::critical_find_lr(Polygon *critical, vector<Polygon *> & neighbor_lis
     }
 }
 
-void Layer::critical_find_top(Polygon *critical, vector<Polygon *> &neighbor_list)
+void Layer::critical_find_top(Polygon *critical, vector<Polygon *> &neighbor_list, int x, int y, int windowsize)
 {
     assert(critical->is_critical());
     int x_start = critical->_bottom_left_x();
@@ -403,13 +423,16 @@ void Layer::critical_find_top(Polygon *critical, vector<Polygon *> &neighbor_lis
     neighbor_list.clear();
 
     while(current->_bottom_left_x() < critical->_top_right_x()){
-        if(current->is_slot())
-            neighbor_list.push_back(current);
+        if(current->is_slot()){
+            if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 2*windowsize, x) 
+                    * classify(current->_top_right_y(), current->_bottom_left_y(), y + 2 * windowsize, y) != 0)
+                neighbor_list.push_back(current);
+        }
         current = point_search(current, current->_top_right_x() + min_space, y_start);
     }
 }
 
-void Layer::critical_find_bottom(Polygon *critical, vector<Polygon *> &neighbor_list)
+void Layer::critical_find_bottom(Polygon *critical, vector<Polygon *> &neighbor_list, int x, int y, int windowsize)
 {
     assert(critical->is_critical());
     int x_start = critical->_bottom_left_x();
@@ -419,7 +442,9 @@ void Layer::critical_find_bottom(Polygon *critical, vector<Polygon *> &neighbor_
 
     while(current->_bottom_left_x() < critical->_top_right_x()){
         if(current->is_slot())
-            neighbor_list.push_back(current);
+            if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 2*windowsize, x) 
+                    * classify(current->_top_right_y(), current->_bottom_left_y(), y + 2 * windowsize, y) != 0)
+                neighbor_list.push_back(current);
         current = point_search(current, current->_top_right_x() + min_space, y_start);
     }
 }

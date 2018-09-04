@@ -41,7 +41,7 @@ double Layer::slot_area(const int &x, const int &y, const double &windowsize, ve
             else
                 area += x_area * y_area;
         }
-        if (query_list[i]->is_slot())
+        if (query_list[i]->getType() == "slot")
             slot_vec.push_back(query_list[i]);
     }
     return area;
@@ -50,18 +50,16 @@ double Layer::slot_area(const int &x, const int &y, const double &windowsize, ve
 
 // calculate density in a window
 // return: density, critical nets and slots in window
-double Layer::density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *> &critical_vec)
+double Layer::density_calculate(const int &x, const int &y, const double &windowsize, vector<Polygon *> &query_list)
 {   
     //region 右上/左下
-    vector<Polygon *> query_list;
-    region_query(dummy_bottom, x + windowsize, y + windowsize, x, y, query_list);
-    critical_vec.clear();
 
     double area = 0, x_area = 0, y_area = 0;
     for (int i = 0; i < query_list.size(); i++)
     {
         if (query_list[i]->is_solid())
         {
+
             x_area = classify(query_list[i]->_top_right_x(), query_list[i]->_bottom_left_x(), x + windowsize, x);
             y_area = classify(query_list[i]->_top_right_y(), query_list[i]->_bottom_left_y(), y + windowsize, y);
             if (x_area < 0 || y_area < 0)
@@ -316,7 +314,7 @@ Polygon* Layer::split_Y(Polygon* bigGG,int y,bool is_top)
     #ifdef DEBUG
         cout<<"split y "<<endl;
     #endif     
-    Polygon* new_poly=new Polygon(bigGG->getType(),bigGG->is_solid());
+    Polygon* new_poly=new Polygon("space",bigGG->is_solid());
     if(is_top){
         new_poly->set_xy(bigGG->_top_right_x(),bigGG->_top_right_y(),bigGG->_bottom_left_x(),y);
         new_poly->set_rt(bigGG->get_rt());
@@ -382,7 +380,7 @@ Polygon* Layer::split_X_left(Polygon* bigGG, int x_left,int x_right)
         cout<<"split x_left "<<endl;
     #endif
     Polygon* tp;
-    Polygon* new_poly = new Polygon(bigGG->getType(), bigGG->is_solid());
+    Polygon* new_poly = new Polygon("space", bigGG->is_solid());
     new_poly->set_xy(x_left,bigGG->_top_right_y(),bigGG->_bottom_left_x(),bigGG->_bottom_left_y());
     new_poly->set_tr(bigGG);
     new_poly->set_lb(bigGG->get_lb());
@@ -411,7 +409,7 @@ Polygon* Layer::split_X_right(Polygon* bigGG, int x_left,int x_right )
         cout<<"split x_right "<<endl;
     #endif
     Polygon* tp;
-    Polygon* new_poly = new Polygon(bigGG->getType(), bigGG->is_solid());
+    Polygon* new_poly = new Polygon("space", bigGG->is_solid());
     new_poly->set_xy(bigGG->_top_right_x(),bigGG->_top_right_y(),x_right,bigGG->_bottom_left_y());
     new_poly->set_rt(bigGG->get_rt());
     new_poly->set_tr(bigGG->get_tr());
@@ -571,9 +569,9 @@ bool Layer::insert(Polygon* T, bool first_inset, Polygon* start){
         query_list[0]->setALL(T->get_Wi_coord(-1),T->get_model(),T->get_slot_id());
         slot_list.push_back(query_list[0]);
     }
-    else{ 
+    // else{ 
         query_list[0]->setToSolid();
-    }
+    // }
     query_list[0]->setType(T->getType());
     query_list[0]->set_layer_id(T->get_layer_id());
     if(first_inset){
@@ -591,3 +589,183 @@ bool Layer::insert(Polygon* T, bool first_inset, Polygon* start){
     return true;
 
 }
+// void chipManager::insert_tile(string& output_fill){ 
+//     vector<Polygon*> critical_nets;
+//     int fillnum = 1;
+//     stringstream out_fill;
+
+//     for (int _time = 0; _time < 4; ++_time){
+//         int x, y, wnd_num;
+//         double density = 0;
+//         int half_wnd = window_size / 2;
+//         int horizontal_cnt = (_tr_bound_x - _bl_bound_x) / window_size;
+//         int vertical_cnt = (_tr_bound_y - _bl_bound_y) / window_size;
+//         if(_time == 1 || _time == 3)
+//             horizontal_cnt -= 1;
+//         if(_time == 2 || _time == 3)
+//             vertical_cnt -= 1;
+//         for (int i = 0; i < layer_num; ++i){
+//             for(int row = 0; row < vertical_cnt; ++row){
+//                 for (int col = 0; col < horizontal_cnt; ++col){
+//                     x = _bl_bound_x + col * window_size;
+//                     y = _bl_bound_y + row * window_size;
+//                     if(_time == 1 or _time == 3)
+//                         x += half_wnd;
+//                     if(_time == 2 or _time == 3)
+//                         y += half_wnd;
+//                     wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;                
+//                     density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
+                    
+//                     if(density < _LayerList[i].get_min_density()){
+//                         cout << "error\n";
+//                         double new_density = density;
+//                         // cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
+//                         //    << horizontal_cnt * vertical_cnt << "]=========="<< endl;
+//                         // cout << "\n=============[ Layer: " << i + 1 << " | Row: " << row/2 << "| Col:"
+//                         //     << col/2 << " | Pos:" << (row%2)*2+col%2 << "]=============" << endl;
+//                         string out = "";
+//                         //cout<<"insert dummy in Layer: "<<setw(1)<<i+1<<".......................\r";
+//                         _LayerList[i].layer_fill(x, y, window_size, new_density, i + 1, out, fillnum);
+//                         out_fill<<out;
+//                         // cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
+//                     }
+//                 }
+//             }       
+//         }
+//     }
+//     //cout << endl;
+//     int horizontal_cnt = (_tr_bound_x - window_size - _bl_bound_x) * 2 / window_size + 1;
+//     int vertical_cnt = (_tr_bound_y - window_size - _bl_bound_y) * 2 / window_size + 1;
+
+//     int x, y, wnd_num;
+//     double density = 0;
+//     int half_wnd = window_size / 2;
+
+//     for (int i = 0; i < layer_num; ++i){
+//         for(int row = 0; row < vertical_cnt; ++row){
+//             for (int col = 0; col < horizontal_cnt; ++col){
+//                 x = _bl_bound_x + col * window_size / 2;
+//                 y = _bl_bound_y + row * window_size / 2;
+//                 wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;                
+//                 density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
+//                 if(density < _LayerList[i].get_min_density()){  
+//                     cout<<"error\n";
+//                     double new_density = density;
+//                     cout << "\n==========[ Layer: " << i + 1 << " | Window: " << row * horizontal_cnt + col << "/"
+//                          << horizontal_cnt * vertical_cnt << "]==========" << endl;
+//                     string out = "";
+//                     //cout<<"insert dummy in Layer: "<<setw(1)<<i+1<<".......................\r";
+//                     _LayerList[i].layer_fill(x, y, window_size, new_density, i + 1, out, fillnum);
+//                     out_fill<<out;
+//                     // cout<<"新的密度 "<<new_density<<" "<<x<<","<<y<<" windownum= "<<wnd_num<<" layer id= "<<i+1<<endl;
+//                 }
+//             }
+//         }       
+//     }
+//     ///cout << endl;
+//     output_fill = out_fill.str();
+// }
+// void chipManager::report_density(bool init_cnet){
+//     int x, y, wnd_num;
+//     double density = 0;
+//     double count[9] = {0}, count2[9] = {0};
+//     int half_wnd = window_size / 2;
+//     int horizontal_cnt = (_tr_bound_x - _bl_bound_x)  / half_wnd -1;
+//     int vertical_cnt = (_tr_bound_y - _bl_bound_y)  / half_wnd -1 ;
+//     vector<Polygon*> critical_nets;
+
+//     for (int i = 0; i < layer_num; ++i){
+//         for(int row = 0; row < vertical_cnt; ++row){
+//             for (int col = 0; col < horizontal_cnt; ++col){
+//                 x = _bl_bound_x + col * half_wnd;
+//                 y = _bl_bound_y + row * half_wnd;
+//                 wnd_num = i * horizontal_cnt * vertical_cnt + row * horizontal_cnt + col;
+//                 density = _LayerList[i].density_calculate(x, y, window_size, critical_nets);
+//                 if(init_cnet)
+//                     // total_Cnet_List[].pus(critical_nets);
+//                 if(density >= _LayerList[i].get_min_density() && density < _LayerList[i].get_min_density()+0.01)
+//                     count[0]+=1;
+//                 else if (density >= _LayerList[i].get_min_density()+0.01 && density < _LayerList[i].get_min_density()+0.04)
+//                     count[1]+=1;
+//                 else if (density >= _LayerList[i].get_min_density()+0.04 && density < _LayerList[i].get_min_density()+0.07)
+//                     count[2]+=1;
+//                 else if (density >= _LayerList[i].get_min_density()+0.07 && density < _LayerList[i].get_min_density()+0.1)
+//                     count[3]+=1;
+//                 else if (density >= _LayerList[i].get_min_density()+0.1)
+//                     count[4]+=1;
+//                 else{
+//                     //cout << i+1 << " row " <<row/2 << " col "<<col/2 <<" pos " <<(row%2)*2 + (col%2) <<endl;
+//                 }
+//                 if (density >= _LayerList[i].get_min_density())
+//                     ++count2[0];
+//             }
+//         }       
+//     }
+//     cout << "\n============[denity report]============\n";
+//     for (int i = 0; i < 5; ++i){
+//         cout<<"Density "<<0.4 + 0.01*i<<" - "<< 0.4 + 0.01*(i+1) <<" : "<<count[i]/count2[0]*100<<"% \n";
+//     }
+//     // for (int i = 0; i < 9; i++)
+//     //     cout << "Layer #" << i + 1 << " | density:" << count[i] / count2[i] * 100 << "% \n";
+// }
+// void chipManager::check_layer(string &filename)
+// {
+//     ifstream ifs(filename);
+//     int filesize;
+//     ifs.seekg(0, ios::end);
+//     filesize = ifs.tellg();
+//     ifs.seekg(0, ios::beg);
+//     char* buff = new char[filesize+1];
+//     ifs.read(buff, filesize);
+//     char* buff_beg = buff;
+//     char* buff_end = buff + filesize;
+//     string token = "haha";
+//     int num;
+//     vector<int> tokens;
+
+//     while (token != ""){
+//         while ( (token = next_token(buff_beg, buff_end)) != "" ){
+//             if (token[0] == '\n') { break; }
+//             if (myStr2Int(token, num)){
+//                 tokens.push_back(num);
+//             }
+//             else{
+//                 int a = tokens[6]-1;
+//                 cout<<"layer id = "<<a<<endl;
+//                 int count = 0;
+//                 vector<Polygon*> query_list;
+//                 int gap = _LayerList[a].get_gap();
+//                 int y2 = tokens[4], y1 = tokens[2], x2 = tokens[1], x1 = tokens[3];
+//                 int bl_x, bl_y, tr_x, tr_y;
+//                 (x2 - _LayerList[a].get_gap() >= _LayerList[a].get_bl_boundary_x()) ? bl_x = x2 - _LayerList[a].get_gap()      : bl_x = _LayerList[a].get_bl_boundary_x();
+//                 (y2 - _LayerList[a].get_gap() >= _LayerList[a].get_bl_boundary_y()) ? bl_y = y2 - _LayerList[a].get_gap()      : bl_y = _LayerList[a].get_bl_boundary_y();
+//                 (x1 + _LayerList[a].get_gap() >  _LayerList[a].get_tr_boundary_x()) ? tr_x = _LayerList[a].get_tr_boundary_x() : tr_x = x1 + _LayerList[a].get_gap()     ;
+//                 (y1 + _LayerList[a].get_gap() >  _LayerList[a].get_tr_boundary_y()) ? tr_y = _LayerList[a].get_tr_boundary_y() : tr_y = y1 + _LayerList[a].get_gap()     ; 
+                       
+//                 _LayerList[a].region_query( _LayerList[a].get_dummy(), tr_x, tr_y, bl_x, bl_y, query_list);
+//                 for (int i = 0; i < query_list.size(); ++i){
+//                     if (query_list[i]->is_solid())
+//                     {
+//                         int area = (query_list[i]->_top_right_x()-query_list[i]->_bottom_left_x())*(query_list[i]->_top_right_y()-query_list[i]->_bottom_left_y());
+//                         cout<<"..............area = "<<area<<endl;
+//                         cout<<"..............maxa = "<< _LayerList[a].get_max_width()*_LayerList[a].get_max_width()<<endl;
+//                         assert(area < _LayerList[a].get_max_width()*_LayerList[a].get_max_width());
+//                         cout<<"a "<<query_list[i]->_top_right_x() - query_list[i]->_bottom_left_x()<<endl;
+//                         cout<<"b "<<_LayerList[a].get_max_width()<<endl;
+//                         assert(query_list[i]->_top_right_x() - query_list[i]->_bottom_left_x() <= _LayerList[a].get_max_width());
+//                         assert(query_list[i]->_top_right_y() - query_list[i]->_bottom_left_y() <= _LayerList[a].get_max_width());
+//                         assert(query_list[i]->_top_right_x() - query_list[i]->_bottom_left_x() >= _LayerList[a].get_width());
+//                         assert(query_list[i]->_top_right_y() - query_list[i]->_bottom_left_y() >= _LayerList[a].get_width());
+//                         assert(area >= _LayerList[a].get_width()*_LayerList[a].get_width());
+//                         count++;
+//                         if (count > 1){
+//                             cout<<".............gap error.....Layer id = "<<a<<"  ............."<<endl;
+//                             print_Polygon(query_list[i]);
+//                         }
+//                     }
+//                 }
+//             }
+
+//         }
+//     }
+// }

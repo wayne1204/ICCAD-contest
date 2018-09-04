@@ -15,6 +15,7 @@ class Polygon
 			_is_critical_net = false;
 			_slot_id = -1;
 			middle_y = 0;
+
 		}
 		Polygon(int m_y, GRBModel *model, int id=-10) : _type("slot"), _is_solid(false), _slot_id(id)
 		{
@@ -28,7 +29,7 @@ class Polygon
 			_slot_id = id ;
 			middle_y = m_y;
 			_is_critical_net = false;
-			setVariable(model);
+			// setVariable(model);
 			// cout<<"ALL"<<middle_y<<endl;
 		}
 		void set_coordinate_H(vector<int> tokens);
@@ -70,8 +71,10 @@ class Polygon
 		GRBVar &getVariable(int i);
 		GRBLinExpr getPortion();
 		const int get_Wi_coord(int i);
+		void reset_var(){var_list.clear();}
 
 		// preprocessing member functions
+		bool setornot(){return is_set;}
 		void rotate();
 		void swap_top_right();
 		void swap_xy();
@@ -90,6 +93,7 @@ class Polygon
 		Polygon *rt;
 		Polygon *lb;
 		Polygon *bl;
+		bool is_set;
 		string _type;
 		bool _is_critical_net;
 		bool _is_solid;

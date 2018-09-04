@@ -65,11 +65,18 @@ public:
     void write_fill(string, string);
     void check_layer(string &filename);
     void rotate_dummy(Layer layer);
+    double get_windowsize(){return window_size;}
     void preprocess(GRBModel* model, int layer, vector<bool> VorH);
-    void layer_constraint(GRBModel *model, int layer_id);
+    void layer_constraint(GRBModel *model, int layer_id, int x ,int y);
     GRBQuadExpr slot_constraint(GRBModel *model, const int &x, const int &y, vector<Polygon *> &slots);
-    void minimize_cap(GRBModel *model, int layer_id);
-    void write_output(GRBModel* g, int layer);
+    void minimize_cap(GRBModel *model, int layer_id, int x, int y);
+    void write_output(GRBModel* g, int layer, int x, int y);
+    inline int get_bl_boundary_x() { return _bl_bound_x; }
+    inline int get_bl_boundary_y() { return _bl_bound_y; }
+    inline int get_tr_boundary_x() { return _tr_bound_x; }
+    inline int get_tr_boundary_y() { return _tr_bound_y; }
+    void final_check();
+
 
   private:
     double window_size;
