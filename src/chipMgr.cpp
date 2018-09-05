@@ -93,11 +93,11 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                     tokens.push_back(num);
                 }
                 else {
-                    if (insert_vec[tokens[6]-1].size() < 100){
+                    if (insert_vec[tokens[6]-1].size() < 1000){
                         insert_vec[tokens[6]-1].push_back(tokens);
-                        if(insert_vec[tokens[6]-1].size() == 100)
+                        if(insert_vec[tokens[6]-1].size() == 1000)
                         {
-                            for (int i = 0; i < 100; ++i){
+                            for (int i = 0; i < 1000; ++i){
                                 x_len = insert_vec[tokens[6]-1][i][3]-insert_vec[tokens[6]-1][i][1];
                                 y_len = insert_vec[tokens[6]-1][i][4]-insert_vec[tokens[6]-1][i][2];
                                 if (x_len > y_len){
@@ -129,7 +129,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                             // cout<<"1 = "<<layer_bound[0]<<" 2 = "<<layer_bound[1]<<endl;
                             y_len_big = 0, x_len_big = 0;
                             _LayerList[tokens[6]-1].init_layer(_bl_bound_x1, _bl_bound_y1, _tr_bound_x1, _tr_bound_y1);
-                            for (int i = 0; i < 100; ++i){
+                            for (int i = 0; i < 1000; ++i){
                                 poly = new Polygon();
                                 poly->setToSolid();
                                 if (VorH[tokens[6]-1]) poly->set_coordinate_V(insert_vec[tokens[6]-1][i]);
@@ -221,7 +221,7 @@ void chipManager::write_fill(string output, string output_fill){
         vector<Polygon*> query_list;
         _LayerList[layer].region_query(_LayerList[layer].get_dummy(),_tr_bound_x,_tr_bound_y,_bl_bound_x,_bl_bound_y,query_list);
         for(int i=0 ; i <query_list.size();i++){
-            if(query_list[i]->getType() == "slot"){
+            if(query_list[i]->getType() == "fill"){
                 ofs<<num<<" "<<query_list[i]->_bottom_left_x()<<" "<<query_list[i]->_bottom_left_y()
                 << " " << query_list[i]->_top_right_x() << " " << query_list[i]->_top_right_y() << " 0 "
                 << layer+1<< " " << "Fill"<<endl;
@@ -247,34 +247,14 @@ void chipManager::final_check(){
                 _LayerList[i].region_query(_LayerList[i].get_dummy(), x + window_size, y + window_size, x, y, query_list);     
                          
                 for (int j=0;j<query_list.size();j++){
-                    if(query_list[j]->getType() == "slot"){
+                    if(query_list[j]->getType() == "fill"){
                         //cout<<"checking"<<endl;
                         //檢查最大最小寬度
-
-                        // 3567150 1960845 3567214 1960931
                         assert(query_list[j]->_top_right_x()-query_list[j]->_bottom_left_x() >=_LayerList[i].get_width());
                         assert(query_list[j]->_top_right_x()-query_list[j]->_bottom_left_x() <=_LayerList[i].get_max_width());
                         assert(query_list[j]->_top_right_y()-query_list[j]->_bottom_left_y() <=_LayerList[i].get_max_width());
                         assert(query_list[j]->_top_right_y()-query_list[j]->_bottom_left_y() >=_LayerList[i].get_width());
                         //檢查間距
-                        //989341 3412365 1969539 3412487 1969935 0 7 Fill
-                        // 3412365 1969539 3412487 19699351 3412365 1969539 3412487 1969935 0 7 Fill
-                        
-                            if (query_list[j]->_bottom_left_x() == 3412365 && query_list[j]->_bottom_left_y() == 1969539
-                            && query_list[j]->_top_right_x() == 3412487 && query_list[j]->_top_right_y() == 1969935){
-                            
-                                cout<<i+1<<" min width = "<<_LayerList[i].get_width()<<endl;
-
-                                print_Polygon(query_list[j]);
-                            }
-                        
-                        if(query_list[j]->get_slot_id()==58905){
-                            print_Polygon(query_list[j]);
-                            cout<<i+1<<endl;
-                            cout<<(query_list[j]->_bottom_left_x() == 3412365 && query_list[j]->_bottom_left_y() == 1969539
-                            && query_list[j]->_top_right_x() == 3412487 && query_list[j]->_top_right_y() == 1969935)<<endl;
-                            cout<<"-------------幹-------------\n";
-                        }
                         vector<Polygon*> check;
                         _LayerList[i].region_query(_LayerList[i].get_dummy(),
                             query_list[j]->_top_right_x()+_LayerList[i].get_gap(), 
@@ -291,7 +271,7 @@ void chipManager::final_check(){
                 }
                 //檢查密度有沒有對
                 density = _LayerList[i].density_calculate(x, y, window_size, query_list);
-                cout<<"density = "<<density<<endl;
+                //cout<<"density = "<<density<<endl;
                 if (density < _LayerList[i].get_min_density()){
                     cout<<"row = "<<row<<", col = "<<col<<endl;
                 }
@@ -316,6 +296,7 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
         _LayerList[layer].get_bl_boundary_y(), polygon_list);
     if (VorH[layer] == false)
     {
+        cout<<"rotate layer "<<layer+1<<endl;
         rotate_dummy(_LayerList[layer]);
         _LayerList[layer].layer_rotate();
     }
@@ -346,28 +327,6 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
     }
     // total_Cnet_List.emplace(layer, critical_nets);
     cout<<"end insert slots"<<endl;
-    // vector<Polygon*> tmp;
-    // _LayerList[layer].region_query(_LayerList[layer].get_dummy(),
-    //     _LayerList[layer].get_tr_boundary_x(),
-    //     _LayerList[layer].get_tr_boundary_y(), 
-    //     _LayerList[layer].get_bl_boundary_x(),
-    //     _LayerList[layer].get_bl_boundary_y(), 
-    //     tmp);
-    // cout<<"(preprocess) end query"<<endl;
-    // int count = 0;
-    // for(int ii=0 ;ii<tmp.size()/100;ii++){
-    //     if(tmp[ii]->getType() == "slot"){
-    //         if(tmp[ii]->_top_right_x()-tmp[ii]->_bottom_left_x() >= _LayerList[layer].get_max_width())
-    //             cout<<"------------boom--------------\n";
-    //         if(tmp[ii]->_top_right_y()-tmp[ii]->_bottom_left_y() >= _LayerList[layer].get_max_width())
-    //             cout<<"------------clap--------------\n";
-    //         // assert(tmp[ii]->get_slot_id() != 0);
-    //         ++count;
-    //     }
-    // }
-    // cout << "total slot count = "<<count << endl;
-    // cout<<"X = "<<_LayerList[layer].get_bl_boundary_x()<<" Y = "<<_LayerList[layer].get_bl_boundary_y()<<" Xr = "<<_LayerList[layer].get_bl_boundary_x()+window_size
-    //     <<" Yr = "<<_LayerList[layer].get_bl_boundary_y()+window_size<<endl;
 }
 
 // specify constraints in every window 
@@ -385,7 +344,7 @@ void chipManager::layer_constraint(GRBModel* model, int layer_id , int x ,int y)
                         _tr_bound_x, _tr_bound_y, _bl_bound_x, _bl_bound_y, slots);
     for (int i = 0; i < slots.size(); ++i){
         if (slots[i]->getType() == "slot" )
-            slots[i]->setVariable(model);
+            slots[i]->setVariable(model, _LayerList[layer_id].get_width());
     }
     slots.clear();
     for (int row = 0; row < vertical_cnt; ++row)
@@ -404,7 +363,7 @@ void chipManager::layer_constraint(GRBModel* model, int layer_id , int x ,int y)
             // density constraint
             string name = to_string(layer_id) + '_' + to_string(row) + '_' + to_string(col);
             model->addConstr(slot_exp + area  >= min_area, name);
-            // model->addConstr(0.7*window_size*window_size >= slot_exp + area);
+            //model->addConstr(0.45*window_size*window_size >= slot_exp + area);
             // model->addQConstr(slot_exp + area  >= 0, name);
         }
     }
@@ -416,37 +375,11 @@ GRBLinExpr chipManager::slot_constraint(GRBModel *model, const int &x, const int
 {
     GRBLinExpr slot_exp = GRBLinExpr();
     for (int i = 0; i < slots.size(); ++i)
-    {
-        assert(slots[i]->is_slot());
-        vector<int> W_ij_coordinate;
-        GRBLinExpr height = GRBLinExpr();
-
+    {   
         int middle = min(slots[i]->get_Wi_coord(-1), int(y + window_size));
-        int width = min(int(x + window_size), slots[i]->_top_right_x()) - max(x, slots[i]->_bottom_left_x());
-        // cout<<"slot yij = "<<slots[i]->get_Wi_coord(-1)<<"  "<<int(y + window_size)<<endl;
-        assert(middle > 0);
-        assert(width > 0);
-
         middle = max(middle, y);
-        for (int j = 0; j < 8; ++j)
-        {
-            int w = min(slots[i]->get_Wi_coord(j), int(y + window_size));
-            w = max(w, y);
-            unsigned int len = abs(w-middle);
-            if (abs(slots[i]->get_Wi_coord(j)-slots[i]->get_Wi_coord(-1)) < _LayerList[layer_id].get_width()/2)
-                len = 0;
-            height += len * slots[i]->getVariable(j);
-
-            // cout<<"x = "<< x <<", y = "<<y<<endl;
-            // cout<<" w num = "<<j<< " , coor = "<< slots[i]->get_Wi_coord(j) <<endl;
-            // cout<< "y = " <<slots[i]->get_Wi_coord(-1)<<endl;
-            // cout<<" ============== "<<abs(w - middle)<<" ================"<<endl;
-            // cout<<"width = "<<width<<endl;
-            // print_Polygon(slots[i]);
-        }
-        
-        // GRBQuadExpr express = slots[i]->getVariable(-1) * height * width;
-        GRBLinExpr express = height * width;
+        assert(slots[i]->is_slot());
+        GRBLinExpr express = overlap(slots[i], x+window_size, y+window_size, x, y,middle);
         slot_exp += express;
     }
     return slot_exp;
@@ -463,7 +396,7 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id, int x,int  y){
         // {
             vector<Polygon*> poly_list;
             int min_space = _LayerList[layer_id].get_gap();
-            cout<<"start lr ..."<<endl;
+            //cout<<"start lr ..."<<endl;
             _LayerList[layer_id].critical_find_lr(C, poly_list, x, y, window_size);////////////////
 
             for (int j = 0; j < poly_list.size(); ++j)
@@ -474,16 +407,17 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id, int x,int  y){
                 assert(calCapicitance(overlap, min_space, layer_id + 1) >= 0);
                 cap_expression += single_cap ;//* poly_list[j]->getVariable(-1);
             }
-            cout<<"start top..."<<endl;
+            //cout<<"start top..."<<endl;
             _LayerList[layer_id].critical_find_top(C, poly_list, x, y, window_size);
-            cout<<"............"<<endl;
+            //cout<<"............"<<endl;
             for (int j = 0; j < poly_list.size(); ++j)
             {
                 int overlap = min(C->_top_right_x(), poly_list[j]->_top_right_x()) - 
                               max(C->_bottom_left_x(), poly_list[j]->_bottom_left_x());
                 GRBLinExpr single_cap = 0;
-                for (int k = 4; k < 8; ++k){
+                for (int k = 0; k < poly_list[j]->getVarSize(); ++k){
                     int space = poly_list[j]->get_Wi_coord(k) - C->_top_right_y();
+                    if (k < 4) space = poly_list[j]->get_Wi_coord(-1) - C->_top_right_y();
                     double cap = calCapicitance(overlap, space, layer_id+1);
                     assert(cap > 0);
                     single_cap += cap * poly_list[j]->getVariable(k);
@@ -492,15 +426,16 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id, int x,int  y){
                 cap_expression += single_cap;
             }
 
-            cout<<"start bo...."<<endl;
+            //cout<<"start bo...."<<endl;
             _LayerList[layer_id].critical_find_bottom(C, poly_list, x, y, window_size);
             for (int j = 0; j < poly_list.size(); ++j)
             {
                 int overlap = min(C->_top_right_x(), poly_list[j]->_top_right_x()) -
                               max(C->_bottom_left_x(), poly_list[j]->_bottom_left_x());
                 GRBLinExpr single_cap = 0;
-                for (int k = 0; k < 8; ++k){
+                for (int k = 0; k < poly_list[j]->getVarSize(); ++k){
                     int space = C->_bottom_left_y() - poly_list[j]->get_Wi_coord(k);
+                    if (k < 4) space = C->_bottom_left_y() - poly_list[j]->get_Wi_coord(k);
                     double cap = calCapicitance(overlap, space, layer_id+1);
                     assert(cap > 0);
                     single_cap += cap * poly_list[j]->getVariable(k);
@@ -548,7 +483,7 @@ void chipManager::write_output(GRBModel* g, int layer, int x, int y){
             // if(polygon_list[i]->getVariable(4).get(GRB_DoubleAttr_X)+polygon_list[i]->getVariable(5).get(GRB_DoubleAttr_X)+polygon_list[i]->getVariable(6).get(GRB_DoubleAttr_X)+polygon_list[i]->getVariable(7).get(GRB_DoubleAttr_X)>1)
             //     cin>>a;
                 //cout<<"--------------error--------------\n";
-            for (int j=0;j<8;j++){
+            for (int j=0; j<polygon_list[i]->getVarSize(); j++){
                 GRBVar x = polygon_list[i]->getVariable(j);
                 if(x.get(GRB_DoubleAttr_X) > 0){
                     // cout<< x.get(GRB_StringAttr_VarName) << " ,value = "<< x.get(GRB_DoubleAttr_X)<<endl;
@@ -562,9 +497,13 @@ void chipManager::write_output(GRBModel* g, int layer, int x, int y){
                     }
                 }
             }
-            polygon_list[i]->reset_var();
+            //polygon_list[i]->reset_var();
+
             if (y_top != INT_MAX && y_bottom == INT_MAX){
                 y_bottom = polygon_list[i]->get_Wi_coord(-1);
+                // cout<<polygon_list[i]->getVarSize()<<" size\n";
+                // cout<<"bottom"<<polygon_list[i]->_bottom_left_y()<<" "<<polygon_list[i]->get_Wi_coord(-1)<<" yij\n";
+                // cout<< y_top- y_bottom<<" "<<polygon_list[i]->_top_right_y()-polygon_list[i]->_bottom_left_y()<<"小塊的\n";
             }
             else if (y_top == INT_MAX && y_bottom != INT_MAX){
                 y_top = polygon_list[i]->get_Wi_coord(-1);
@@ -572,6 +511,8 @@ void chipManager::write_output(GRBModel* g, int layer, int x, int y){
             if (fill){
                 Polygon* T = new Polygon("fill", true);
                 T->set_xy(polygon_list[i]->_top_right_x(), y_top, polygon_list[i]->_bottom_left_x(), y_bottom);
+                if(y_top- y_bottom <_LayerList[layer].get_width())
+                    cout<<"----------------Error--------------\n";
                 T->set_layer_id(layer);
                 _LayerList[layer].insert(T, true, _LayerList[layer].get_dummy());
 

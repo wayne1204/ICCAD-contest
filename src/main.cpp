@@ -84,6 +84,7 @@ int main(int argc, char** argv)
         {
             GRBEnv e = GRBEnv();
             GRBModel *m = new GRBModel(e);
+            cout<<"doing preprocess ......\n";
             mgr->preprocess(m, i, VorH);
             int half_wnd = mgr->get_windowsize()/2;
             int horizontal_cnt = (mgr->get_tr_boundary_x() - mgr->get_bl_boundary_x()) / half_wnd - 1;
