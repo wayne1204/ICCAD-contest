@@ -238,7 +238,8 @@ void chipManager::final_check(){
     int half_wnd = window_size / 2;
     int horizontal_cnt = (_tr_bound_x - _bl_bound_x) / half_wnd -1;
     int vertical_cnt = (_tr_bound_y - _bl_bound_y) / half_wnd -1;
-    for (int i = 0; i < layer_num; ++i){
+    // for (int i = 0; i < layer_num; ++i){
+        int i = 0; 
          for(int row = 0; row < vertical_cnt; ++row){
              for (int col = 0; col < horizontal_cnt; ++col){
                 x = _bl_bound_x + col * half_wnd;
@@ -246,56 +247,56 @@ void chipManager::final_check(){
                 vector<Polygon*> query_list;
                 _LayerList[i].region_query(_LayerList[i].get_dummy(), x + window_size, y + window_size, x, y, query_list);     
                          
-                for (int j=0;j<query_list.size();j++){
-                    if(query_list[j]->getType() == "slot"){
-                        //cout<<"checking"<<endl;
-                        //檢查最大最小寬度
+                // for (int j=0;j<query_list.size();j++){
+                //     if(query_list[j]->getType() == "slot"){
+                //         //cout<<"checking"<<endl;
+                //         //檢查最大最小寬度
 
-                        // 3567150 1960845 3567214 1960931
-                        assert(query_list[j]->_top_right_x()-query_list[j]->_bottom_left_x() >=_LayerList[i].get_width());
-                        assert(query_list[j]->_top_right_x()-query_list[j]->_bottom_left_x() <=_LayerList[i].get_max_width());
-                        assert(query_list[j]->_top_right_y()-query_list[j]->_bottom_left_y() <=_LayerList[i].get_max_width());
-                        assert(query_list[j]->_top_right_y()-query_list[j]->_bottom_left_y() >=_LayerList[i].get_width());
-                        //檢查間距
-                        //989341 3412365 1969539 3412487 1969935 0 7 Fill
-                        // 3412365 1969539 3412487 19699351 3412365 1969539 3412487 1969935 0 7 Fill
+                //         // 3567150 1960845 3567214 1960931
+                //         assert(query_list[j]->_top_right_x()-query_list[j]->_bottom_left_x() >=_LayerList[i].get_width());
+                //         assert(query_list[j]->_top_right_x()-query_list[j]->_bottom_left_x() <=_LayerList[i].get_max_width());
+                //         assert(query_list[j]->_top_right_y()-query_list[j]->_bottom_left_y() <=_LayerList[i].get_max_width());
+                //         assert(query_list[j]->_top_right_y()-query_list[j]->_bottom_left_y() >=_LayerList[i].get_width());
+                //         //檢查間距
+                //         //989341 3412365 1969539 3412487 1969935 0 7 Fill
+                //         // 3412365 1969539 3412487 19699351 3412365 1969539 3412487 1969935 0 7 Fill
                         
-                            if (query_list[j]->_bottom_left_x() == 3412365 && query_list[j]->_bottom_left_y() == 1969539
-                            && query_list[j]->_top_right_x() == 3412487 && query_list[j]->_top_right_y() == 1969935){
+                //             if (query_list[j]->_bottom_left_x() == 3412365 && query_list[j]->_bottom_left_y() == 1969539
+                //             && query_list[j]->_top_right_x() == 3412487 && query_list[j]->_top_right_y() == 1969935){
                             
-                                cout<<i+1<<" min width = "<<_LayerList[i].get_width()<<endl;
+                //                 cout<<i+1<<" min width = "<<_LayerList[i].get_width()<<endl;
 
-                                print_Polygon(query_list[j]);
-                            }
+                //                 print_Polygon(query_list[j]);
+                //             }
                         
-                        if(query_list[j]->get_slot_id()==58905){
-                            print_Polygon(query_list[j]);
-                            cout<<i+1<<endl;
-                            cout<<(query_list[j]->_bottom_left_x() == 3412365 && query_list[j]->_bottom_left_y() == 1969539
-                            && query_list[j]->_top_right_x() == 3412487 && query_list[j]->_top_right_y() == 1969935)<<endl;
-                            cout<<"-------------幹-------------\n";
-                        }
-                        vector<Polygon*> check;
-                        _LayerList[i].region_query(_LayerList[i].get_dummy(),
-                            query_list[j]->_top_right_x()+_LayerList[i].get_gap(), 
-                            query_list[j]->_top_right_y()+_LayerList[i].get_gap(),
-                            query_list[j]->_bottom_left_x() - _LayerList[i].get_gap(),
-                            query_list[j]->_bottom_left_y() - _LayerList[i].get_gap(), check);
-                        int soild = 0;
-                        for(int k=0;k<check.size();k++){
-                            if(check[k]->is_solid())soild++;
-                            assert(soild<=1);
+                //         if(query_list[j]->get_slot_id()==58905){
+                //             print_Polygon(query_list[j]);
+                //             cout<<i+1<<endl;
+                //             cout<<(query_list[j]->_bottom_left_x() == 3412365 && query_list[j]->_bottom_left_y() == 1969539
+                //             && query_list[j]->_top_right_x() == 3412487 && query_list[j]->_top_right_y() == 1969935)<<endl;
+                //             cout<<"-------------幹-------------\n";
+                //         }
+                //         vector<Polygon*> check;
+                //         _LayerList[i].region_query(_LayerList[i].get_dummy(),
+                //             query_list[j]->_top_right_x()+_LayerList[i].get_gap(), 
+                //             query_list[j]->_top_right_y()+_LayerList[i].get_gap(),
+                //             query_list[j]->_bottom_left_x() - _LayerList[i].get_gap(),
+                //             query_list[j]->_bottom_left_y() - _LayerList[i].get_gap(), check);
+                //         int soild = 0;
+                //         for(int k=0;k<check.size();k++){
+                //             if(check[k]->is_solid())soild++;
+                //             assert(soild<=1);
 
-                        }
-                    }
-                }
+                //         }
+                //     }
+                // }
                 //檢查密度有沒有對
                 density = _LayerList[i].density_calculate(x, y, window_size, query_list);
                 cout<<"density = "<<density<<endl;
                 //assert(density >= _LayerList[i].get_min_density());
             }
         } 
-    }      
+    // }      
 }
 
 void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
@@ -369,13 +370,15 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
 void chipManager::layer_constraint(GRBModel* model, int layer_id , int x ,int y){
     int x_l, y_l;
     int half_wnd = window_size / 2;
-    // int horizontal_cnt = (_LayerList[layer_id].get_tr_boundary_x() - _LayerList[layer_id].get_bl_boundary_x()) / half_wnd - 1;
-    // int vertical_cnt = (_LayerList[layer_id].get_tr_boundary_y() - _LayerList[layer_id].get_bl_boundary_y()) / half_wnd - 1;
-    int horizontal_cnt = (2 * window_size) / half_wnd - 1;
-    int vertical_cnt = (2 * window_size) / half_wnd - 1;
+    int horizontal_cnt = (_LayerList[layer_id].get_tr_boundary_x() - _LayerList[layer_id].get_bl_boundary_x()) / half_wnd - 1;
+    int vertical_cnt = (_LayerList[layer_id].get_tr_boundary_y() - _LayerList[layer_id].get_bl_boundary_y()) / half_wnd - 1;
+    // int horizontal_cnt = (2 * window_size) / half_wnd - 1;
+    // int vertical_cnt = (2 * window_size) / half_wnd - 1;
     vector<Polygon *> slots;/////////////////////////////////////////////////////////////////////
-    _LayerList[layer_id].region_query(_LayerList[layer_id].get_dummy(), x + 2 * window_size,
-                                      y + 2 * window_size, x, y, slots);
+    // _LayerList[layer_id].region_query(_LayerList[layer_id].get_dummy(), x + 1 * window_size,
+    //                                   y + 1 * window_size, x, y, slots);
+    _LayerList[layer_id].region_query(_LayerList[layer_id].get_dummy(),
+                        _tr_bound_x, _tr_bound_y, _bl_bound_x, _bl_bound_y, slots);
     for (int i = 0; i < slots.size(); ++i){
         if (slots[i]->getType() == "slot" )
             slots[i]->setVariable(model);
@@ -390,13 +393,13 @@ void chipManager::layer_constraint(GRBModel* model, int layer_id , int x ,int y)
             int area = _LayerList[layer_id].slot_area(x_l, y_l, window_size, slots);
             cout<< "(layer cons) pre density = "<< double(area)/(window_size * window_size) <<endl;
             int min_area = _LayerList[layer_id].get_min_density() * window_size * window_size;//////////////////
-            GRBQuadExpr slot_exp = slot_constraint(model, x_l, y_l, slots);
-            // cout << "x: " << x/1000.0 << "k y: " << y/1000.0 << "k slot size: " << slots.size() <<endl;
-            // cout << "window slot expression size: " << slot_exp.size() <<endl;
+            GRBLinExpr slot_exp = slot_constraint(model, x_l, y_l, slots);
+            cout << "x: " << x/1000.0 << "k y: " << y/1000.0 << "k slot size: " << slots.size() <<endl;
+            cout << "window slot expression size: " << slot_exp.size() <<endl;
 
             // density constraint
             string name = to_string(layer_id) + '_' + to_string(row) + '_' + to_string(col);
-            model->addQConstr(slot_exp + area  >= min_area, name);
+            model->addConstr(slot_exp + area  >= min_area, name);
             // model->addQConstr(slot_exp + area  >= 0, name);
         }
     }
@@ -404,9 +407,9 @@ void chipManager::layer_constraint(GRBModel* model, int layer_id , int x ,int y)
 }
 
 // 
-GRBQuadExpr chipManager::slot_constraint(GRBModel *model, const int &x, const int &y, vector<Polygon *> &slots)
+GRBLinExpr chipManager::slot_constraint(GRBModel *model, const int &x, const int &y, vector<Polygon *> &slots)
 {
-    GRBQuadExpr slot_exp = GRBQuadExpr();
+    GRBLinExpr slot_exp = GRBLinExpr();
     for (int i = 0; i < slots.size(); ++i)
     {
         assert(slots[i]->is_slot());
@@ -435,7 +438,7 @@ GRBQuadExpr chipManager::slot_constraint(GRBModel *model, const int &x, const in
         }
         
         // GRBQuadExpr express = slots[i]->getVariable(-1) * height * width;
-        GRBQuadExpr express = height * width;
+        GRBLinExpr express = height * width;
         slot_exp += express;
     }
     return slot_exp;
@@ -447,9 +450,9 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id, int x,int  y){
     for (int i = 0; i < total_Cnet_List[layer_id].size(); ++i)
     {
         Polygon* C = total_Cnet_List[layer_id][i]; /////////////////////////////
-        if (classify(C->_top_right_x(), C->_bottom_left_x(), x + 2 * window_size, x) 
-            * classify(C->_top_right_y(), C->_bottom_left_y(), y + 2 * window_size, y) != 0)
-        {
+        // if (classify(C->_top_right_x(), C->_bottom_left_x(), x + 1 * window_size, x) 
+        //     * classify(C->_top_right_y(), C->_bottom_left_y(), y + 1 * window_size, y) != 0)
+        // {
             vector<Polygon*> poly_list;
             int min_space = _LayerList[layer_id].get_gap();
 
@@ -494,11 +497,10 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id, int x,int  y){
                     single_cap += cap * poly_list[j]->getVariable(k);
                 }
                 // cap_expression += single_cap * poly_list[j]->getVariable(-1);
-                cout << single_cap.size() << endl;
+                // cout << single_cap.size() << endl;
                 cap_expression += single_cap;
             }
-        }
-        
+        // }
     }
 
     // for(int i = 0; i < cap_expression.size(); ++i){
@@ -523,8 +525,8 @@ void chipManager::write_output(GRBModel* g, int layer, int x, int y){
     int threshold = _LayerList[layer].get_width() + 2 * _LayerList[layer].get_gap();
     
     _LayerList[layer].region_query(
-        _LayerList[layer].get_dummy()->get_bl(), x + 2 *window_size, ///////////////////////////////
-        y + 2 *window_size, x, y, polygon_list);
+        _LayerList[layer].get_dummy()->get_bl(), x + 1 *window_size, ///////////////////////////////
+        y + 1 *window_size, x, y, polygon_list);
     for(int i=0; i <polygon_list.size();i++){
         if(polygon_list[i]->getType()=="slot"){
             int y_top = INT_MAX, y_bottom = INT_MAX;
@@ -551,7 +553,6 @@ void chipManager::write_output(GRBModel* g, int layer, int x, int y){
                         y_bottom = polygon_list[i]->get_Wi_coord(j);
                     }
                 }
-
             }
             polygon_list[i]->reset_var();
             if (y_top != INT_MAX && y_bottom == INT_MAX){
