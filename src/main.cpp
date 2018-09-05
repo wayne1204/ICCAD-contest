@@ -80,7 +80,7 @@ int main(int argc, char** argv)
     cerr<<"start preproccess......"<<endl;
 
     try{
-        for (int i = 0; i < 1; ++i)
+        for (int i = 0; i < 9; ++i)
         {
             GRBEnv e = GRBEnv();
             GRBModel *m = new GRBModel(e);
@@ -102,14 +102,12 @@ int main(int argc, char** argv)
                     int y = mgr->get_bl_boundary_y(); //+ row * half_wnd;
                     mgr->layer_constraint(model, i, x, y);
                     mgr->minimize_cap(model, i, x, y);
+                    cout<<"=============layer id = "<<i+1<<" =============="<<endl;
                     model->optimize();
                     mgr->write_output(model,i, x, y);
             //     }
             // }            
         }
-        string s = "";
-        mgr->final_check();
-        // mgr->write_fill(output, s);
     }
     catch (GRBException e)
     {
@@ -117,6 +115,9 @@ int main(int argc, char** argv)
         cout << e.getMessage() << endl;
     }
 
+    string s = "";
+    mgr->write_fill(output, s);
+    mgr->final_check();
     mu->report();
 
     // string output_fill = "";

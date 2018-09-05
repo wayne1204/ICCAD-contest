@@ -422,13 +422,18 @@ void Layer::critical_find_top(Polygon *critical, vector<Polygon *> &neighbor_lis
     Polygon *current = point_search(dummy_bottom, x_start, y_start);
     neighbor_list.clear();
 
-    while(current->_bottom_left_x() < critical->_top_right_x()){
-        if(current->is_slot()){
-            // if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 1 * windowsize, x) 
-            //         * classify(current->_top_right_y(), current->_bottom_left_y(), y + 1 * windowsize, y) != 0)
-                neighbor_list.push_back(current);
+    if (x_start > _bl_boundary_x && x_start < _tr_boundary_x && y_start > _bl_boundary_y && y_start <_tr_boundary_y){
+        while(current->_bottom_left_x() < critical->_top_right_x()){
+            if(current->is_slot()){
+                // if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 1 * windowsize, x) 
+                //         * classify(current->_top_right_y(), current->_bottom_left_y(), y + 1 * windowsize, y) != 0)
+                    neighbor_list.push_back(current);
+            }
+            if(current->_top_right_x() - min_space < _tr_boundary_x){
+                current = point_search(current, current->_top_right_x() + min_space, y_start);
+            }
+            else break;
         }
-        current = point_search(current, current->_top_right_x() + min_space, y_start);
     }
 }
 
@@ -439,12 +444,16 @@ void Layer::critical_find_bottom(Polygon *critical, vector<Polygon *> &neighbor_
     int y_start = critical->_bottom_left_y() - min_space;
     Polygon *current = point_search(dummy_bottom, x_start, y_start);
     neighbor_list.clear();
-
-    while(current->_bottom_left_x() < critical->_top_right_x()){
-        if(current->is_slot())
-            // if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 1 * windowsize, x) 
-            //         * classify(current->_top_right_y(), current->_bottom_left_y(), y + 1 * windowsize, y) != 0)
-                neighbor_list.push_back(current);
-        current = point_search(current, current->_top_right_x() + min_space, y_start);
+    if (x_start > _bl_boundary_x && x_start < _tr_boundary_x && y_start > _bl_boundary_y && y_start <_tr_boundary_y){
+        while(current->_bottom_left_x() < critical->_top_right_x()){
+            if(current->is_slot())
+                // if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 1 * windowsize, x) 
+                //         * classify(current->_top_right_y(), current->_bottom_left_y(), y + 1 * windowsize, y) != 0)
+                    neighbor_list.push_back(current);
+            if(current->_top_right_x() - min_space < _tr_boundary_x){
+                current = point_search(current, current->_top_right_x() + min_space, y_start);
+            }
+            else break;
+        }
     }
 }
