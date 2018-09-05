@@ -215,15 +215,17 @@ void chipManager::write_fill(string output, string output_fill){
         cout << "[Error] can't open rule file \"" << output << "\" !!\n";
         return;
     }
-    vector<Polygon*> query_list;
+    
     int num = 1;
     for (int layer = 0; layer < layer_num; ++layer ){
+        vector<Polygon*> query_list;
         _LayerList[layer].region_query(_LayerList[layer].get_dummy(),_tr_bound_x,_tr_bound_y,_bl_bound_x,_bl_bound_y,query_list);
         for(int i=0 ; i <query_list.size();i++){
             if(query_list[i]->getType() == "slot"){
                 ofs<<num<<" "<<query_list[i]->_bottom_left_x()<<" "<<query_list[i]->_bottom_left_y()
                 << " " << query_list[i]->_top_right_x() << " " << query_list[i]->_top_right_y() << " 0 "
-                << layer << " " << "Fill"<<endl;
+                << layer+1<< " " << "Fill"<<endl;
+                num++;
             }
         }
     }
@@ -244,37 +246,49 @@ void chipManager::final_check(){
                 vector<Polygon*> query_list;
                 _LayerList[i].region_query(_LayerList[i].get_dummy(), x + window_size, y + window_size, x, y, query_list);     
                          
-                // for (int j=0;j<query_list.size();j++){
-                //     if(query_list[j]->getType() == "slot"){
-                //         //cout<<"checking"<<endl;
-                //         //檢查最大最小寬度
+                for (int j=0;j<query_list.size();j++){
+                    if(query_list[j]->getType() == "slot"){
+                        //cout<<"checking"<<endl;
+                        //檢查最大最小寬度
 
-                //         // 3567150 1960845 3567214 1960931
-                //         assert(query_list[j]->_top_right_x()-query_list[j]->_bottom_left_x() >=_LayerList[i].get_width());
-                //         assert(query_list[j]->_top_right_x()-query_list[j]->_bottom_left_x() <=_LayerList[i].get_max_width());
-                //         assert(query_list[j]->_top_right_y()-query_list[j]->_bottom_left_y() <=_LayerList[i].get_max_width());
-                //         assert(query_list[j]->_top_right_y()-query_list[j]->_bottom_left_y() >=_LayerList[i].get_width());
-                //         //檢查間距
-                //         // 3412365 1969539 3412487 1969935
-                //         if (query_list[i]->_bottom_left_x() == 3412365 && query_list[i]->_bottom_left_y() == 1969539
-                //             && query_list[i]->_top_right_x() == 3412487 && query_list[i]->_top_right_y() == 1969935){
-                //             cout<<" min width = "<<_LayerList[i].get_width()<<endl;
-                //             print_Polygon(query_list[i]);
-                //         }
-                //         vector<Polygon*> check;
-                //         _LayerList[i].region_query(_LayerList[i].get_dummy(),
-                //             query_list[j]->_top_right_x()+_LayerList[i].get_gap(), 
-                //             query_list[j]->_top_right_y()+_LayerList[i].get_gap(),
-                //             query_list[j]->_bottom_left_x() - _LayerList[i].get_gap(),
-                //             query_list[j]->_bottom_left_y() - _LayerList[i].get_gap(), check);
-                //         int soild = 0;
-                //         for(int k=0;k<check.size();k++){
-                //             if(check[k]->is_solid())soild++;
-                //             assert(soild<=1);
+                        // 3567150 1960845 3567214 1960931
+                        assert(query_list[j]->_top_right_x()-query_list[j]->_bottom_left_x() >=_LayerList[i].get_width());
+                        assert(query_list[j]->_top_right_x()-query_list[j]->_bottom_left_x() <=_LayerList[i].get_max_width());
+                        assert(query_list[j]->_top_right_y()-query_list[j]->_bottom_left_y() <=_LayerList[i].get_max_width());
+                        assert(query_list[j]->_top_right_y()-query_list[j]->_bottom_left_y() >=_LayerList[i].get_width());
+                        //檢查間距
+                        //989341 3412365 1969539 3412487 1969935 0 7 Fill
+                        // 3412365 1969539 3412487 19699351 3412365 1969539 3412487 1969935 0 7 Fill
+                        
+                            if (query_list[j]->_bottom_left_x() == 3412365 && query_list[j]->_bottom_left_y() == 1969539
+                            && query_list[j]->_top_right_x() == 3412487 && query_list[j]->_top_right_y() == 1969935){
+                            
+                                cout<<i+1<<" min width = "<<_LayerList[i].get_width()<<endl;
 
-                //         }
-                //     }
-                // }
+                                print_Polygon(query_list[j]);
+                            }
+                        
+                        if(query_list[j]->get_slot_id()==58905){
+                            print_Polygon(query_list[j]);
+                            cout<<i+1<<endl;
+                            cout<<(query_list[j]->_bottom_left_x() == 3412365 && query_list[j]->_bottom_left_y() == 1969539
+                            && query_list[j]->_top_right_x() == 3412487 && query_list[j]->_top_right_y() == 1969935)<<endl;
+                            cout<<"-------------幹-------------\n";
+                        }
+                        vector<Polygon*> check;
+                        _LayerList[i].region_query(_LayerList[i].get_dummy(),
+                            query_list[j]->_top_right_x()+_LayerList[i].get_gap(), 
+                            query_list[j]->_top_right_y()+_LayerList[i].get_gap(),
+                            query_list[j]->_bottom_left_x() - _LayerList[i].get_gap(),
+                            query_list[j]->_bottom_left_y() - _LayerList[i].get_gap(), check);
+                        int soild = 0;
+                        for(int k=0;k<check.size();k++){
+                            if(check[k]->is_solid())soild++;
+                            assert(soild<=1);
+
+                        }
+                    }
+                }
                 //檢查密度有沒有對
                 density = _LayerList[i].density_calculate(x, y, window_size, query_list);
                 cout<<"density = "<<density<<endl;
