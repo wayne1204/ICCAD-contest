@@ -313,7 +313,7 @@ void chipManager::preprocess(GRBModel* model, int layer, vector<bool> VorH)
             total_Cnet_List[layer].push_back(polygon_list[j]);
     }
 
-    cout<<"start poly_list[j] split in layer "<<layer+1<<endl;
+    cout<<"start slots split in layer "<<layer+1<<endl;
     for(int i=0; i < polygon_list.size(); i++){
         if(polygon_list[i]->getType() == "space"){
             space_count++;
@@ -359,8 +359,8 @@ void chipManager::layer_constraint(GRBModel* model, int layer_id , int x ,int y)
             // cout<< "(layer cons) pre density = "<< double(area)/(window_size * window_size) <<endl;
             int min_area = _LayerList[layer_id].get_min_density() * window_size * window_size;//////////////////
             GRBLinExpr slot_exp = slot_constraint(model, x_l, y_l, slots, layer_id);
-            // cout << "x: " << x/1000.0 << "k y: " << y/1000.0 << "k poly_list[j] size: " << slots.size() <<endl;
-            // cout << "window poly_list[j] expression size: " << slot_exp.size() <<endl;
+            // cout << "x: " << x/1000.0 << "k y: " << y/1000.0 << "k slot size: " << slots.size() <<endl;
+            // cout << "window slot expression size: " << slot_exp.size() <<endl;
 
             //// density constraint
             string name = to_string(layer_id) + '_' + to_string(row) + '_' + to_string(col);
@@ -369,7 +369,7 @@ void chipManager::layer_constraint(GRBModel* model, int layer_id , int x ,int y)
             // model->addQConstr(slot_exp + area  >= 0, name);
         }
     }
-    cout << "===== finish adding layer constraints  ( poly_list[j] + metal >= 0.4 ) " << endl;
+    cout << "===== finish adding layer constraints  ( slot + metal >= 0.4 ) " << endl;
 }
 
 // 
@@ -388,7 +388,7 @@ GRBLinExpr chipManager::slot_constraint(GRBModel *model, const int &x, const int
     return slot_exp;
 }
 
-// minimize poly_list[j] coupleing cap with critical net
+// minimize slot coupleing cap with critical net
 void chipManager::minimize_cap(GRBModel *model, int layer_id){
     GRBLinExpr cap_expression = 0;
     for (int i = 0; i < total_Cnet_List[layer_id].size(); ++i)
@@ -513,7 +513,7 @@ void chipManager::write_output(GRBModel* g, int layer, int x, int y){
     //     y + 1 *window_size, x, y, polygon_list);
     _LayerList[layer].region_query(_LayerList[layer].get_dummy(),_tr_bound_x, _tr_bound_y, _bl_bound_x, _bl_bound_y, polygon_list);
     for(int i=0; i <polygon_list.size();i++){
-        if(polygon_list[i]->getType()=="poly_list[j]"){
+        if(polygon_list[i]->getType()=="slot"){
             int y_top = INT_MAX, y_bottom = INT_MAX;
             bool fill = false;
             // int a;

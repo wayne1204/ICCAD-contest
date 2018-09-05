@@ -95,7 +95,6 @@ void Polygon::setVariable(GRBModel *model,int min_width)
 
 GRBVar &Polygon::getVariable(int i)
 {
-    // cout << _slot_id << " /" << var_list.size() << endl;
     // assert(var_list.size() == 8);
     if(i == -1){
         return Y_ij;
@@ -117,17 +116,6 @@ GRBLinExpr Polygon::getPortion(){
         lateral_portion += (i - 4) * slice * var_list[i];
     return lateral_portion;
 }
-
-// A_i - B_i / 8
-// GRBLinExpr Polygon::getPortion(){
-//     GRBLinExpr lateral_portion;
-//     for(int i = 0; i < 4; ++i)
-//         lateral_portion += (8 - i) * var_list[i];
-//     for(int i = 4; i < 8; ++i)
-//         lateral_portion -= (8 - i) * var_list[i];
-//     lateral_portion /= 8;
-//     return lateral_portion;
-// }
 
 // const int Polygon::get_Wi_coord(int i)
 // {

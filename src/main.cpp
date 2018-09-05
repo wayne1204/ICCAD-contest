@@ -89,25 +89,16 @@ int main(int argc, char** argv)
             int half_wnd = mgr->get_windowsize()/2;
             int horizontal_cnt = (mgr->get_tr_boundary_x() - mgr->get_bl_boundary_x()) / half_wnd - 1;
             int vertical_cnt = (mgr->get_tr_boundary_y() - mgr->get_bl_boundary_y()) / half_wnd - 1;
-            // for (int row = 0; row < vertical_cnt; ++row)
-            // {
-            //     for (int col = 0; col < horizontal_cnt; ++col)
-            //     {
-            // for (int row = 0; row < 2; ++row)
-            // {
-            //     for (int col = 0; col < 2; ++col)
-            //     {
-                    GRBEnv env = GRBEnv();
-                    GRBModel *model = new GRBModel(env);
-                    int x = mgr->get_bl_boundary_x(); //+ col * half_wnd;
-                    int y = mgr->get_bl_boundary_y(); //+ row * half_wnd;
-                    mgr->layer_constraint(model, i, x, y);
-                    mgr->minimize_cap(model, i);
-                    cout<<"=============layer id = "<<i+1<<" =============="<<endl;
-                    model->optimize();
-                    mgr->write_output(model,i, x, y);
-            //     }
-            // }            
+            
+            GRBEnv env = GRBEnv();
+            GRBModel *model = new GRBModel(env);
+            int x = mgr->get_bl_boundary_x(); 
+            int y = mgr->get_bl_boundary_y(); 
+            mgr->layer_constraint(model, i, x, y);
+            mgr->minimize_cap(model, i);
+            cout<<"=============layer id = "<<i+1<<" =============="<<endl;
+            model->optimize();
+            mgr->write_output(model,i, x, y);            
         }
     }
     catch (GRBException e)

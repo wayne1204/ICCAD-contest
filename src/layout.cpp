@@ -306,9 +306,7 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
     vector<int> coordinate_x;
     int w_y = find_optimal_width(p->_bottom_left_y(), poly_h, coordinate_y);
     int w_x = find_optimal_width(p->_bottom_left_x(), poly_w, coordinate_x);
-    // cout<<"w_y = "<<w_y<<endl;
-    //cout<<"w_x = "<<w_x<<endl;
-    //if (w_x > get_max_width()) cout<<"======== fuck ========="<<endl;
+
     for (int j = 0; j < coordinate_y.size(); j++)
     {
         for (int k = 0; k < coordinate_x.size(); k++)
