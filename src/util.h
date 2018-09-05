@@ -5,6 +5,7 @@
 #include <vector>
 #include "polygon.h"
 #include "layout.h"
+#include "include/gurobi_c++.h"
 
 using namespace std;
 
@@ -22,5 +23,5 @@ extern void print_Polygon(Polygon *T);
 extern void neighbor_find_own(Polygon*, vector<Polygon *> &, const int &, const int &);
 extern void enumerate(Polygon*, vector<Polygon *> &, const int &, const int &, const int &);
 
-extern int find_optimal_width(Layer layer, const int &boundary, const int &length, vector<int> &coordinates);
+GRBLinExpr overlap(Polygon *, const int &, const int &, const int &, const int &);
 #endif // UTIL_H

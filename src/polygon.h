@@ -69,6 +69,7 @@ class Polygon
 		// slot variable
 		void setVariable(GRBModel *model);
 		GRBVar &getVariable(int i);
+		int getVarSize() {return var_list.size(); }
 		GRBLinExpr getPortion();
 		const int get_Wi_coord(int i);
 		void reset_var(){var_list.clear();}
