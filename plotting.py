@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
+import argparse
 import os
 import sys
 
@@ -133,22 +134,30 @@ class CircuitParser():
                 plt.close()
         print()
 
+def ArgumentParser():
+    parser = argparse.ArgumentParser("visualize circuit")
+    parser.add_argument('--path', help='config file path')
+    parser.add_argument('--layer', default=-1, type = int)
+    return parser.parse_args()
+
+
 def main():
+    args = ArgumentParser()
     cp = CircuitParser()
-    cp.parseCnet(sys.argv[1])
+    cp.parseCnet(args.path)
     cp.parseDesign(True)  
     cp.parseDesign(False)
 
-    # if not os.path.exists('/visualize')
-    #     os.mkdir(visualize)
-    for i in range(9):
-    # i = 8
-        path = os.path.join('visualize', 'layer{}'.format(i+1))
-        if not os.path.exists(path):
-            os.mkdir(path)
-        cp.scaling(i)
-        cp.plot(i)
-        
+    if not os.path.exists('visualize'):
+        os.mkdir('visualize')
+
+    i = args.layer
+    path = os.path.join('visualize', 'layer{}'.format(i))
+    if not os.path.exists(path):
+        os.mkdir(path)
+    cp.scaling(i-1)
+    cp.plot(i-1)
+            
 
 if __name__ == "__main__":
     main()
