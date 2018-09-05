@@ -198,16 +198,18 @@ void enumerate(Polygon* T,vector<Polygon*> &v,const int& max_x,const int& max_y,
 // boundary: minimun x or minimun y
 // length: polygon width od height
 
-GRBLinExpr overlap(Polygon* slot, const int & x1, const int & y1, const int & x2, const int & y2){
+GRBLinExpr overlap(Polygon* slot, const int & x1, const int & y1, const int & x2, const int & y2, int middle){
     assert(slot->is_slot());
 
     GRBLinExpr slot_exp = GRBLinExpr();
-    int middle = max(min(slot->get_Wi_coord(-1), y1), y2);
-    // int width = min(x1, slot->_top_right_x()) - max(x2, slot->_bottom_left_x());
+    
+    //int middle = max(min(slot->get_Wi_coord(-1), y1), y2);
+    //int width = min(x1, slot->_top_right_x()) - max(x2, slot->_bottom_left_x());
 
     for(int i = 0; i < slot->getVarSize(); ++i){
         int w = max(min(slot->get_Wi_coord(i), y1), y2);
         int height = abs(middle - w);
         slot_exp += slot->getVariable(i) * height;
     }
+    return slot_exp;
 }

@@ -84,6 +84,7 @@ int main(int argc, char** argv)
         {
             GRBEnv e = GRBEnv();
             GRBModel *m = new GRBModel(e);
+            cout<<"doing preprocess ......\n";
             mgr->preprocess(m, i, VorH);
             int half_wnd = mgr->get_windowsize()/2;
             int horizontal_cnt = (mgr->get_tr_boundary_x() - mgr->get_bl_boundary_x()) / half_wnd - 1;
@@ -101,7 +102,7 @@ int main(int argc, char** argv)
                     int x = mgr->get_bl_boundary_x(); //+ col * half_wnd;
                     int y = mgr->get_bl_boundary_y(); //+ row * half_wnd;
                     mgr->layer_constraint(model, i, x, y);
-                    mgr->minimize_cap(model, i, x, y);
+                    mgr->minimize_cap(model, i);
                     cout<<"=============layer id = "<<i+1<<" =============="<<endl;
                     model->optimize();
                     mgr->write_output(model,i, x, y);

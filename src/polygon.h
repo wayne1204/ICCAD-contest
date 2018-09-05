@@ -67,11 +67,11 @@ class Polygon
 		bool is_critical() { return _is_critical_net; }
 
 		// slot variable
-		void setVariable(GRBModel *model);
+		void setVariable(GRBModel *model, int );
 		GRBVar &getVariable(int i);
 		int getVarSize() {return var_list.size(); }
 		GRBLinExpr getPortion();
-		const int get_Wi_coord(int i);
+		const int get_Wi_coord(int);
 		void reset_var(){var_list.clear();}
 
 		// preprocessing member functions
@@ -101,6 +101,7 @@ class Polygon
 		unsigned ref;
 		static unsigned global_ref;
 		vector<GRBVar> var_list;
+		vector<int> w_coord;
 		GRBVar Y_ij;
 		GRBModel* G_model;
 };

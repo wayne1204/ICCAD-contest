@@ -23,5 +23,5 @@ extern void print_Polygon(Polygon *T);
 extern void neighbor_find_own(Polygon*, vector<Polygon *> &, const int &, const int &);
 extern void enumerate(Polygon*, vector<Polygon *> &, const int &, const int &, const int &);
 
-GRBLinExpr overlap(Polygon *, const int &, const int &, const int &, const int &);
+GRBLinExpr overlap(Polygon *, const int &, const int &, const int &, const int &, int);
 #endif // UTIL_H

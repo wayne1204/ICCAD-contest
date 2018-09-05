@@ -479,34 +479,35 @@ bool Layer::insert(Polygon* T, bool first_inset, Polygon* start){
     bool is_left= ( T->_bottom_left_x() != get_bl_boundary_x() );
     bool is_right= ( T->_top_right_x() != get_tr_boundary_x() );
     vector<Polygon*> query_list;
-    if(!first_inset){
-        //決定query的邊界
-        //左下角
-        (T->_bottom_left_x()-get_gap()>=get_bl_boundary_x()) ? bl_x = T->_bottom_left_x() - get_gap() : bl_x = get_bl_boundary_x();
-        (T->_bottom_left_y()-get_gap()>=get_bl_boundary_y()) ? bl_y = T->_bottom_left_y() - get_gap() : bl_y = get_bl_boundary_y();
-        //右上角
-        (T->_top_right_x() + get_gap() >get_tr_boundary_x() ) ? tr_x = get_tr_boundary_x() : tr_x = T->_top_right_x() + get_gap();
-        (T->_top_right_y() + get_gap() >get_tr_boundary_y() ) ? tr_y = get_tr_boundary_y() : tr_y = T->_top_right_y() + get_gap();
+    // if(!first_inset){
+    //     //決定query的邊界
+    //     //左下角
+    //     (T->_bottom_left_x()-get_gap()>=get_bl_boundary_x()) ? bl_x = T->_bottom_left_x() - get_gap() : bl_x = get_bl_boundary_x();
+    //     (T->_bottom_left_y()-get_gap()>=get_bl_boundary_y()) ? bl_y = T->_bottom_left_y() - get_gap() : bl_y = get_bl_boundary_y();
+    //     //右上角
+    //     (T->_top_right_x() + get_gap() >get_tr_boundary_x() ) ? tr_x = get_tr_boundary_x() : tr_x = T->_top_right_x() + get_gap();
+    //     (T->_top_right_y() + get_gap() >get_tr_boundary_y() ) ? tr_y = get_tr_boundary_y() : tr_y = T->_top_right_y() + get_gap();
         
-        // 如果要插進去的這塊裡面有solid就不能插 就像有男友的女生一樣
-        if (!region_query_bool(start, tr_x, tr_y, bl_x, bl_y, query_list))
-            return false;// (start,跟要插進去得tile)
-    }
-    else {
-        if (!region_query_bool(start, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list))
-            return false;
-        }
+    //     // 如果要插進去的這塊裡面有solid就不能插 就像有男友的女生一樣
+    //     if (!region_query_bool(start, tr_x, tr_y, bl_x, bl_y, query_list))
+    //         return false;// (start,跟要插進去得tile)
+    // }
+    // else {
+    //     if (!region_query_bool(start, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list))
+    //         return false;
+    //     }
     /*for(int i=0;i<query_list.size();i++){
         if(query_list[i]->is_solid())
             return false;
     }*/
-    if(!first_inset){
-        query_list.clear();
-        region_query(start, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list);
-    }
+    // if(!first_inset){
+    //     query_list.clear();
+    //     region_query(start, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list);
+    // }
     #ifdef DEBUG
         cout<<"query_list num= "<<query_list.size()<<endl;
     #endif
+    region_query_bool(start, T->_top_right_x(), T->_top_right_y(), T->_bottom_left_x(), T->_bottom_left_y(), query_list);
     Polygon* queryzero=query_list[0];
     /*
 
