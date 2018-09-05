@@ -52,9 +52,10 @@ public:
     void layer_rotate();
     void insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const int &poly_h, int &slot_id);
     int find_optimal_width( const int &boundary, const int &length, vector<int> &coordinates);
-    void critical_find_lr(Polygon* critical, vector<Polygon *> &, int, int, int);
-    void critical_find_top(Polygon *critical, vector<Polygon *> &, int , int, int);
-    void critical_find_bottom(Polygon *critical, vector<Polygon *> &, int, int, int);
+    void critical_find_lr(Polygon* critical, vector<Polygon *> &);
+    void critical_find_top(Polygon *critical, vector<Polygon *> &);
+    void critical_find_bottom(Polygon *critical, vector<Polygon *> &);
+    void critical_find_vertical(Polygon *critical, vector<Polygon *> &, int);
     vector<Polygon*> getSlots() { return slot_list; }
 
   private:

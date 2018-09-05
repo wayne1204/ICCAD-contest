@@ -203,11 +203,11 @@ GRBLinExpr overlap(Polygon* slot, const int & x1, const int & y1, const int & x2
 
     GRBLinExpr slot_exp = GRBLinExpr();
     int middle = max(min(slot->get_Wi_coord(-1), y1), y2);
-    int width = min(x1, slot->_top_right_x()) - max(x2, slot->_bottom_left_x());
+    // int width = min(x1, slot->_top_right_x()) - max(x2, slot->_bottom_left_x());
 
     for(int i = 0; i < slot->getVarSize(); ++i){
         int w = max(min(slot->get_Wi_coord(i), y1), y2);
         int height = abs(middle - w);
-        slot_exp += slot->getVariable(i) * height * width;
+        slot_exp += slot->getVariable(i) * height;
     }
 }

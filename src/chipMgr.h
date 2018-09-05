@@ -70,6 +70,7 @@ public:
     void layer_constraint(GRBModel *model, int layer_id, int x ,int y);
     GRBLinExpr slot_constraint(GRBModel *model, const int &x, const int &y, vector<Polygon *> &slots, int layer_id);
     void minimize_cap(GRBModel *model, int layer_id, int x, int y);
+    GRBLinExpr minimize_area_cap(GRBModel *model, int layer_id, bool);
     void write_output(GRBModel* g, int layer, int x, int y);
     inline int get_bl_boundary_x() { return _bl_bound_x; }
     inline int get_bl_boundary_y() { return _bl_bound_y; }
