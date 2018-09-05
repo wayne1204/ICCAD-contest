@@ -76,10 +76,10 @@ void Polygon::setVariable(GRBModel *model)
     }
     is_set= true;
     string name = "slot" + to_string(_slot_id) + "_yij";
-    Y_ij = model->addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
-    // model->addQConstr(up <= 1.0);
-    // model->addQConstr(down <= 1.0);
-    model->addQConstr(Y_ij == up * down, name);
+    // Y_ij = model->addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
+    model->addQConstr(up <= 1.0);
+    model->addQConstr(down <= 1.0);
+    // model->addQConstr(Y_ij == up * down, name);
 
 }
 

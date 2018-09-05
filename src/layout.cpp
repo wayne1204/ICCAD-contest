@@ -424,7 +424,7 @@ void Layer::critical_find_top(Polygon *critical, vector<Polygon *> &neighbor_lis
 
     while(current->_bottom_left_x() < critical->_top_right_x()){
         if(current->is_slot()){
-            if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 2*windowsize, x) 
+            if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 2 * windowsize, x) 
                     * classify(current->_top_right_y(), current->_bottom_left_y(), y + 2 * windowsize, y) != 0)
                 neighbor_list.push_back(current);
         }
@@ -442,7 +442,7 @@ void Layer::critical_find_bottom(Polygon *critical, vector<Polygon *> &neighbor_
 
     while(current->_bottom_left_x() < critical->_top_right_x()){
         if(current->is_slot())
-            if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 2*windowsize, x) 
+            if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 2 * windowsize, x) 
                     * classify(current->_top_right_y(), current->_bottom_left_y(), y + 2 * windowsize, y) != 0)
                 neighbor_list.push_back(current);
         current = point_search(current, current->_top_right_x() + min_space, y_start);

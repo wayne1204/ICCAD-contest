@@ -569,9 +569,9 @@ bool Layer::insert(Polygon* T, bool first_inset, Polygon* start){
         query_list[0]->setALL(T->get_Wi_coord(-1),T->get_model(),T->get_slot_id());
         slot_list.push_back(query_list[0]);
     }
-    // else{ 
+    else{ 
         query_list[0]->setToSolid();
-    // }
+    }
     query_list[0]->setType(T->getType());
     query_list[0]->set_layer_id(T->get_layer_id());
     if(first_inset){
