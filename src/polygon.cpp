@@ -74,11 +74,11 @@ void Polygon::setVariable(GRBModel *model)
         else
             down += var;
     }
-    is_set= true;
-    string name = "slot" + to_string(_slot_id) + "_yij";
-    // Y_ij = model->addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
+    is_set = true;
     model->addConstr(up <= 1.0);
     model->addConstr(down <= 1.0);
+    // string name = "slot" + to_string(_slot_id) + "_yij";
+    // Y_ij = model->addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
     // model->addQConstr(Y_ij == up * down, name);
 
 }
@@ -86,24 +86,21 @@ void Polygon::setVariable(GRBModel *model)
 
 GRBVar &Polygon::getVariable(int i)
 {
-    // cout << _slot_id << " /" << var_list.size() << endl;
     assert(var_list.size() == 8);
     if(i == -1){
-        // cout <<"return Y_ij\n";
         return Y_ij;
     }
     return var_list[i];
 }
 
-
-// A_i - B_i / 8
+// 0.5 w1 + 0.375 w2 + 0.25 w3 + 0.125 w4 + 0.125 w5 + ....
 GRBLinExpr Polygon::getPortion(){
     GRBLinExpr lateral_portion;
+    double slice = 1.0/8.0;
     for(int i = 0; i < 4; ++i)
-        lateral_portion += (8 - i) * var_list[i];
-    for(int i = 4; i < 8; ++i)
-        lateral_portion -= (8 - i) * var_list[i];
-    lateral_portion /= 8;
+        lateral_portion += (5 - i) * slice * var_list[i];
+    for (int i = 4; i < 8; ++i)
+        lateral_portion += (i - 4) * slice * var_list[i];
     return lateral_portion;
 }
 
