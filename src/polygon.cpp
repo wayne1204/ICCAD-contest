@@ -102,31 +102,7 @@ GRBVar &Polygon::getVariable(int i)
     return var_list[i];
 }
 
-// 0.5 w1 + 0.375 w2 + 0.25 w3 + 0.125 w4 + 0.125 w5 + ....
-GRBLinExpr Polygon::getPortion(){
-    GRBLinExpr lateral_portion;
-    double slice = 1.0/8.0;
-    if (w_coord.size() == 1) {
-        lateral_portion = w_coord[0];
-        return lateral_portion;
-    }
-    for(int i = 0; i < 4; ++i)
-        lateral_portion += (5 - i) * slice * var_list[i];
-    for (int i = 4; i < 8; ++i)
-        lateral_portion += (i - 4) * slice * var_list[i];
-    return lateral_portion;
-}
 
-// const int Polygon::get_Wi_coord(int i)
-// {
-//     int w_height = (_t_right_y - _b_left_y)/8;
-//     if(i == -1)
-//         return middle_y;
-//     else if (i < 4) 
-//         return middle_y + (4 - i) * w_height;
-//     else
-//         return middle_y - (i - 3) * w_height;
-// }
 const int Polygon::get_Wi_coord(int i)
 {
     if(var_list.size() == 1){

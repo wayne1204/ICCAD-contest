@@ -314,7 +314,7 @@ Polygon* Layer::split_Y(Polygon* bigGG,int y,bool is_top)
     #ifdef DEBUG
         cout<<"split y "<<endl;
     #endif     
-    Polygon* new_poly=new Polygon("space",bigGG->is_solid());
+    Polygon* new_poly=new Polygon(bigGG->getType(),bigGG->is_solid());
     if(is_top){
         new_poly->set_xy(bigGG->_top_right_x(),bigGG->_top_right_y(),bigGG->_bottom_left_x(),y);
         new_poly->set_rt(bigGG->get_rt());
@@ -380,7 +380,7 @@ Polygon* Layer::split_X_left(Polygon* bigGG, int x_left,int x_right)
         cout<<"split x_left "<<endl;
     #endif
     Polygon* tp;
-    Polygon* new_poly = new Polygon("space", bigGG->is_solid());
+    Polygon *new_poly = new Polygon(bigGG->getType(), bigGG->is_solid());
     new_poly->set_xy(x_left,bigGG->_top_right_y(),bigGG->_bottom_left_x(),bigGG->_bottom_left_y());
     new_poly->set_tr(bigGG);
     new_poly->set_lb(bigGG->get_lb());
@@ -409,7 +409,7 @@ Polygon* Layer::split_X_right(Polygon* bigGG, int x_left,int x_right )
         cout<<"split x_right "<<endl;
     #endif
     Polygon* tp;
-    Polygon* new_poly = new Polygon("space", bigGG->is_solid());
+    Polygon *new_poly = new Polygon(bigGG->getType(), bigGG->is_solid());
     new_poly->set_xy(bigGG->_top_right_x(),bigGG->_top_right_y(),x_right,bigGG->_bottom_left_y());
     new_poly->set_rt(bigGG->get_rt());
     new_poly->set_tr(bigGG->get_tr());

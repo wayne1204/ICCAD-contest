@@ -55,6 +55,7 @@ public:
     void parseTable(ifstream& );
     void parseCapRules(ifstream &, int);
     void setWindow(int num){ window_size = num; }
+    int getLayerNum() { return layer_num; }
 
     // chipMgr.cpp
     double calCapicitance(double area, int type, int layer1, int layer2);
@@ -64,9 +65,11 @@ public:
     void report_density(bool);
     void write_fill(string, string);
     void check_layer(string &filename);
-    void rotate_dummy(Layer layer);
     double get_windowsize(){return window_size;}
-    void preprocess(GRBModel* model, int layer, vector<bool> VorH);
+
+    void chip_rotate(vector<bool> VorH);
+    void rotate_dummy(Layer layer);
+    void set_variable(GRBModel* model, int layer);
     void layer_constraint(GRBModel *model, int layer_id, int x ,int y);
     GRBLinExpr slot_constraint(GRBModel *model, const int &x, const int &y, vector<Polygon *> &slots, int layer_id);
     void minimize_cap(GRBModel *model, int layer_id);
@@ -85,6 +88,7 @@ public:
     unordered_map<string, pair<int, int>> area_mapping;
     unordered_map<string, pair<int, int>> fringe_mapping;
     unordered_map<int, Capacitance *> total_Cap_List;
+    vector< vector<Polygon *>> total_poly_List;
     vector< vector<Polygon *>> total_Cnet_List;
     Layer *_LayerList;
     int _bl_bound_x;

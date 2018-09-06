@@ -323,6 +323,13 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
             S->set_xy(x1, y1, x2, y2);
             // S->setALL(coordinate_y[j], model, ++slot_id);
             insert(S, true, dummy_bottom);
+            if(layer_id == 4){
+                if (x1 == 3426907 && x2 == 3425657 && y1 == 1802562 && y2 == 1801889)
+                    cout <<"gurobi is shit=================================\n";
+            }
+                // assert();
+
+                //  3425657 1801889 3426907 1802562
             // cout << S->get_slot_id() << endl;
             // vector<Polygon*> pp ;
             // region_query(dummy_bottom, x1, y1, x2, y2, pp);
@@ -383,9 +390,7 @@ void Layer::critical_find_lr(Polygon *critical, vector<Polygon *> & neighbor_lis
     if (x_start > _bl_boundary_x && x_start < _tr_boundary_x && y_start > _bl_boundary_y && y_start <_tr_boundary_y){
         while(current->_top_right_y() > critical->_bottom_left_y()){
             if(current->getType() == "slot"){
-                // if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 1 * windowsize, x) 
-                //     * classify(current->_top_right_y(), current->_bottom_left_y(), y + 1 * windowsize, y) != 0)
-                    neighbor_list.push_back(current);
+                neighbor_list.push_back(current);
             }
             if(current->_bottom_left_y() - min_space > _bl_boundary_y){
                 current = point_search(current, x_start, current->_bottom_left_y() - min_space);
@@ -400,9 +405,7 @@ void Layer::critical_find_lr(Polygon *critical, vector<Polygon *> & neighbor_lis
         current = point_search(dummy_bottom, x_start, y_start);
         while(current->_top_right_y() > critical->_bottom_left_y()){
             if(current->is_slot()){
-                // if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 1 * windowsize, x) 
-                //     * classify(current->_top_right_y(), current->_bottom_left_y(), y + 1 * windowsize, y) != 0)
-                    neighbor_list.push_back(current);
+                neighbor_list.push_back(current);
             }
             if(current->_bottom_left_y() - min_space > _bl_boundary_y){
                 current = point_search(current, x_start, current->_bottom_left_y() - min_space);
@@ -422,11 +425,13 @@ void Layer::critical_find_top(Polygon *critical, vector<Polygon *> &neighbor_lis
 
     while(current->_bottom_left_x() < critical->_top_right_x()){
         if(current->is_slot()){
-            // if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 1 * windowsize, x) 
-            //         * classify(current->_top_right_y(), current->_bottom_left_y(), y + 1 * windowsize, y) != 0)
-                neighbor_list.push_back(current);
+            neighbor_list.push_back(current);
         }
-        current = point_search(current, current->_top_right_x() + min_space, y_start);
+        if(current->_top_right_x() + min_space < _tr_boundary_x){
+            current = point_search(current, current->_top_right_x() + min_space, y_start);
+            assert(current != NULL);
+        }
+        else break;
     }
 }
 
@@ -434,19 +439,22 @@ void Layer::critical_find_bottom(Polygon *critical, vector<Polygon *> &neighbor_
 {
     assert(critical->is_critical());
     int x_start = critical->_bottom_left_x();
-    int y_start = critical->_bottom_left_y() - min_space;
+    int y_start = critical->_bottom_left_y() - min_space -1;
     Polygon *current = point_search(dummy_bottom, x_start, y_start);
     neighbor_list.clear();
     while(current->_bottom_left_x() < critical->_top_right_x()){
         if(current->is_slot())
-            // if (classify(current->_top_right_x(), current->_bottom_left_x(), x + 1 * windowsize, x) 
-            //         * classify(current->_top_right_y(), current->_bottom_left_y(), y + 1 * windowsize, y) != 0)
-                neighbor_list.push_back(current);
-        current = point_search(current, current->_top_right_x() + min_space, y_start);
+            neighbor_list.push_back(current);
+        if(current->_top_right_x() + min_space < _tr_boundary_x){
+            current = point_search(current, current->_top_right_x() + min_space, y_start);
+            assert(current != NULL);
+        }
+        else break;
     }
 }
 
 void Layer::critical_find_vertical(Polygon *critical, vector<Polygon *> & slot_list, int space){
+    slot_list.clear();
     int x1 = min(critical->_top_right_x() + space, _tr_boundary_x);
     int y1 = min(critical->_top_right_y() + space, _tr_boundary_y);
     int x2 = max(critical->_bottom_left_x() - space, _bl_boundary_x);

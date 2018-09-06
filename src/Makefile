@@ -2,7 +2,7 @@ CXX = g++
 CFLAGS = -g -std=c++11 
 #CFLAGS = -O3 -std=c++11
 
-EXE = MainProgram
+EXE = cada045
 OBJ = main.o chipMgr.o prelayout.o layout.o polygon.o parseFile.o util.o 
 GRBPATH = gurobi801
 

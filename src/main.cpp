@@ -77,27 +77,21 @@ int main(int argc, char** argv)
     mgr->parseRuleFile(rule_file);
     vector<bool>VorH;
     mgr->init_polygon(design, cnets_set, VorH);
-    cerr<<"start preproccess......"<<endl;
+    mgr->chip_rotate(VorH);
 
-    try{
-        for (int i = 0; i < 9; ++i)
+    double final_cap = 0.0;
+    try{     
+        for (int i = 0; i < mgr->getLayerNum()-1; ++i)
         {
-            GRBEnv e = GRBEnv();
-            GRBModel *m = new GRBModel(e);
-            cout<<"doing preprocess ......\n";
-            mgr->preprocess(m, i, VorH);
-            int half_wnd = mgr->get_windowsize()/2;
-            int horizontal_cnt = (mgr->get_tr_boundary_x() - mgr->get_bl_boundary_x()) / half_wnd - 1;
-            int vertical_cnt = (mgr->get_tr_boundary_y() - mgr->get_bl_boundary_y()) / half_wnd - 1;
-            
             GRBEnv env = GRBEnv();
             GRBModel *model = new GRBModel(env);
+            mgr->set_variable(model, i);
             int x = mgr->get_bl_boundary_x(); 
             int y = mgr->get_bl_boundary_y(); 
             mgr->layer_constraint(model, i, x, y);
             mgr->minimize_cap(model, i);
-            cout<<"=============layer id = "<<i+1<<" =============="<<endl;
             model->optimize();
+            final_cap += model->get(GRB_DoubleAttr_ObjVal) ;
             mgr->write_output(model,i, x, y);            
         }
     }
@@ -106,52 +100,9 @@ int main(int argc, char** argv)
         cout << "Error code = " << e.getErrorCode() << endl;
         cout << e.getMessage() << endl;
     }
-
+    cout <<"[Final Cap]" << final_cap <<endl;
     string s = "";
     mgr->write_fill(output, s);
     mgr->final_check();
     mu->report();
-
-    // string output_fill = "";
-    // mgr->report_density(true);
-    // mgr->insert_tile(output_fill);
-    // cout << "finish insert tile" << endl;
-    // // mgr->insert_tile(output_fill);
-    // mgr->report_density(false);
-    // // mgr->insert_tile(output_fill);
-    // mgr->write_fill(output, output_fill);
-    // //mgr->check_layer(output);
-    // mu->report();
-    // try{
-    //     GRBEnv env = GRBEnv();
-    //     GRBModel model = GRBModel(env);
-
-    //     GRBVar x = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "x");
-    //     // cout<<"gurobi sucks" << x.get(GRB_StringAttr_VarName) <<endl;
-    //     GRBVar y = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "y");
-    //     GRBVar z = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "z");
-
-    //     model.setObjective(x + y + 2 * z, GRB_MAXIMIZE);
-    //     model.addConstr(x + 2 * y + 3 * z <= 4, "c0");
-    //     model.addConstr(x + y >= 1, "c1");
-
-    //     // Optimize model
-    //     model.optimize();
-    //     if(x.get(GRB_DoubleAttr_X) > 0)
-    //     cout << x.get(GRB_StringAttr_VarName) << " "
-    //          << x.get(GRB_DoubleAttr_X) << endl;
-    //     if(y.get(GRB_DoubleAttr_X) > 0)
-    //     cout << y.get(GRB_StringAttr_VarName) << " "
-    //          << y.get(GRB_DoubleAttr_X) << endl;
-    //     if(z.get(GRB_DoubleAttr_X) > 0)
-    //     cout << z.get(GRB_StringAttr_VarName) << " "
-    //          << z.get(GRB_DoubleAttr_X) << endl;
-
-    //     cout << "Obj: " << model.get(GRB_DoubleAttr_ObjVal) << endl;
-    // }
-    // catch (GRBException e)
-    // {
-    //     cout << "Error code = " << e.getErrorCode() << endl;
-    //     cout << e.getMessage() << endl;
-    // }
 }
