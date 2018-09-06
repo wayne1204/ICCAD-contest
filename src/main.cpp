@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 
     double final_cap = 0.0;
     try{     
-        for (int i = 0; i < mgr->getLayerNum()-1; ++i)
+        for (int i = 0; i < mgr->getLayerNum(); ++i)
         {
             GRBEnv env = GRBEnv();
             GRBModel *model = new GRBModel(env);

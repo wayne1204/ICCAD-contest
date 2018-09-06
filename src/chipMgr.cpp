@@ -225,7 +225,7 @@ void chipManager::final_check(){
     int half_wnd = window_size / 2;
     int horizontal_cnt = (_tr_bound_x - _bl_bound_x) / half_wnd -1;
     int vertical_cnt = (_tr_bound_y - _bl_bound_y) / half_wnd -1;
-    for (int i = 0; i < layer_num -1 ; ++i){
+    for (int i = 0; i < layer_num ; ++i){
         for(int row = 0; row < vertical_cnt; ++row){
             for (int col = 0; col < horizontal_cnt; ++col){
                 x = _bl_bound_x + col * half_wnd;
@@ -350,8 +350,8 @@ void chipManager::layer_constraint(GRBModel* model, int layer_id , int x ,int y)
             //// density constraint
             string name = to_string(layer_id) + '_' + to_string(row) + '_' + to_string(col);
             model->addConstr(slot_exp + area  >= min_area, name);
-            if(layer_id < layer_num - 2)
-                model->addConstr(0.45*window_size*window_size >= slot_exp + area);
+            // if(layer_id < layer_num - 2)
+            //     model->addConstr(0.45*window_size*window_size >= slot_exp + area);
         }
     }
     cout << "=====[ finish adding layer#" << layer_id +1 << " constraints ( slot + metal >= 0.4 ) ]=====" << endl;
@@ -418,8 +418,6 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
                     space = poly_list[j]->get_Wi_coord(-1) - C->_top_right_y();
                 
                 double cap = calCapicitance(overlap, space, layer_id+1);
-                if (k > 3)
-                    cap *= 5;
                 assert(cap > 0);
                 cap_expression += cap * poly_list[j]->getVariable(k);
             }
@@ -438,8 +436,6 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
                     space = C->_bottom_left_y() - poly_list[j]->get_Wi_coord(-1);
          
                 double cap = calCapicitance(overlap, space, layer_id+1);
-                if (k < 4)
-                    cap *= 5;
                 assert(cap > 0);
                 cap_expression += cap * poly_list[j]->getVariable(k);
             }
@@ -485,7 +481,6 @@ GRBLinExpr chipManager::minimize_area_cap(GRBModel* model, int layer_id, bool is
 
                 overlap_x = classify(C->_top_right_x(), C->_bottom_left_x(), slot_list[j]->_top_right_x(), slot_list[j]->_bottom_left_x());
                 overlap_y = classify(C->_top_right_y(), C->_bottom_left_y(), slot_top, slot_bot);
-                assert(slot_top - slot_bot > 0);
 
                 if(overlap_x > 0 && overlap_y > 0){
                     cap = calCapicitance(overlap_x * overlap_y, AREA, layer_id+1, next_layer_id+1);
@@ -531,18 +526,10 @@ void chipManager::write_output(GRBModel* g, int layer, int x, int y){
         if(polygon_list[i]->getType()=="slot"){
             int y_top = INT_MAX, y_bottom = INT_MAX;
             bool fill = false;
-            // int a;
-            // if(polygon_list[i]->getVariable(0).get(GRB_DoubleAttr_X)+polygon_list[i]->getVariable(1).get(GRB_DoubleAttr_X)+polygon_list[i]->getVariable(2).get(GRB_DoubleAttr_X)+polygon_list[i]->getVariable(3).get(GRB_DoubleAttr_X)>1)
-            //     cin>>a;
-            //     //cout<<"--------------error--------------\n";
-            // if(polygon_list[i]->getVariable(4).get(GRB_DoubleAttr_X)+polygon_list[i]->getVariable(5).get(GRB_DoubleAttr_X)+polygon_list[i]->getVariable(6).get(GRB_DoubleAttr_X)+polygon_list[i]->getVariable(7).get(GRB_DoubleAttr_X)>1)
-            //     cin>>a;
-                //cout<<"--------------error--------------\n";
+            
             for (int j=0; j<polygon_list[i]->getVarSize(); j++){
                 GRBVar x = polygon_list[i]->getVariable(j);
                 if(x.get(GRB_DoubleAttr_X) > 0){
-                    // cout<< x.get(GRB_StringAttr_VarName) << " ,value = "<< x.get(GRB_DoubleAttr_X)<<endl;
-                    // cout<<"Y_ij name: "<<polygon_list[i]->getVariable(-1).get(GRB_StringAttr_VarName)<<" , value = "<<polygon_list[i]->getVariable(-1).get(GRB_DoubleAttr_X)<<endl;
                     fill = true;
                     if (j < 4){
                         y_top = polygon_list[i]->get_Wi_coord(j);
@@ -552,13 +539,9 @@ void chipManager::write_output(GRBModel* g, int layer, int x, int y){
                     }
                 }
             }
-            //polygon_list[i]->reset_var();
 
             if (y_top != INT_MAX && y_bottom == INT_MAX){
                 y_bottom = polygon_list[i]->get_Wi_coord(-1);
-                // cout<<polygon_list[i]->getVarSize()<<" size\n";
-                // cout<<"bottom"<<polygon_list[i]->_bottom_left_y()<<" "<<polygon_list[i]->get_Wi_coord(-1)<<" yij\n";
-                // cout<< y_top- y_bottom<<" "<<polygon_list[i]->_top_right_y()-polygon_list[i]->_bottom_left_y()<<"小塊的\n";
             }
             else if (y_top == INT_MAX && y_bottom != INT_MAX){
                 y_top = polygon_list[i]->get_Wi_coord(-1);
