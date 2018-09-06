@@ -116,7 +116,7 @@ void chipManager::init_polygon(string &filename, unordered_set<int> &cnet_set, v
                 y_len_big++;
             }
         }
-        if (x_len_big > y_len_big){
+        if (x_len_big > y_len_big && layer_id != 8){
             VorH[layer_id] = false;
             _bl_bound_y1 = layer_bound[0];
             _bl_bound_x1 = layer_bound[1];
@@ -225,7 +225,8 @@ void chipManager::final_check(){
     int half_wnd = window_size / 2;
     int horizontal_cnt = (_tr_bound_x - _bl_bound_x) / half_wnd -1;
     int vertical_cnt = (_tr_bound_y - _bl_bound_y) / half_wnd -1;
-    for (int i = 0; i < layer_num ; ++i){
+    // for (int i = 0; i < layer_num ; ++i){
+        int i = 8;
         for(int row = 0; row < vertical_cnt; ++row){
             for (int col = 0; col < horizontal_cnt; ++col){
                 x = _bl_bound_x + col * half_wnd;
@@ -260,14 +261,14 @@ void chipManager::final_check(){
                 density = _LayerList[i].density_calculate(x, y, window_size, query_list);
                 // cout << "row = " << row << ", col = " << col <<", density = "<<density<<endl;
                 if (density < _LayerList[i].get_min_density()){
-                    // cout<<"row = "<<row<<", col = "<<col<<endl;
+                    cout<<"layer = "<<i + 1 << " ,row = "<<row<<", col = "<<col<<endl;
                 }
                 //assert(density >= _LayerList[i].get_min_density());
             }
         } 
         cout<<" ==================== check finish ============================="<<endl;
         cout<<" layer id = "<<i+1<<" ...................."<<endl;
-    }      
+    // }      
 }
 
 
@@ -305,6 +306,7 @@ void chipManager::set_variable(GRBModel* model, int layer)
     int slot_id = 0;
     int space_count = 0;
     int threshold = _LayerList[layer].get_width() + 2 * _LayerList[layer].get_gap();
+    vector< vector<int> > rest;
 
     for (int i = 0; i < total_poly_List[layer].size(); i++)
     {
@@ -315,6 +317,29 @@ void chipManager::set_variable(GRBModel* model, int layer)
             int poly_h = total_poly_List[layer][i]->_top_right_y() - total_poly_List[layer][i]->_bottom_left_y();
             if (poly_w >= threshold && poly_h >= threshold)
                 _LayerList[layer].insert_slots(model, total_poly_List[layer][i], poly_w, poly_h, slot_id);
+            else{
+                vector<int> coordinate;
+                coordinate.push_back(total_poly_List[layer][i]->_top_right_x());
+                coordinate.push_back(total_poly_List[layer][i]->_top_right_y());
+                coordinate.push_back(total_poly_List[layer][i]->_bottom_left_x());
+                coordinate.push_back(total_poly_List[layer][i]->_bottom_left_y());
+                rest.push_back(coordinate);
+            }
+        }
+    }
+    for(int i=0;i<rest.size();i++){
+        // int t_x = query_list[i]->_top_right_x(), t_y = query_list[i]->_top_right_y();
+        // int b_x = query_list[i]->_bottom_left_x(), b_y = query_list[i]->_bottom_left_y();
+        int t_x = rest[i][0], t_y = rest[i][1], b_x = rest[i][2], b_y = rest[i][3];
+        cout<<"haha==============   "<<endl;
+        if (_LayerList[layer].expand(t_x, t_y, b_x, b_y, _bl_bound_x, _bl_bound_y, 10000000, 4))
+        {
+            // cout << "..............expanding " << cnt  << "/" << rest.size() <<'\r';
+            Polygon* T = new Polygon();
+            T->set_layer_id(layer);
+            T->set_xy(t_x, t_y, b_x, b_y);
+            cout<<"fuck..."<<endl;
+            _LayerList[layer].insert_slots(model, T, t_x-b_x, t_y-b_y, slot_id);
         }
     }
 }

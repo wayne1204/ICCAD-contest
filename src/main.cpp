@@ -81,19 +81,20 @@ int main(int argc, char** argv)
 
     double final_cap = 0.0;
     try{     
-        for (int i = 0; i < mgr->getLayerNum(); ++i)
-        {
+        // for (int i = 0; i < mgr->getLayerNum(); ++i)
+        // {
+            int i = 8;
             GRBEnv env = GRBEnv();
             GRBModel *model = new GRBModel(env);
             mgr->set_variable(model, i);
-            int x = mgr->get_bl_boundary_x(); 
-            int y = mgr->get_bl_boundary_y(); 
-            mgr->layer_constraint(model, i, x, y);
-            mgr->minimize_cap(model, i);
-            model->optimize();
-            final_cap += model->get(GRB_DoubleAttr_ObjVal) ;
-            mgr->write_output(model,i, x, y);            
-        }
+            // int x = mgr->get_bl_boundary_x(); 
+            // int y = mgr->get_bl_boundary_y(); 
+            // mgr->layer_constraint(model, i, x, y);
+            // mgr->minimize_cap(model, i);
+            // model->optimize();
+            // final_cap += model->get(GRB_DoubleAttr_ObjVal) ;
+            // mgr->write_output(model,i, x, y);            
+        // }
     }
     catch (GRBException e)
     {
@@ -102,7 +103,7 @@ int main(int argc, char** argv)
     }
     cout <<"[Final Cap]" << final_cap <<endl;
     string s = "";
-    mgr->write_fill(output, s);
+    // mgr->write_fill(output, s);
     mgr->final_check();
     mu->report();
 }
