@@ -70,7 +70,7 @@ public:
     void chip_rotate(vector<bool> VorH);
     void rotate_dummy(Layer layer);
     void set_variable(GRBModel* model, int layer);
-    void layer_constraint(GRBModel *model, int layer_id, int x ,int y);
+    void layer_constraint(GRBModel *model, int layer_id, int x ,int y, int cons);
     GRBLinExpr slot_constraint(GRBModel *model, const int &x, const int &y, vector<Polygon *> &slots, int layer_id);
     void minimize_cap(GRBModel *model, int layer_id);
     GRBLinExpr minimize_area_cap(GRBModel *model, int layer_id, bool);

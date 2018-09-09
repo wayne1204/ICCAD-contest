@@ -260,7 +260,7 @@ void chipManager::final_check(){
                 density = _LayerList[i].density_calculate(x, y, window_size, query_list);
                 // cout << "row = " << row << ", col = " << col <<", density = "<<density<<endl;
                 if (density < _LayerList[i].get_min_density()){
-                    // cout<<"row = "<<row<<", col = "<<col<<endl;
+                    cout<<"row = "<<row<<", col = "<<col<<endl;
                 }
                 //assert(density >= _LayerList[i].get_min_density());
             }
@@ -320,7 +320,7 @@ void chipManager::set_variable(GRBModel* model, int layer)
 }
 
 // specify constraints in every window 
-void chipManager::layer_constraint(GRBModel* model, int layer_id , int x ,int y){
+void chipManager::layer_constraint(GRBModel* model, int layer_id , int x ,int y, int cons){
     int x_l, y_l;
     int half_wnd = window_size / 2;
     int horizontal_cnt = (_LayerList[layer_id].get_tr_boundary_x() - _LayerList[layer_id].get_bl_boundary_x()) / half_wnd - 1;
@@ -350,8 +350,14 @@ void chipManager::layer_constraint(GRBModel* model, int layer_id , int x ,int y)
             //// density constraint
             string name = to_string(layer_id) + '_' + to_string(row) + '_' + to_string(col);
             model->addConstr(slot_exp + area  >= min_area, name);
-            // if(layer_id < layer_num - 2)
-            //     model->addConstr(0.45*window_size*window_size >= slot_exp + area);
+            if (cons == 1){
+                if(layer_id < layer_num - 2)
+                    model->addConstr((_LayerList[layer_id].get_min_density() + 0.05)* window_size * window_size >= slot_exp + area);
+            }
+            else if (cons == 2){
+                if (layer_id < layer_num - 2)
+                    model->addConstr((_LayerList[layer_id].get_min_density() + 0.1) * window_size * window_size >= slot_exp + area);
+            }
         }
     }
     cout << "=====[ finish adding layer#" << layer_id +1 << " constraints ( slot + metal >= 0.4 ) ]=====" << endl;
@@ -435,7 +441,7 @@ void chipManager::minimize_cap(GRBModel *model, int layer_id){
                 if (k > 3) 
                     space = C->_bottom_left_y() - poly_list[j]->get_Wi_coord(-1);
          
-                double cap = calCapicitance(overlap, space, layer_id+1);
+                double cap = calCapicitance(overlap, space, layer_id+1) * 10;
                 assert(cap > 0);
                 cap_expression += cap * poly_list[j]->getVariable(k);
             }

@@ -304,18 +304,64 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
 {
     vector<int> coordinate_y;
     vector<int> coordinate_x;
-    int w_y = find_optimal_width(p->_bottom_left_y(), poly_h, coordinate_y);
-    int w_x = find_optimal_width(p->_bottom_left_x(), poly_w, coordinate_x);
+    int w_y, w_x = 0;
+    vector<Polygon *> v;
+    int count = 0;
+    int count_2 = 0;
+    if (p->_top_right_x() + get_gap() <= get_tr_boundary_x())
+        region_query(get_dummy(), p->_top_right_x() + get_gap(), p->_top_right_y(), p->_top_right_x(), p->_bottom_left_y(), v);
+    else
+        count = 1;
+    for (int i = 0; i < v.size(); i++)
+    {
+        if (v[i]->getType() != "space")
+            count++;
+    }
+    v.clear();
+    if (p->_bottom_left_x() - get_gap() >= get_bl_boundary_x())
+        region_query(get_dummy(), p->_bottom_left_x(), p->_top_right_y(), p->_bottom_left_x() - get_gap(), p->_bottom_left_y(), v);
+    else
+        count_2 = 1;
+    for (int i = 0; i < v.size(); i++)
+    {
+        if (v[i]->getType() != "space")
+            count_2++;
+    }
+    if (count == 0 && count_2 != 0)
+        w_x = find_optimal_width(p->_bottom_left_x(), poly_w + get_gap(), coordinate_x);
+    else if (count == 0 && count_2 == 0)
+        w_x = find_optimal_width(p->_bottom_left_x() - get_gap(), poly_w + 2 * get_gap(), coordinate_x);
+    else if (count != 0 && count_2 == 0)
+        w_x = find_optimal_width(p->_bottom_left_x() - get_gap(), poly_w + get_gap(), coordinate_x);
+    else
+        w_x = find_optimal_width(p->_bottom_left_x(), poly_w, coordinate_x);
+    vector<Polygon *> vv;
+    count = 0;
+    if (p->_top_right_y() + get_gap() <= get_tr_boundary_y())
+        region_query(get_dummy(), p->_top_right_x(), p->_top_right_y() + get_gap(), p->_bottom_left_x(), p->_top_right_y(), vv);
+    else
+        count = 1;
+    for (int i = 0; i < vv.size(); i++)
+    {
+        if (vv[i]->getType() != "space")
+            count++;
+    }
+    if (count == 0)
+        w_y = find_optimal_width(p->_bottom_left_y(), poly_h + get_gap(), coordinate_y);
+    else
+        w_y = find_optimal_width(p->_bottom_left_y(), poly_h, coordinate_y);
 
     for (int j = 0; j < coordinate_y.size(); j++)
     {
         for (int k = 0; k < coordinate_x.size(); k++)
         {
             int x1 = coordinate_x[k] + w_x / 2;
-            if( w_x%2 != 0) x1++;
+            if (w_x % 2 != 0)
+                x1++;
             int y1 = coordinate_y[j] + w_y / 2;
-            if( w_y%2 != 0) y1++;
-            
+            if (w_y % 2 != 0)
+                y1++;
+
             int x2 = coordinate_x[k] - w_x / 2;
             int y2 = coordinate_y[j] - w_y / 2;
             Polygon *S = new Polygon(coordinate_y[j], model, ++slot_id);
@@ -323,13 +369,13 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
             S->set_xy(x1, y1, x2, y2);
             // S->setALL(coordinate_y[j], model, ++slot_id);
             insert(S, true, dummy_bottom);
-            if(layer_id == 4){
-                if (x1 == 3426907 && x2 == 3425657 && y1 == 1802562 && y2 == 1801889)
-                    cout <<"gurobi is shit=================================\n";
-            }
-                // assert();
+            // if(layer_id == 4){
+            //     if (x1 == 3426907 && x2 == 3425657 && y1 == 1802562 && y2 == 1801889)
+            //         cout <<"gurobi is shit=================================\n";
+            // }
+            // assert();
 
-                //  3425657 1801889 3426907 1802562
+            //  3425657 1801889 3426907 1802562
             // cout << S->get_slot_id() << endl;
             // vector<Polygon*> pp ;
             // region_query(dummy_bottom, x1, y1, x2, y2, pp);
@@ -342,6 +388,50 @@ void Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const i
         }
     }
 }
+
+//     void
+//     Layer::insert_slots(GRBModel *model, Polygon *p, const int &poly_w, const int &poly_h, int &slot_id)
+// {
+//     vector<int> coordinate_y;
+//     vector<int> coordinate_x;
+//     int w_y = find_optimal_width(p->_bottom_left_y(), poly_h, coordinate_y);
+//     int w_x = find_optimal_width(p->_bottom_left_x(), poly_w, coordinate_x);
+
+//     for (int j = 0; j < coordinate_y.size(); j++)
+//     {
+//         for (int k = 0; k < coordinate_x.size(); k++)
+//         {
+//             int x1 = coordinate_x[k] + w_x / 2;
+//             if( w_x%2 != 0) x1++;
+//             int y1 = coordinate_y[j] + w_y / 2;
+//             if( w_y%2 != 0) y1++;
+            
+//             int x2 = coordinate_x[k] - w_x / 2;
+//             int y2 = coordinate_y[j] - w_y / 2;
+//             Polygon *S = new Polygon(coordinate_y[j], model, ++slot_id);
+//             S->set_layer_id(layer_id);
+//             S->set_xy(x1, y1, x2, y2);
+//             // S->setALL(coordinate_y[j], model, ++slot_id);
+//             insert(S, true, dummy_bottom);
+//             if(layer_id == 4){
+//                 if (x1 == 3426907 && x2 == 3425657 && y1 == 1802562 && y2 == 1801889)
+//                     cout <<"gurobi is shit=================================\n";
+//             }
+//                 // assert();
+
+//                 //  3425657 1801889 3426907 1802562
+//             // cout << S->get_slot_id() << endl;
+//             // vector<Polygon*> pp ;
+//             // region_query(dummy_bottom, x1, y1, x2, y2, pp);
+//             // for(int i = 0; i< pp.size(); ++i)
+//             //     cout << pp[i]->getType() << " id:" << pp[i]->get_slot_id()
+//             //      << " Y_ij "<< pp[i]->get_Wi_coord(-1) << endl;
+//             // slot_list.push_back(S);
+//             delete S;
+//             S = NULL;
+//         }
+//     }
+// }
 
 int Layer::find_optimal_width(const int &boundary, const int &length, vector<int> &coordinates)
 {

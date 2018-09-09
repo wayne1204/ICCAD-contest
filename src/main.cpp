@@ -37,7 +37,7 @@ int main(int argc, char** argv)
     char* buff_beg = buff;
     char* buff_end = buff + filesize;
 
-    chipManager *mgr = new chipManager();
+   
     string token;
     string design, output, rule_file, process_file;
     unordered_set<int> cnets_set;
@@ -73,14 +73,21 @@ int main(int argc, char** argv)
 
         }
     }
-    mgr->parseProcessFile(process_file);
-    mgr->parseRuleFile(rule_file);
-    vector<bool>VorH;
-    mgr->init_polygon(design, cnets_set, VorH);
-    mgr->chip_rotate(VorH);
+    // chipManager *mgr = new chipManager();
+    // mgr->parseProcessFile(process_file);
+    // mgr->parseRuleFile(rule_file);
+    // vector<bool>VorH;
+    // mgr->init_polygon(design, cnets_set, VorH);
+    // mgr->chip_rotate(VorH);
 
     double final_cap = 0.0;
-    try{     
+    try{
+        chipManager *mgr = new chipManager();
+        mgr->parseProcessFile(process_file);
+        mgr->parseRuleFile(rule_file);
+        vector<bool> VorH;
+        mgr->init_polygon(design, cnets_set, VorH);
+        mgr->chip_rotate(VorH);
         for (int i = 0; i < mgr->getLayerNum(); ++i)
         {
             GRBEnv env = GRBEnv();
@@ -88,21 +95,73 @@ int main(int argc, char** argv)
             mgr->set_variable(model, i);
             int x = mgr->get_bl_boundary_x(); 
             int y = mgr->get_bl_boundary_y(); 
-            mgr->layer_constraint(model, i, x, y);
+            mgr->layer_constraint(model, i, x, y, 1);
             mgr->minimize_cap(model, i);
             model->optimize();
             final_cap += model->get(GRB_DoubleAttr_ObjVal) ;
             mgr->write_output(model,i, x, y);            
         }
+        string s = "";
+        mgr->write_fill(output, s);
+        mgr->final_check();
     }
     catch (GRBException e)
     {
-        cout << "Error code = " << e.getErrorCode() << endl;
-        cout << e.getMessage() << endl;
+        try{
+            cout << "Error code = " << e.getErrorCode() << endl;
+            cout << e.getMessage() << endl;
+            chipManager *mgr = new chipManager();
+            mgr->parseProcessFile(process_file);
+            mgr->parseRuleFile(rule_file);
+            vector<bool> VorH;
+            mgr->init_polygon(design, cnets_set, VorH);
+            mgr->chip_rotate(VorH);
+            for (int i = 0; i < mgr->getLayerNum(); ++i)
+            {
+                GRBEnv env = GRBEnv();
+                GRBModel *model = new GRBModel(env);
+                mgr->set_variable(model, i);
+                int x = mgr->get_bl_boundary_x();
+                int y = mgr->get_bl_boundary_y();
+                mgr->layer_constraint(model, i, x, y, 2);
+                mgr->minimize_cap(model, i);
+                model->optimize();
+                final_cap += model->get(GRB_DoubleAttr_ObjVal);
+                mgr->write_output(model, i, x, y);
+            }
+            string s = "";
+            mgr->write_fill(output, s);
+            mgr->final_check();
+        }
+        catch (GRBException e)
+        {
+            cout << "Error code = " << e.getErrorCode() << endl;
+            cout << e.getMessage() << endl;
+            chipManager *mgr = new chipManager();
+            mgr->parseProcessFile(process_file);
+            mgr->parseRuleFile(rule_file);
+            vector<bool> VorH;
+            mgr->init_polygon(design, cnets_set, VorH);
+            mgr->chip_rotate(VorH);
+            for (int i = 0; i < mgr->getLayerNum(); ++i)
+            {
+                GRBEnv env = GRBEnv();
+                GRBModel *model = new GRBModel(env);
+                mgr->set_variable(model, i);
+                int x = mgr->get_bl_boundary_x();
+                int y = mgr->get_bl_boundary_y();
+                mgr->layer_constraint(model, i, x, y, 3);
+                mgr->minimize_cap(model, i);
+                model->optimize();
+                final_cap += model->get(GRB_DoubleAttr_ObjVal);
+                mgr->write_output(model, i, x, y);
+            }
+            string s = "";
+            mgr->write_fill(output, s);
+            mgr->final_check();
+        }
     }
     cout <<"[Final Cap]" << final_cap <<endl;
-    string s = "";
-    mgr->write_fill(output, s);
-    mgr->final_check();
+    
     mu->report();
 }
