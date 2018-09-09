@@ -55,7 +55,7 @@ bool Layer::expand( int& x1, int& y1, int& x2, int& y2, const int& edge_x, const
     x2 = (x2 < bl_x) ? bl_x : x2;
     y1 = (y1 > tr_y) ? tr_y : y1;
     y2 = (y2 < bl_y) ? bl_y : y2;
-
+    cout<<"nonono....."<<endl;
     if(region_query_bool(dummy_bottom,x1,y1,x2,y2,query_list)){
         if (y1 + num <= tr_y)
         {
